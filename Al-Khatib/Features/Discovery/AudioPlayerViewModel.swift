@@ -10,16 +10,25 @@ import AVFoundation
 import Combine
 import Foundation
 
+struct AudioQueueItem: Sendable, Equatable {
+    let url: String
+    let subtitle: String
+}
+
 @MainActor
 final class AudioPlayerController: ObservableObject {
     @Published var isPlaying = false
     @Published var progress: Double = 0
     @Published var reciterName: String = ""
+    @Published var trackTitle: String = ""
+    @Published var trackSubtitle: String = ""
     @Published var currentURL: String?
 
     private var player: AVPlayer?
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
+    private var queue: [AudioQueueItem] = []
+    private var queueIndex = 0
 
     func play(from urlString: String, reciterName: String) {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -27,7 +36,7 @@ final class AudioPlayerController: ObservableObject {
 
         let finalURLStr = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: urlString)
         guard let url = URL(string: finalURLStr) else {
-            return 
+            return
         }
         self.reciterName = reciterName
         let shouldCreateNewItem = (currentURL != finalURLStr) || (player == nil)
@@ -39,6 +48,39 @@ final class AudioPlayerController: ObservableObject {
         }
         player?.play()
         isPlaying = true
+    }
+
+    func playVerse(
+        url: String,
+        surahTitle: String,
+        ayahSubtitle: String,
+        reciterName: String
+    ) {
+        queue = []
+        queueIndex = 0
+        trackTitle = surahTitle
+        trackSubtitle = ayahSubtitle
+        play(from: url, reciterName: reciterName)
+    }
+
+    func playSequence(
+        items: [AudioQueueItem],
+        surahTitle: String,
+        reciterName: String,
+        startIndex: Int = 0
+    ) {
+        guard items.isEmpty == false else { return }
+        queue = items
+        queueIndex = min(max(startIndex, 0), items.count - 1)
+        trackTitle = surahTitle
+        self.reciterName = reciterName
+        playCurrentQueueItem()
+    }
+
+    func isPlayingURL(_ urlString: String?) -> Bool {
+        guard let urlString, let currentURL else { return false }
+        let normalized = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: urlString)
+        return normalized == currentURL
     }
 
     func pause() {
@@ -63,6 +105,10 @@ final class AudioPlayerController: ObservableObject {
         isPlaying = false
         progress = 0
         currentURL = nil
+        queue = []
+        queueIndex = 0
+        trackTitle = ""
+        trackSubtitle = ""
         removeObserver()
     }
 
@@ -73,6 +119,24 @@ final class AudioPlayerController: ObservableObject {
         let seconds = duration * value
         let time = CMTime(seconds: seconds, preferredTimescale: 600)
         player.seek(to: time)
+    }
+
+    private func playCurrentQueueItem() {
+        guard queue.indices.contains(queueIndex) else { return }
+        let item = queue[queueIndex]
+        trackSubtitle = item.subtitle
+        play(from: item.url, reciterName: reciterName)
+    }
+
+    private func handlePlaybackEnded() {
+        if queueIndex + 1 < queue.count {
+            queueIndex += 1
+            playCurrentQueueItem()
+        } else {
+            queue = []
+            queueIndex = 0
+            stop()
+        }
     }
 
     private func addObserver() {
@@ -101,7 +165,7 @@ final class AudioPlayerController: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.stop()
+                self?.handlePlaybackEnded()
             }
         }
     }

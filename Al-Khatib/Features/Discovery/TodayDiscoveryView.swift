@@ -198,7 +198,7 @@ struct TodayDiscoveryView: View {
         .animation(nil, value: audio.currentURL)
         .safeAreaInset(edge: .bottom) {
             if audio.currentURL != nil {
-                audioBar
+                VerseAudioBar(audio: audio)
             }
         }
     }
@@ -247,7 +247,14 @@ struct TodayDiscoveryView: View {
                     if let u = d.audio?.url {
                         let reciterLabel = viewModel?.recitations
                             .first(where: { $0.id == viewModel?.selectedRecitationId })?.displayName ?? ""
-                        audio.play(from: u, reciterName: reciterLabel)
+                        let verseLabel = d.verseKey
+                            .flatMap { ShareVerseCard.humanLabel(for: $0) } ?? "Quran"
+                        audio.playVerse(
+                            url: u,
+                            surahTitle: verseLabel,
+                            ayahSubtitle: reciterLabel,
+                            reciterName: reciterLabel
+                        )
                     }
                 }
                 actionButton(icon: "square.and.arrow.up", text: "Share") {
@@ -367,53 +374,6 @@ struct TodayDiscoveryView: View {
         return key
     }
 
-    private var audioBar: some View {
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.Theme.gold.opacity(0.15))
-                .frame(width: 44, height: 44)
-                .overlay(
-                    Image(systemName: "waveform")
-                        .foregroundColor(Color.Theme.gold)
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                let trackName = viewModel?.detail?.verseKey
-                    .flatMap { ShareVerseCard.humanLabel(for: $0) } ?? ""
-                Text(trackName)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                Text(audio.reciterName)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer(minLength: 4)
-
-            Button { audio.toggle() } label: {
-                Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(.primary)
-                    .frame(width: 36, height: 44)
-            }
-
-            Button { audio.stop() } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 20))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundColor(.secondary)
-                    .frame(width: 36, height: 44)
-            }
-        }
-        .padding(8)
-        .background(Capsule().fill(.regularMaterial))
-        .overlay(Capsule().stroke(Color.white.opacity(0.4), lineWidth: 0.5))
-        .shadow(color: Color.black.opacity(0.12), radius: 10, y: 5)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
-    }
 }
 
 extension TodayDiscoveryView {

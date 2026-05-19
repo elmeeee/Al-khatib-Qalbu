@@ -14,7 +14,15 @@ final class ChapterVersesViewModel {
     var verses: [RandomAyahPayload] = []
     var isLoading = false
     var isLoadingMore = false
+    var isPreparingPlayAll = false
     var errorMessage: String?
+    var recitations: [RecitationPayload] = []
+    var selectedRecitationId: Int = 6
+
+    var surahDisplayTitle: String { chapter.displayComplexName }
+    var reciterDisplayName: String {
+        recitations.first(where: { $0.id == selectedRecitationId })?.displayName ?? ""
+    }
 
     private let content: QuranContentRepository
     private var nextPage = 1
@@ -35,6 +43,40 @@ final class ChapterVersesViewModel {
         defer { isLoading = false }
 
         await fetchPage(1, append: false)
+        await loadRecitationsIfNeeded()
+    }
+
+    func loadRecitationsIfNeeded() async {
+        guard recitations.isEmpty else { return }
+        if let fetched = try? await content.getRecitations().recitations {
+            recitations = fetched
+        }
+    }
+
+    func ensureAllVersesLoaded() async {
+        while hasMorePages {
+            await fetchPage(nextPage, append: true)
+        }
+    }
+
+    func audioQueueItems() -> [AudioQueueItem] {
+        let reciter = reciterDisplayName
+        return verses.compactMap { verse in
+            guard let url = verse.audio?.url, url.isEmpty == false else { return nil }
+            let label = ayahSubtitle(for: verse)
+            let subtitle = reciter.isEmpty ? label : "\(label) — \(reciter)"
+            return AudioQueueItem(url: url, subtitle: subtitle)
+        }
+    }
+
+    func ayahSubtitle(for verse: RandomAyahPayload) -> String {
+        if let number = verse.verseNumber {
+            return "Ayah \(number)"
+        }
+        if let key = verse.verseKey {
+            return ShareVerseCard.humanLabel(for: key)
+        }
+        return "Ayah"
     }
 
     func loadMoreIfNeeded(currentVerse: RandomAyahPayload?) async {

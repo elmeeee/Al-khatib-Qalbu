@@ -2,9 +2,6 @@
 //  ChapterVersesView.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
-//
 
 import SwiftUI
 
@@ -18,7 +15,7 @@ struct ChapterVersesView: View {
 
     var body: some View {
         ZStack {
-            Color.Theme.offWhite.ignoresSafeArea()
+            chapterBackground
 
             if let vm {
                 versesContent(vm)
@@ -26,11 +23,11 @@ struct ChapterVersesView: View {
                 LoadingSkeleton()
             }
         }
-        .navigationTitle(chapter.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .bottom) {
             if audio.currentURL != nil {
-                chapterAudioBar
+                VerseAudioBar(audio: audio)
             }
         }
         .task {
@@ -60,6 +57,15 @@ struct ChapterVersesView: View {
         }
     }
 
+    private var chapterBackground: some View {
+        LinearGradient(
+            colors: [Color.Theme.offWhite, Color(hex: "#F0F4F1"), Color.Theme.offWhite],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+
     private var tafsirSheetBinding: Binding<Bool> {
         Binding(
             get: { tafsirPresenter?.isSheetPresented ?? false },
@@ -87,10 +93,13 @@ struct ChapterVersesView: View {
     private var versesLoadingBody: some View {
         ScrollView {
             VStack(spacing: 12) {
-                ForEach(0..<4, id: \.self) { _ in
-                    RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.Theme.deepEmerald.opacity(0.12))
+                    .frame(height: 160)
+                ForEach(0..<3, id: \.self) { _ in
+                    RoundedRectangle(cornerRadius: 18)
                         .fill(Color.Theme.softGrey.opacity(0.35))
-                        .frame(height: 220)
+                        .frame(height: 200)
                 }
             }
             .padding(.horizontal)
@@ -128,92 +137,173 @@ struct ChapterVersesView: View {
         @Bindable var bindable = vm
 
         return ScrollView {
-            LazyVStack(spacing: 16) {
-                chapterHeader
+            LazyVStack(spacing: 0) {
+                chapterHero(bindable)
+                    .padding(.bottom, 20)
 
-                ForEach(bindable.verses, id: \.listIdentity) { verse in
-                    AyahVerseCard(
-                        verse: verse,
-                        showsVerseLabel: false,
-                        onAudio: verse.audio?.url == nil ? nil : {
-                            if let url = verse.audio?.url {
-                                audio.play(from: url, reciterName: "")
+                LazyVStack(spacing: 16) {
+                    ForEach(bindable.verses, id: \.listIdentity) { verse in
+                        ChapterAyahCard(
+                            verse: verse,
+                            ayahNumber: verse.verseNumber,
+                            isPlaying: audio.isPlayingURL(verse.audio?.url),
+                            onPlay: { playSingleAyah(verse, vm: bindable) },
+                            onTafsir: { tafsirPresenter?.open(for: verse) }
+                        )
+                        .onAppear {
+                            if let key = verse.verseKey {
+                                Task { await tafsirPresenter?.prefetch(ayahKey: key) }
                             }
-                        },
-                        onTafsir: tafsirPresenter == nil ? nil : {
-                            tafsirPresenter?.open(for: verse)
+                            Task { await bindable.loadMoreIfNeeded(currentVerse: verse) }
                         }
-                    )
-                    .onAppear {
-                        if let key = verse.verseKey {
-                            Task { await tafsirPresenter?.prefetch(ayahKey: key) }
-                        }
-                        Task { await bindable.loadMoreIfNeeded(currentVerse: verse) }
+                    }
+
+                    if bindable.isLoadingMore {
+                        ProgressView()
+                            .tint(Color.Theme.deepEmerald)
+                            .padding(.vertical, 20)
                     }
                 }
-
-                if bindable.isLoadingMore {
-                    ProgressView()
-                        .tint(Color.Theme.deepEmerald)
-                        .padding(.vertical, 16)
-                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, audio.currentURL == nil ? 32 : 88)
             }
-            .padding(.horizontal)
-            .padding(.bottom, 40)
         }
         .refreshable {
             await bindable.loadInitial()
         }
     }
 
-    private var chapterHeader: some View {
-        VStack(spacing: 8) {
-            if let arabic = chapter.nameArabic, arabic.isEmpty == false {
-                Text(arabic)
-                    .font(.system(size: 28, weight: .medium))
-                    .foregroundColor(Color.Theme.deepEmerald)
-                    .environment(\.layoutDirection, .rightToLeft)
+    private func chapterHero(_ vm: ChapterVersesViewModel) -> some View {
+        ZStack(alignment: .bottom) {
+            LinearGradient(
+                colors: [
+                    Color.Theme.deepEmerald,
+                    Color(hex: "#0A3D2E"),
+                    Color.Theme.deepEmerald.opacity(0.95)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            GeometryReader { geo in
+                Circle()
+                    .fill(Color.Theme.gold.opacity(0.08))
+                    .frame(width: geo.size.width * 0.7)
+                    .offset(x: geo.size.width * 0.35, y: -geo.size.height * 0.2)
+                Circle()
+                    .fill(Color.white.opacity(0.04))
+                    .frame(width: geo.size.width * 0.5)
+                    .offset(x: -geo.size.width * 0.2, y: geo.size.height * 0.1)
             }
 
-            Text(chapter.displayComplexName)
-                .font(.title3.bold())
-                .foregroundColor(.primary)
+            VStack(spacing: 14) {
+                HStack {
+                    Button { dismissChapter() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.9))
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Color.white.opacity(0.12)))
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
 
-            if chapter.displayTranslatedName.isEmpty == false {
-                Text(chapter.displayTranslatedName)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(Color.Theme.deepEmerald)
-            }
+                if let arabic = chapter.nameArabic, arabic.isEmpty == false {
+                    Text(arabic)
+                        .font(.system(size: 36, weight: .medium))
+                        .foregroundColor(.white)
+                        .environment(\.layoutDirection, .rightToLeft)
+                        .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                }
 
-            if let countLabel = chapter.versesCountLabel {
-                Text(countLabel)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Text(chapter.displayComplexName)
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+
+                if chapter.displayTranslatedName.isEmpty == false {
+                    Text(chapter.displayTranslatedName)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(Color.Theme.gold.opacity(0.95))
+                }
+
+                if let countLabel = chapter.versesCountLabel {
+                    Text(countLabel)
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.white.opacity(0.75))
+                }
+
+                playAllButton(vm)
+                    .padding(.top, 4)
+                    .padding(.bottom, 20)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .clipShape(
+            RoundedRectangle(cornerRadius: 0, style: .continuous)
+        )
     }
 
-    private var chapterAudioBar: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "waveform")
-                .foregroundColor(Color.Theme.gold)
-            Text("Playing recitation")
-                .font(.subheadline.weight(.semibold))
-            Spacer()
-            Button { audio.toggle() } label: {
-                Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
+    private func playAllButton(_ vm: ChapterVersesViewModel) -> some View {
+        Button {
+            Task { await playEntireSurah(vm: vm) }
+        } label: {
+            HStack(spacing: 10) {
+                if vm.isPreparingPlayAll {
+                    ProgressView()
+                        .tint(Color.Theme.deepEmerald)
+                } else {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 14, weight: .bold))
+                }
+                Text(vm.isPreparingPlayAll ? "Loading..." : "Play Surah")
+                    .font(.system(size: 15, weight: .semibold))
             }
-            Button { audio.stop() } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundColor(.secondary)
-            }
+            .foregroundColor(Color.Theme.deepEmerald)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 12)
+            .background(Capsule().fill(Color.Theme.pureWhite))
+            .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
         }
-        .padding(12)
-        .background(.regularMaterial)
-        .padding(.horizontal, 12)
-        .padding(.bottom, 8)
+        .buttonStyle(.plain)
+        .disabled(vm.isPreparingPlayAll)
+    }
+
+    @Environment(\.dismiss) private var dismiss
+
+    private func dismissChapter() {
+        audio.stop()
+        dismiss()
+    }
+
+    @MainActor
+    private func playSingleAyah(_ verse: RandomAyahPayload, vm: ChapterVersesViewModel) {
+        guard let url = verse.audio?.url else { return }
+        let reciter = vm.reciterDisplayName
+        let ayah = vm.ayahSubtitle(for: verse)
+        audio.playVerse(
+            url: url,
+            surahTitle: vm.surahDisplayTitle,
+            ayahSubtitle: "\(ayah) — \(reciter)",
+            reciterName: reciter
+        )
+    }
+
+    @MainActor
+    private func playEntireSurah(vm: ChapterVersesViewModel) async {
+        vm.isPreparingPlayAll = true
+        defer { vm.isPreparingPlayAll = false }
+
+        await vm.ensureAllVersesLoaded()
+        let items = vm.audioQueueItems()
+        guard items.isEmpty == false else { return }
+
+        let reciter = vm.reciterDisplayName
+        audio.playSequence(
+            items: items,
+            surahTitle: vm.surahDisplayTitle,
+            reciterName: reciter,
+            startIndex: 0
+        )
     }
 }
