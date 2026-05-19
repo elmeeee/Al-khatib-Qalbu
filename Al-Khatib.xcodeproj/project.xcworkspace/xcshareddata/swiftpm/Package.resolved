@@ -1,0 +1,15 @@
+{
+  "originHash" : "79c8405afb284f6c33bb80ee35444788b3bb8b08ed39a2d5fdf17df56e4343cb",
+  "pins" : [
+    {
+      "identity" : "prowl",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elmeeee/Prowl.git",
+      "state" : {
+        "revision" : "0a011f40b32b2ac1b017c5f384a044b1de758393",
+        "version" : "1.0.6"
+      }
+    }
+  ],
+  "version" : 3
+}

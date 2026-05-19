@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AI_MODEL</key>
+	<string>$(AI_MODEL)</string>
+	<key>API_KEY_GROQ</key>
+	<string>$(API_KEY_GROQ)</string>
+	<key>QF_ALADHAN_ROOT</key>
+	<string>$(QF_ALADHAN_ROOT)</string>
+	<key>QF_API_BASE_URL</key>
+	<string>$(QF_API_BASE_URL)</string>
+	<key>QF_DEFAULT_TRANSLATION_ID</key>
+	<string>$(QF_DEFAULT_TRANSLATION_ID)</string>
+	<key>QF_OAUTH_AUTHORIZE_URL</key>
+	<string>$(QF_OAUTH_AUTHORIZE_URL)</string>
+	<key>QF_OAUTH_CALLBACK_URL</key>
+	<string>$(QF_OAUTH_CALLBACK_URL)</string>
+	<key>QF_OAUTH_CLIENT_ID</key>
+	<string>$(QF_OAUTH_CLIENT_ID)</string>
+	<key>QF_OAUTH_CLIENT_SECRET</key>
+	<string>$(QF_OAUTH_CLIENT_SECRET)</string>
+	<key>QF_OAUTH_SCOPES</key>
+	<string>$(QF_OAUTH_SCOPES)</string>
+	<key>QF_OAUTH_TOKEN_URL</key>
+	<string>$(QF_OAUTH_TOKEN_URL)</string>
+	<key>QF_VERSES_WEB_BASE</key>
+	<string>$(QF_VERSES_WEB_BASE)</string>
+</dict>
+</plist>

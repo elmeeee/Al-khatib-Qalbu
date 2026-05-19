@@ -1,0 +1,16 @@
+*.log
+.DS_Store
+
+# Xcode user-local files
+*.xcuserstate
+**/xcuserdata/
+
+# Build artifacts
+build/
+DerivedData/
+
+# API keys & local Xcode secrets
+Config/Secrets.xcconfig
+
+# Claude local config
+.claude.jsonc

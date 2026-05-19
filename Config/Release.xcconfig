@@ -1,0 +1,15 @@
+// Production — used for Release builds
+#include "Secrets.xcconfig"
+
+QF_API_BASE_URL = https:/$()/apis.quran.foundation
+QF_OAUTH_TOKEN_URL = https:/$()/oauth2.quran.foundation/oauth2/token
+QF_OAUTH_AUTHORIZE_URL = https:/$()/oauth2.quran.foundation/oauth2/auth
+QF_OAUTH_CALLBACK_URL = alkhatib:/$()/oauth/callback
+
+QF_OAUTH_CLIENT_ID = 9fd71c6c-efb4-406e-84d0-ff39f186ca9b
+QF_OAUTH_CLIENT_SECRET = $(QF_OAUTH_CLIENT_SECRET_RELEASE)
+QF_OAUTH_SCOPES = openid offline_access user collection streak activity_day
+QF_DEFAULT_TRANSLATION_ID = 22
+
+QF_VERSES_WEB_BASE = https:/$()/verses.quran.com
+QF_ALADHAN_ROOT = https:/$()/api.aladhan.com
