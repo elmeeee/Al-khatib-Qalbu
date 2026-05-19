@@ -2,6 +2,9 @@
 //  AyahVerseCard.swift
 //  Al-Khatib
 //
+//  Created by Elmee on 25/04/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
+//
 
 import SwiftUI
 
@@ -10,6 +13,11 @@ struct AyahVerseCard: View {
     let verse: RandomAyahPayload
     var showsVerseLabel = true
     var onAudio: (() -> Void)?
+    var onTafsir: (() -> Void)?
+
+    private var hasActions: Bool {
+        (onAudio != nil && verse.audio?.url != nil) || onTafsir != nil
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -45,23 +53,20 @@ struct AyahVerseCard: View {
             }
             .background(Color.Theme.pureWhite)
 
-            Rectangle()
-                .fill(Color.Theme.deepEmerald)
-                .frame(height: 4)
+            if hasActions {
+                Rectangle()
+                    .fill(Color.Theme.deepEmerald)
+                    .frame(height: 4)
 
-            if let onAudio, verse.audio?.url != nil {
-                Button(action: onAudio) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "speaker.wave.2.fill")
-                            .font(.title3)
-                        Text("Audio")
-                            .font(.system(size: 15, weight: .semibold))
+                HStack(spacing: 0) {
+                    if let onAudio, verse.audio?.url != nil {
+                        actionButton(icon: "speaker.wave.2.fill", text: "Audio", action: onAudio)
                     }
-                    .foregroundStyle(Color.Theme.deepEmerald)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
+                    if let onTafsir {
+                        actionButton(icon: "book.closed.fill", text: "Tafsir", action: onTafsir)
+                    }
                 }
-                .buttonStyle(.plain)
+                .padding(.vertical, 14)
             }
         }
         .transaction { txn in txn.animation = nil }
@@ -71,5 +76,19 @@ struct AyahVerseCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.Theme.softGrey, lineWidth: 1)
         )
+    }
+
+    private func actionButton(icon: String, text: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.title2)
+                Text(text)
+                    .font(.caption)
+            }
+            .foregroundColor(Color.Theme.deepEmerald)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
     }
 }

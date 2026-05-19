@@ -21,15 +21,7 @@ struct TodayDiscoveryView: View {
     @State private var reflectStatusMessage: String?
     @State private var reflectStatusIsError = false
     @State private var showReflectStatus = false
-    @State private var isTafsirSheetPresented = false
-    @State private var isTafsirLoading = false
-    @State private var tafsirHTML = ""
-    @State private var tafsirError: String?
-    @State private var tafsirAyahKey: String?
-    @State private var tafsirVerseReference = ""
-    @State private var tafsirSourceName: String?
-    @State private var tafsirContentUnavailable = false
-    @State private var tafsirCache: [String: CachedTafsir] = [:]
+    @State private var tafsirPresenter: TafsirPresenter?
 
     let verseState: TodayVerseState
 
@@ -86,6 +78,9 @@ struct TodayDiscoveryView: View {
                 content: c.content
             )
             viewModel = vm
+            if tafsirPresenter == nil {
+                tafsirPresenter = TafsirPresenter(content: c.content)
+            }
             vm.autoRefreshDailyAyahIfNeeded(forceIfNoData: true)
             prayer.refreshIfNeeded()
         }
@@ -105,7 +100,7 @@ struct TodayDiscoveryView: View {
                 let label = newKey.flatMap { ShareVerseCard.humanLabel(for: $0) }
                 verseState.setVerse(key: newKey, label: label, arabic: arabic)
                 if let newKey {
-                    Task { await prefetchTafsirIfNeeded(for: newKey) }
+                    Task { await tafsirPresenter?.prefetch(ayahKey: newKey) }
                     if let verse = vm.detail {
                         Task { await vm.prefetchShareTextIfNeeded(for: verse) }
                     }
@@ -114,17 +109,26 @@ struct TodayDiscoveryView: View {
             .onDisappear {
                 audio.stop()
             }
-            .sheet(isPresented: $isTafsirSheetPresented) {
-                TafsirReaderSheet(
-                    verseReference: tafsirVerseReference,
-                    commentarySource: tafsirSourceName,
-                    isLoading: isTafsirLoading,
-                    loadErrorDescription: tafsirError,
-                    commentaryUnavailable: tafsirContentUnavailable,
-                    htmlFragment: tafsirHTML,
-                    reload: { Task { await loadTafsir() } }
-                )
+            .sheet(isPresented: tafsirSheetBinding) {
+                if let tafsirPresenter {
+                    TafsirReaderSheet(
+                        verseReference: tafsirPresenter.verseReference,
+                        commentarySource: tafsirPresenter.commentarySource,
+                        isLoading: tafsirPresenter.isLoading,
+                        loadErrorDescription: tafsirPresenter.loadErrorDescription,
+                        commentaryUnavailable: tafsirPresenter.commentaryUnavailable,
+                        htmlFragment: tafsirPresenter.htmlFragment,
+                        reload: { Task { await tafsirPresenter.reload() } }
+                    )
+                }
             }
+    }
+
+    private var tafsirSheetBinding: Binding<Bool> {
+        Binding(
+            get: { tafsirPresenter?.isSheetPresented ?? false },
+            set: { tafsirPresenter?.isSheetPresented = $0 }
+        )
     }
 
     @ViewBuilder
@@ -286,37 +290,8 @@ struct TodayDiscoveryView: View {
 
     @MainActor
     private func openTafsir(for verse: RandomAyahPayload) {
-        guard let key = resolvedAyahKey(for: verse) else { return }
-        tafsirAyahKey = key
-        tafsirVerseReference = ShareVerseCard.humanLabel(for: key)
-        tafsirSourceName = nil
-        tafsirHTML = ""
-        tafsirError = nil
-        tafsirContentUnavailable = false
-        isTafsirLoading = true
-        isTafsirSheetPresented = true
-        Task { await loadTafsir() }
+        tafsirPresenter?.open(for: verse)
         Task { await viewModel?.prefetchShareTextIfNeeded(for: verse) }
-    }
-
-    @MainActor
-    private func loadTafsir() async {
-        guard let key = tafsirAyahKey else { return }
-        isTafsirLoading = true
-        tafsirError = nil
-        tafsirContentUnavailable = false
-        do {
-            let cached = try await loadTafsirCached(for: key)
-            tafsirSourceName = cached.sourceName
-            tafsirHTML = cached.html
-            tafsirContentUnavailable = cached.html.isEmpty
-        } catch {
-            tafsirError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            tafsirHTML = ""
-            tafsirContentUnavailable = false
-            tafsirSourceName = nil
-        }
-        isTafsirLoading = false
     }
 
     @MainActor
@@ -390,28 +365,6 @@ struct TodayDiscoveryView: View {
     private func resolvedAyahKey(for verse: RandomAyahPayload) -> String? {
         guard let key = verse.verseKey, !key.isEmpty else { return nil }
         return key
-    }
-
-    @MainActor
-    private func prefetchTafsirIfNeeded(for ayahKey: String) async {
-        guard tafsirCache[ayahKey] == nil else { return }
-        _ = try? await loadTafsirCached(for: ayahKey)
-    }
-
-    @MainActor
-    private func loadTafsirCached(for ayahKey: String) async throws -> CachedTafsir {
-        if let cached = tafsirCache[ayahKey] { return cached }
-        guard let repository = container?.content else {
-            throw NSError(domain: "AppContainer", code: -1,
-                          userInfo: [NSLocalizedDescriptionKey: "App container is unavailable."])
-        }
-        let response = try await repository.getTafsirByAyah(resourceId: "169", ayahKey: ayahKey)
-        let html = response.tafsir?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let plainText = response.tafsir?.textStrippingHTML?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let sourceName = response.tafsir?.resourceName ?? "Tafsir Ibn Kathir (English)"
-        let result = CachedTafsir(html: html, plainText: plainText, sourceName: sourceName)
-        tafsirCache[ayahKey] = result
-        return result
     }
 
     private var audioBar: some View {
@@ -704,177 +657,5 @@ private struct PrayerArcCardLiveContent: View {
                 .overlay(Capsule().stroke(Color.Theme.deepEmerald.opacity(0.26), lineWidth: 0.8))
         )
     }
-}
-
-private struct TafsirReaderSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let verseReference: String
-    let commentarySource: String?
-    let isLoading: Bool
-    let loadErrorDescription: String?
-    let commentaryUnavailable: Bool
-    let htmlFragment: String
-    let reload: () -> Void
-
-    var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color.Theme.offWhite, Color(hex: "#F1F5F2")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                sheetTopBar
-                verseContextHeader
-                Divider().opacity(0.55)
-
-                Group {
-                    let hasHTML = !htmlFragment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    if isLoading || (!hasHTML && loadErrorDescription == nil && !commentaryUnavailable) {
-                        tafsirLoadingBody
-                    } else if loadErrorDescription != nil {
-                        tafsirErrorBody
-                    } else if commentaryUnavailable {
-                        tafsirEmptyBody
-                    } else {
-                        HTMLContentWebView(htmlFragment: htmlFragment, style: .tafsirReader)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .presentationDetents([.large])
-        .presentationContentInteraction(.scrolls)
-        .presentationDragIndicator(.visible)
-        .presentationCornerRadius(22)
-        .animation(nil, value: isLoading)
-        .animation(nil, value: htmlFragment)
-    }
-
-    private var sheetTopBar: some View {
-        HStack {
-            Text("Tafsir")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
-            Spacer()
-            Button("Done") { dismiss() }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
-    }
-
-    private var verseContextHeader: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "text.alignleft")
-                .font(.title2)
-                .foregroundStyle(Color.Theme.deepEmerald.opacity(0.88))
-                .frame(width: 36, alignment: .leading)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text(verseReference)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.Theme.deepEmerald)
-                    .multilineTextAlignment(.leading)
-
-                Group {
-                    if isLoading {
-                        SkeletonBar(width: 180, height: 11, cornerRadius: 5)
-                    } else if let source = commentarySource {
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Image(systemName: "book.pages.fill")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(source)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.leading)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, minHeight: 14, alignment: .leading)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.82))
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.Theme.softGrey.opacity(0.65), lineWidth: 1)
-        )
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 6)
-        .animation(nil, value: isLoading)
-        .animation(nil, value: commentarySource ?? "")
-    }
-
-    private var tafsirLoadingBody: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                SkeletonBar(width: nil, height: 14, cornerRadius: 6)
-                SkeletonBar(width: nil, height: 14, cornerRadius: 6)
-                SkeletonBar(width: 280, height: 14, cornerRadius: 6)
-                SkeletonBar(width: nil, height: 14, cornerRadius: 6)
-                SkeletonBar(width: nil, height: 14, cornerRadius: 6)
-                SkeletonBar(width: 220, height: 14, cornerRadius: 6)
-                ForEach(0..<6, id: \.self) { i in
-                    SkeletonBar(
-                        width: i % 3 == 0 ? nil : CGFloat(300 - i * 12),
-                        height: 12,
-                        cornerRadius: 5
-                    )
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 18)
-        }
-    }
-
-    @ViewBuilder
-    private var tafsirErrorBody: some View {
-        if let desc = loadErrorDescription {
-            ContentUnavailableView {
-                Label("Couldn't load tafsir", systemImage: "wifi.exclamationmark")
-            } description: {
-                Text(desc)
-                    .font(.subheadline)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-            } actions: {
-                Button("Try again", action: reload)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color.Theme.deepEmerald)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-
-    private var tafsirEmptyBody: some View {
-        ContentUnavailableView {
-            Label("No commentary here", systemImage: "text.book.closed")
-        } description: {
-            Text("This verse doesn't include tafsir text for this source yet.")
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-private struct CachedTafsir {
-    let html: String
-    let plainText: String?
-    let sourceName: String
 }
 

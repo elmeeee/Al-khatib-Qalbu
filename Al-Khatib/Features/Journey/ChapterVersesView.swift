@@ -2,6 +2,9 @@
 //  ChapterVersesView.swift
 //  Al-Khatib
 //
+//  Created by Elmee on 25/04/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
+//
 
 import SwiftUI
 
@@ -10,6 +13,7 @@ struct ChapterVersesView: View {
     let chapter: QuranChapter
 
     @State private var vm: ChapterVersesViewModel?
+    @State private var tafsirPresenter: TafsirPresenter?
     @StateObject private var audio = AudioPlayerController()
 
     var body: some View {
@@ -33,11 +37,34 @@ struct ChapterVersesView: View {
             guard let c = container, vm == nil else { return }
             let model = ChapterVersesViewModel(chapter: chapter, content: c.content)
             vm = model
+            if tafsirPresenter == nil {
+                tafsirPresenter = TafsirPresenter(content: c.content)
+            }
             await model.loadInitial()
+        }
+        .sheet(isPresented: tafsirSheetBinding) {
+            if let tafsirPresenter {
+                TafsirReaderSheet(
+                    verseReference: tafsirPresenter.verseReference,
+                    commentarySource: tafsirPresenter.commentarySource,
+                    isLoading: tafsirPresenter.isLoading,
+                    loadErrorDescription: tafsirPresenter.loadErrorDescription,
+                    commentaryUnavailable: tafsirPresenter.commentaryUnavailable,
+                    htmlFragment: tafsirPresenter.htmlFragment,
+                    reload: { Task { await tafsirPresenter.reload() } }
+                )
+            }
         }
         .onDisappear {
             audio.stop()
         }
+    }
+
+    private var tafsirSheetBinding: Binding<Bool> {
+        Binding(
+            get: { tafsirPresenter?.isSheetPresented ?? false },
+            set: { tafsirPresenter?.isSheetPresented = $0 }
+        )
     }
 
     @ViewBuilder
@@ -105,12 +132,22 @@ struct ChapterVersesView: View {
                 chapterHeader
 
                 ForEach(bindable.verses, id: \.listIdentity) { verse in
-                    AyahVerseCard(verse: verse, showsVerseLabel: false) {
-                        if let url = verse.audio?.url {
-                            audio.play(from: url, reciterName: "")
+                    AyahVerseCard(
+                        verse: verse,
+                        showsVerseLabel: false,
+                        onAudio: verse.audio?.url == nil ? nil : {
+                            if let url = verse.audio?.url {
+                                audio.play(from: url, reciterName: "")
+                            }
+                        },
+                        onTafsir: tafsirPresenter == nil ? nil : {
+                            tafsirPresenter?.open(for: verse)
                         }
-                    }
+                    )
                     .onAppear {
+                        if let key = verse.verseKey {
+                            Task { await tafsirPresenter?.prefetch(ayahKey: key) }
+                        }
                         Task { await bindable.loadMoreIfNeeded(currentVerse: verse) }
                     }
                 }
