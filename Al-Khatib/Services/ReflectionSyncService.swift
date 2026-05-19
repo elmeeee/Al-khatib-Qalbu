@@ -9,12 +9,12 @@ import Foundation
 
 actor ReflectionSyncService {
     private let store: ReflectionStore
-    private let api: QFApiClient
+    private let reflect: ReflectRepository
     private let habits: UserHabitRepository
 
-    init(store: ReflectionStore, api: QFApiClient, habits: UserHabitRepository) {
+    init(store: ReflectionStore, reflect: ReflectRepository, habits: UserHabitRepository) {
         self.store = store
-        self.api = api
+        self.reflect = reflect
         self.habits = habits
     }
 
@@ -40,40 +40,18 @@ actor ReflectionSyncService {
     }
 
     private func syncOne(_ r: Reflection) async throws {
-        var refs: [QuranReference] = []
-        if let vk = r.verseKey, let p = parseVerseKey(vk) {
-            refs.append(QuranReference(id: vk, from: p.ayah, to: p.ayah, chapterId: p.sura))
-        }
-        let post = PostCreateBody(
-            data: .init(
-                body: r.body,
-                draft: false,
-                references: refs,
-                global: true,
-                roomPostStatus: 1
-            )
-        )
-        let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
-        let endpoint = ReflectPostEndpoint(
-            path: ReflectEndpoint.posts.path,
-            bodyData: try encoder.encode(post),
+        let profile = try await habits.fetchMyProfile()
+        let created = try await reflect.createReflectionPost(
+            body: r.body,
+            verseKey: r.verseKey,
+            authorId: profile.id,
             idempotencyKey: r.idempotencyKey
         )
-        let res: PostCreateEnvelope = try await api.send(endpoint)
         var updated = r
-        updated.serverPostId = res.data.id
+        updated.serverPostId = created.id
         updated.syncState = .synced
         updated.lastSyncError = nil
         updated.updatedAt = .now
         store.update(updated)
-        do { try await habits.logQuranActivityForToday(verses: max(1, refs.count)) } catch { }
-        do { _ = try await habits.fetchQuranStreak() } catch { }
-    }
-
-    private func parseVerseKey(_ key: String) -> (sura: Int, ayah: Int)? {
-        let p = key.split(separator: ":")
-        guard p.count == 2, let a = Int(p[0]), let b = Int(p[1]) else { return nil }
-        return (a, b)
     }
 }

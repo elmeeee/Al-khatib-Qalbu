@@ -9,58 +9,162 @@
 import Foundation
 import Observation
 
+enum ReflectPostsSegment: String, CaseIterable, Identifiable, Equatable {
+    case feed
+    case myPosts
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .feed: return "All Reflections"
+        case .myPosts: return "My Reflections"
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class ReflectionViewModel {
-    var text: String = ""
-    var verseKey: String = ""
-    var lastError: String?
-    var lastSaved: String?
-    var isSyncing = false
+    var selectedSegment: ReflectPostsSegment = .feed
+    var posts: [ReflectFeedPost] = []
+    var isLoading = false
+    var isLoadingMore = false
+    var errorMessage: String?
+    private(set) var currentPage = 1
+    private(set) var totalPages = 1
 
-    private let container: AppContainer
-    private let store: ReflectionStore
+    var shareText: String = ""
+    var shareVerseKey: String = ""
+    var shareError: String?
+    var isPostingShare = false
 
-    init(container: AppContainer) {
-        self.container = container
-        self.store = container.reflectionStore
+    private let reflect: ReflectRepository
+    private let pageSize = 20
+    private var loadTask: Task<Void, Never>?
+
+    init(reflect: ReflectRepository) {
+        self.reflect = reflect
     }
 
-    func save() {
-        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    /// Called when user taps a segment — always fetches from the matching API.
+    func onSegmentChanged(to segment: ReflectPostsSegment) {
+        loadTask?.cancel()
+        selectedSegment = segment
+        posts = []
+        errorMessage = nil
+        currentPage = 1
+        totalPages = 1
+        loadTask = Task { await loadPosts(refresh: true, force: true) }
+    }
+
+    func loadPosts(refresh: Bool, force: Bool = false) async {
+        if Task.isCancelled { return }
+
+        if refresh {
+            if force == false, isLoading { return }
+            isLoading = true
+            errorMessage = nil
+            currentPage = 1
+        } else {
+            guard isLoadingMore == false, currentPage < totalPages else { return }
+            isLoadingMore = true
+        }
+
+        let page = refresh ? 1 : currentPage + 1
+        let segment = selectedSegment
+
+        defer {
+            isLoading = false
+            isLoadingMore = false
+        }
+
+        do {
+            let envelope: ReflectFeedEnvelope
+            switch segment {
+            case .feed:
+                envelope = try await reflect.fetchFeed(page: page, limit: pageSize)
+            case .myPosts:
+                envelope = try await reflect.fetchMyPosts(page: page, limit: pageSize)
+            }
+
+            if Task.isCancelled { return }
+
+            let rows = envelope.data ?? []
+            totalPages = max(envelope.pages ?? 1, 1)
+            currentPage = envelope.currentPage ?? page
+            if refresh {
+                posts = rows
+            } else {
+                posts.append(contentsOf: rows)
+            }
+            errorMessage = nil
+        } catch QFError.missingUserSession {
+            if Task.isCancelled { return }
+            posts = []
+            errorMessage = segment == .myPosts
+                ? "Sign in to see your reflections."
+                : "Sign in to see the Reflect feed."
+        } catch {
+            if Task.isCancelled { return }
+            if refresh { posts = [] }
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    func showMyPostsAfterPublish() {
+        onSegmentChanged(to: .myPosts)
+    }
+
+    func prepareShareReflection(body: String, verseKey: String) {
+        shareText = body
+        shareVerseKey = verseKey
+    }
+
+    func clearShareReflection() {
+        shareText = ""
+        shareVerseKey = ""
+        shareError = nil
+    }
+
+    func postShareReflection(authorId: String) async -> String {
+        let t = shareText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard t.isEmpty == false else {
-            lastError = "Write something from the heart (minimum 6 characters for the Post API when syncing)."
-            return
+            shareError = "No reflection text."
+            return "Nothing to save."
         }
-        let vk: String? = {
-            let s = verseKey.trimmingCharacters(in: .whitespacesAndNewlines)
-            return s.isEmpty ? nil : s
-        }()
-        let r = Reflection(
-            body: t,
-            verseKey: vk,
-            syncState: .pending
-        )
-        store.append(r)
-        lastError = nil
-        lastSaved = "Saved locally. Sync will continue automatically in background."
-        text = ""
-        verseKey = ""
-        Task { await syncNow() }
-    }
-
-    func syncNow() async {
-        isSyncing = true
-        await self.container.makeSyncService().syncPending()
-        isSyncing = false
-    }
-
-    func saveAndSync() async -> String {
-        save()
-        await syncNow()
-        if store.hasPending() {
-            return "Saved offline. Will sync when online."
+        guard t.count >= 6 else {
+            shareError = "Reflection must be at least 6 characters."
+            return "Text is too short."
         }
-        return "+1 Day Added to Streak!"
+        guard authorId.isEmpty == false else {
+            shareError = "Please sign in first."
+            return "Sign in to post a reflection."
+        }
+
+        isPostingShare = true
+        defer { isPostingShare = false }
+
+        do {
+            _ = try await reflect.createPostFromShare(
+                body: t,
+                verseKey: shareVerseKey.isEmpty ? nil : shareVerseKey,
+                authorId: authorId,
+                languageId: nil
+            )
+            clearShareReflection()
+            NotificationCenter.default.post(name: .reflectDidPost, object: nil)
+            return "Reflection posted!"
+        } catch QFError.missingUserSession {
+            shareError = "Please sign in first."
+            return "Sign in to post a reflection."
+        } catch {
+            shareError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            return "Post failed: \(shareError ?? "Unknown error")"
+        }
     }
+}
+
+extension Notification.Name {
+    static let reflectDidPost = Notification.Name("reflectDidPost")
 }

@@ -12,7 +12,8 @@ struct ContentView: View {
     @Environment(\.appContainer) private var container
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var isSplashActive = true
-    
+    @State private var verseState = TodayVerseState()
+
     var body: some View {
         Group {
             if isSplashActive {
@@ -30,10 +31,19 @@ struct ContentView: View {
             } else if hasCompletedOnboarding == false {
                 OnboardingView()
             } else {
-                RootTabView()
+                RootTabView(verseState: verseState)
             }
         }
         .tint(Color.Theme.deepEmerald)
+        .task(id: hasCompletedOnboarding) {
+            guard hasCompletedOnboarding else { return }
+            await verseState.ensureProfileLoaded(container: container)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
+            Task { @MainActor in
+                await verseState.ensureProfileLoaded(container: container)
+            }
+        }
     }
 }
 

@@ -155,7 +155,6 @@ final class PrayerNotificationScheduler {
 
         do {
             try await center.add(request)
-            prayerNotifLog.debug("Scheduled \(identifier, privacy: .public) at \(fireDate, privacy: .public)")
         } catch {
             prayerNotifLog.error("Failed scheduling \(identifier, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }

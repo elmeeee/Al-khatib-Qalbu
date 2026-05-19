@@ -189,5 +189,18 @@ private func extractAPIErrorMessage(from data: Data) -> String? {
         }
     }
 
+    if let details = root["details"] as? [String: Any],
+       let error = details["error"] as? [String: Any],
+       let nested = error["details"] as? [String: Any] {
+        let parts = nested.map { key, value in
+            if let text = value as? String { return "\(key): \(text)" }
+            return "\(key): \(value)"
+        }
+        if parts.isEmpty == false {
+            let msg = error["message"] as? String ?? "Validation Error"
+            return "\(msg) (\(parts.joined(separator: ", ")))"
+        }
+    }
+
     return nil
 }

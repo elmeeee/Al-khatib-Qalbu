@@ -17,6 +17,10 @@ struct TodayDiscoveryView: View {
     @StateObject private var prayer = PrayerTimesController()
 
     @State private var isGeneratingShare = false
+    @State private var isPostingReflection = false
+    @State private var reflectStatusMessage: String?
+    @State private var reflectStatusIsError = false
+    @State private var showReflectStatus = false
     @State private var isTafsirSheetPresented = false
     @State private var isTafsirLoading = false
     @State private var tafsirHTML = ""
@@ -35,7 +39,7 @@ struct TodayDiscoveryView: View {
                 content(vm)
             }
 
-            if isGeneratingShare {
+            if isGeneratingShare || isPostingReflection {
                 Color.black.opacity(0.18)
                     .ignoresSafeArea()
 
@@ -43,7 +47,7 @@ struct TodayDiscoveryView: View {
                     ProgressView()
                         .tint(Color.Theme.deepEmerald)
                         .scaleEffect(1.1)
-                    Text("Preparing your share...")
+                    Text(isPostingReflection ? "Publishing your reflection..." : "Preparing your share...")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(Color.Theme.deepEmerald)
                 }
@@ -60,7 +64,21 @@ struct TodayDiscoveryView: View {
                 .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 4)
             }
         }
-        .allowsHitTesting(!isGeneratingShare)
+        .allowsHitTesting(!isGeneratingShare && !isPostingReflection)
+        .overlay(alignment: .top) {
+            if showReflectStatus, let reflectStatusMessage {
+                Text(reflectStatusMessage)
+                    .font(.subheadline.bold())
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(reflectStatusIsError ? Color.red : Color.Theme.deepEmerald)
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, y: 2)
+                    .padding(.top, 16)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
         .onAppear {
             guard let c = container, viewModel == nil else { return }
             let vm = TodayDiscoveryViewModel(
@@ -237,7 +255,8 @@ struct TodayDiscoveryView: View {
                     }
                 }
                 actionButton(icon: "lightbulb.fill", text: "Reflect") {
-                    verseState.requestReflect()
+                    guard !isPostingReflection, !isGeneratingShare else { return }
+                    Task { await publishReflection(for: d) }
                 }
                 actionButton(icon: "book.closed.fill", text: "Tafsir") {
                     openTafsir(for: d)
@@ -305,6 +324,67 @@ struct TodayDiscoveryView: View {
         guard let vm = viewModel else { return }
         let text = await vm.prepareShareText(for: verse)
         ShareVerseCard.presentPrepared(text: text)
+    }
+
+    @MainActor
+    private func publishReflection(for verse: RandomAyahPayload) async {
+        guard let c = container, let vm = viewModel else { return }
+        isPostingReflection = true
+        defer { isPostingReflection = false }
+
+        await verseState.ensureProfileLoaded(container: c)
+        if verseState.isLoggedIn == false {
+            await verseState.signIn(container: c)
+            await verseState.ensureProfileLoaded(container: c)
+        }
+        guard verseState.isLoggedIn else { return }
+
+        guard let authorId = verseState.userId, authorId.isEmpty == false else {
+            await showReflectStatus("Could not load your profile. Try signing in again.", isError: true)
+            return
+        }
+
+        // Reuse cached AI text — do not call Groq again on publish.
+        let body = vm.cachedShareText(for: verse) ?? vm.quickReflectionText(for: verse)
+        let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 6 else {
+            await showReflectStatus("Reflection is too short to publish.", isError: true)
+            return
+        }
+
+        let verseKey = resolvedAyahKey(for: verse)
+        let day = {
+            let fmt = DateFormatter()
+            fmt.dateFormat = "yyyy-MM-dd"
+            fmt.timeZone = .current
+            return fmt.string(from: .now)
+        }()
+        let idempotencyKey = verseKey.map { "reflect:\($0):\(day)" }
+
+        do {
+            _ = try await c.reflect.createReflectionPost(
+                body: trimmed,
+                verseKey: verseKey,
+                authorId: authorId,
+                idempotencyKey: idempotencyKey
+            )
+            verseState.notifyFeedDidUpdate()
+            await showReflectStatus("Reflection published!", isError: false)
+            // Already posted — open Reflect feed only, not the compose sheet.
+            verseState.requestReflect()
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            await showReflectStatus(message, isError: true)
+        }
+    }
+
+    @MainActor
+    private func showReflectStatus(_ message: String, isError: Bool) async {
+        reflectStatusMessage = message
+        reflectStatusIsError = isError
+        withAnimation { showReflectStatus = true }
+        try? await Task.sleep(nanoseconds: 3_000_000_000)
+        withAnimation { showReflectStatus = false }
     }
 
     private func resolvedAyahKey(for verse: RandomAyahPayload) -> String? {
@@ -419,14 +499,9 @@ extension TodayDiscoveryView {
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
-        .onAppear {
-            Task { @MainActor in
-                await verseState.refreshProfile(container: container)
-            }
-        }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
-                await verseState.refreshProfile(container: container)
+                await verseState.ensureProfileLoaded(container: container)
             }
         }
     }

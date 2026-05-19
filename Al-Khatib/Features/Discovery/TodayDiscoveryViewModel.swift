@@ -144,6 +144,34 @@ final class TodayDiscoveryViewModel {
         shareTextCache[cacheKey] = text
     }
 
+    /// Cached AI share text (no network). Use for Reflect publish to avoid re-calling Groq.
+    func cachedShareText(for verse: RandomAyahPayload) -> String? {
+        guard let cacheKey = shareCacheKey(for: verse),
+              let cached = shareTextCache[cacheKey] else {
+            return nil
+        }
+        let trimmed = cached.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    /// Fast fallback when cache is cold — template only, no Groq.
+    func quickReflectionText(for verse: RandomAyahPayload) -> String {
+        let verseKey = resolvedAyahKey(for: verse) ?? verse.verseKey
+        let arabic = verse.displayText ?? ""
+        let translation = verse.translations?.first?.text
+        let tafsir: String? = {
+            guard let verseKey else { return nil }
+            let cached = shareTafsirCache[verseKey] ?? ""
+            return cached.isEmpty ? nil : cached
+        }()
+        return guaranteedFaithfulShareText(
+            verseKey: verseKey,
+            arabic: arabic,
+            translation: translation,
+            tafsir: tafsir
+        )
+    }
+
     func prepareShareText(for verse: RandomAyahPayload) async -> String {
         let cacheKey = shareCacheKey(for: verse)
         if let cacheKey, let cached = shareTextCache[cacheKey], cached.isEmpty == false {

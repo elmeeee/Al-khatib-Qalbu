@@ -41,7 +41,7 @@ actor QFApiClient {
         self.refreshManager = QFRefreshTokenManager()
     }
 
-    func send<T: Decodable & Sendable>(_ endpoint: QFEndpoint) async throws -> T {
+    func send<T: Decodable & Sendable, E: QFEndpoint>(_ endpoint: E) async throws -> T {
         let route = routeConfig(for: endpoint.route)
         return try await performJSONRequest(
             method: endpoint.method.rawValue,
@@ -96,9 +96,10 @@ actor QFApiClient {
             if let idempotencyKey {
                 req.setValue(idempotencyKey, forHTTPHeaderField: "Idempotency-Key")
             }
-            if let bodyData {
+            if let bodyData, bodyData.isEmpty == false {
                 req.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 req.httpBody = bodyData
+                req.setValue(String(bodyData.count), forHTTPHeaderField: "Content-Length")
             }
             return try await self.session.decodeResponse(T.self, request: req)
         }
@@ -200,7 +201,8 @@ actor QFApiClient {
         let body = [
             "grant_type=refresh_token",
             "client_id=\(percentEncode(configuration.clientId))",
-            "refresh_token=\(percentEncode(refresh))"
+            "refresh_token=\(percentEncode(refresh))",
+            "redirect_uri=\(percentEncode(configuration.oauthRedirectURI.absoluteString))"
         ].joined(separator: "&")
         req.httpBody = body.data(using: .utf8)
 
@@ -246,7 +248,7 @@ private extension URLSession {
                 d.keyDecodingStrategy = .convertFromSnakeCase
                 return try d.decode(T.self, from: data)
             } catch {
-                throw QFError.parsingError("decode \(T.self)")
+                throw QFError.parsingError("decode \(T.self): \(error.localizedDescription)")
             }
         } catch let e as QFError {
             throw e

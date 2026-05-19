@@ -9,7 +9,6 @@
 import SwiftUI
 
 struct JourneyView: View {
-    @Environment(\.appContainer) private var container
     var verseState: TodayVerseState
 
     @State private var selectedSegment: JourneySegment = .reflection
@@ -18,18 +17,11 @@ struct JourneyView: View {
         ZStack {
             Color.Theme.offWhite.ignoresSafeArea()
 
-            if verseState.isLoggedIn {
+            if verseState.isRefreshingProfile && verseState.isLoggedIn == false {
+                ProgressView()
+                    .tint(Color.Theme.deepEmerald)
+            } else if verseState.isLoggedIn {
                 journeyContent
-            }
-        }
-        .onAppear {
-            Task { @MainActor in
-                await verseState.refreshProfile(container: container)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
-            Task { @MainActor in
-                await verseState.refreshProfile(container: container)
             }
         }
     }

@@ -51,13 +51,21 @@ enum UserHabitGetEndpoint: QFEndpoint {
             return [:]
         }
     }
+
+    var bodyData: Data? { nil }
 }
 
 struct UserHabitPostActivityDaysEndpoint: QFEndpoint {
-    let bodyData: Data
+    let payload: Data
     let headers: [String: String]
 
     var route: QFApiClient.RequestRoute { .authV1User }
     var method: QFHTTPMethod { .post }
     var path: String { AppEndpoints.AuthV1.activityDays }
+    var bodyData: Data? { payload }
+
+    init(bodyData: Data, headers: [String: String]) {
+        self.payload = bodyData
+        self.headers = headers
+    }
 }

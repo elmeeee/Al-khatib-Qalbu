@@ -35,4 +35,6 @@ enum QuranContentEndpoint: QFEndpoint {
             return query
         }
     }
+
+    var bodyData: Data? { nil }
 }

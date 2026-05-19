@@ -28,8 +28,6 @@ struct ShareVerseCard {
     }
 
     static func humanLabel(for verseKey: String) -> String {
-        let parts = verseKey.split(separator: ":")
-        guard parts.count == 2 else { return verseKey }
-        return "Surah \(parts[0]), Ayah \(parts[1])"
+        VerseKeyFormat.humanLabel(for: verseKey)
     }
 }

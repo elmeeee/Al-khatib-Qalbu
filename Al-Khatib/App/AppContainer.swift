@@ -31,6 +31,7 @@ final class AppContainer {
     let semantic: SemanticSearchService
     let content: QuranContentRepository
     let habits: UserHabitRepository
+    let reflect: ReflectRepository
     let reflectionStore: ReflectionStore
 
     init() {
@@ -50,14 +51,11 @@ final class AppContainer {
             client: api,
             appGroup: configuration.appGroupIdentifier
         )
+        self.reflect = ReflectRepository(client: api, habits: habits)
         self.reflectionStore = ReflectionStore(appGroupIdentifier: configuration.appGroupIdentifier)
     }
 
     func makeSyncService() -> ReflectionSyncService {
-        ReflectionSyncService(
-            store: reflectionStore,
-            api: api,
-            habits: habits
-        )
+        ReflectionSyncService(store: reflectionStore, reflect: reflect, habits: habits)
     }
 }

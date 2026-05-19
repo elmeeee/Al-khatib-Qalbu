@@ -128,6 +128,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
         guard let refresh = await userSession.userRefreshToken(), refresh.isEmpty == false else {
             throw QFOAuthError.missingRefreshToken
         }
+        oauthLog.debug("Refreshing access token using stored refresh token, refreshToken length=\(refresh.count, privacy: .public)")
         let refreshed = try await refreshToken(refresh)
         await userSession.setUserTokens(
             accessToken: refreshed.accessToken,
@@ -211,7 +212,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             accessToken: token.accessToken,
             refreshToken: token.refreshToken
         )
-        let hasToken = await userSession.hasUserAccessToken()
+        _ = await userSession.hasUserAccessToken()
         pendingAuth = nil
         Self.savePendingAuth(nil, defaults: defaults, key: pendingAuthKey)
     }
@@ -279,7 +280,8 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             body = [
                 "grant_type=refresh_token",
                 "client_id=\(Self.percentEncode(configuration.clientId))",
-                "refresh_token=\(Self.percentEncode(refreshToken))"
+                "refresh_token=\(Self.percentEncode(refreshToken))",
+                "redirect_uri=\(Self.percentEncode(configuration.oauthRedirectURI.absoluteString))"
             ].joined(separator: "&")
         }
         req.httpBody = body.data(using: .utf8)
@@ -302,6 +304,12 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let decoded = try decoder.decode(UserTokenResponse.self, from: data)
+        switch grant {
+        case .authorizationCode:
+            oauthLog.debug("authorization_code response refreshTokenPresent=\(decoded.refreshToken != nil, privacy: .public)")
+        case .refreshToken:
+            oauthLog.debug("refresh_token response refreshTokenPresent=\(decoded.refreshToken != nil, privacy: .public)")
+        }
         guard decoded.accessToken.isEmpty == false else {
             switch grant {
             case .authorizationCode:

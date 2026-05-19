@@ -88,6 +88,8 @@ enum AppEndpoints {
     enum Reflect {
         static let activityDays = "activity_days"
         static let posts = "posts"
+        static let postsFeed = "posts/feed"
+        static let postsMyPosts = "posts/my-posts"
         static let userProfile = "users/profile"
     }
 

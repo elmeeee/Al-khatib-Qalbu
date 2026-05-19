@@ -22,9 +22,10 @@ struct RootTabView: View {
     @State private var selectedTab: Tab = .today
     @State private var todayNavigationPath = NavigationPath()
     @State private var vm = RootTabViewModel()
-    @State private var verseState = TodayVerseState()
+    let verseState: TodayVerseState
 
-    init() {
+    init(verseState: TodayVerseState) {
+        self.verseState = verseState
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(Color.Theme.pureWhite)
@@ -64,10 +65,14 @@ struct RootTabView: View {
                 .tag(Tab.journey)
                 .tabItem { Label("Journey", systemImage: "flame.fill") }
         }
+        .task {
+            await verseState.ensureProfileLoaded(container: container)
+        }
         .onChange(of: selectedTab) { _, newTab in
-            guard newTab == .journey else { return }
+            guard newTab == .journey || newTab == .reflect else { return }
             Task { @MainActor in
-                await verseState.refreshProfile(container: container)
+                await verseState.ensureProfileLoaded(container: container)
+                guard verseState.hasResolvedSession else { return }
                 guard verseState.isLoggedIn == false else { return }
                 guard verseState.isLoggingIn == false else { return }
                 await verseState.signIn(container: container)
@@ -81,7 +86,6 @@ struct RootTabView: View {
                 if selectedTab != .reflect {
                     withAnimation { selectedTab = .reflect }
                 }
-                verseState.didNavigateToReflect()
             }
         }
         .onChange(of: verseState.shouldNavigateToAccount) { _, shouldNavigate in
@@ -102,11 +106,15 @@ struct RootTabView: View {
         }
         .onChange(of: scenePhase) { _, p in
             if p == .active {
-                Task { await vm.runSync(container: container) }
+                Task {
+                    await verseState.ensureProfileLoaded(container: container)
+                    await vm.runSync(container: container)
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
+                await verseState.ensureProfileLoaded(container: container)
                 guard await vm.shouldResetToDiscover(container: container) else { return }
                 if selectedTab != .today {
                     selectedTab = .today

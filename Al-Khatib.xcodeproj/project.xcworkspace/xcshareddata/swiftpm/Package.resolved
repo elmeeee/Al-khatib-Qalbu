@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/elmeeee/Prowl.git",
       "state" : {
-        "revision" : "0a011f40b32b2ac1b017c5f384a044b1de758393",
-        "version" : "1.0.6"
+        "revision" : "ce0e4439bc6776f55256356d1db3c68b73a9133e",
+        "version" : "1.0.7"
       }
     }
   ],

@@ -26,21 +26,77 @@ enum ReflectEndpoint: QFEndpoint {
             return AppEndpoints.Reflect.posts
         }
     }
+
+    var bodyData: Data? { nil }
 }
 
 struct ReflectPostEndpoint: QFEndpoint {
     let path: String
-    let bodyData: Data
+    let payload: Data
     let idempotencyKey: String?
 
     var route: QFApiClient.RequestRoute { .user }
     var method: QFHTTPMethod { .post }
+    var bodyData: Data? { payload }
+
+    init(path: String, bodyData: Data, idempotencyKey: String? = nil) {
+        self.path = path
+        self.payload = bodyData
+        self.idempotencyKey = idempotencyKey
+    }
 }
 
 struct ReflectPatchEndpoint: QFEndpoint {
     let path: String
-    let bodyData: Data
+    let payload: Data
 
     var route: QFApiClient.RequestRoute { .user }
     var method: QFHTTPMethod { .patch }
+    var bodyData: Data? { payload }
+
+    init(path: String, bodyData: Data) {
+        self.path = path
+        self.payload = bodyData
+    }
+}
+
+struct ReflectFeedEndpoint: QFEndpoint {
+    let page: Int
+    let limit: Int
+
+    var route: QFApiClient.RequestRoute { .user }
+    var method: QFHTTPMethod { .get }
+    var path: String { AppEndpoints.Reflect.postsFeed }
+
+    var query: [URLQueryItem] {
+        [
+            URLQueryItem(name: "tab", value: "feed"),
+            URLQueryItem(name: "sortBy", value: "latest"),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "filter[postTypeIds]", value: "1")
+        ]
+    }
+
+    var bodyData: Data? { nil }
+}
+
+struct ReflectMyPostsEndpoint: QFEndpoint {
+    let page: Int
+    let limit: Int
+
+    var route: QFApiClient.RequestRoute { .user }
+    var method: QFHTTPMethod { .get }
+    var path: String { AppEndpoints.Reflect.postsMyPosts }
+
+    var query: [URLQueryItem] {
+        [
+            URLQueryItem(name: "tab", value: "my_reflections"),
+            URLQueryItem(name: "sortBy", value: "latest"),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "limit", value: String(limit))
+        ]
+    }
+
+    var bodyData: Data? { nil }
 }
