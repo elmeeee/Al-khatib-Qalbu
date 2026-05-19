@@ -35,7 +35,7 @@ final class AppContainer {
     let reflectionStore: ReflectionStore
 
     init() {
-        self.environment = .current
+        self.environment = .development
         self.configuration = environment.configuration.qfConfiguration
         self.auth = QFAuthManager(configuration: configuration, environment: environment)
         self.userSession = QFUserSession(environment: environment)

@@ -94,6 +94,23 @@ struct QuranContentRepository: Sendable {
         )
     }
 
+    func getHadithsByAyah(
+        ayahKey: String,
+        language: String = "en",
+        page: Int = 1,
+        limit: Int = 4
+    ) async throws -> HadithsByAyahResponse {
+        let clampedLimit = min(max(limit, 1), 5)
+        let query: [URLQueryItem] = [
+            URLQueryItem(name: "language", value: language),
+            URLQueryItem(name: "page", value: String(max(page, 1))),
+            URLQueryItem(name: "limit", value: String(clampedLimit))
+        ]
+        return try await client.send(
+            QuranContentEndpoint.hadithsByAyah(ayahKey: ayahKey, query: query)
+        )
+    }
+
     func getRecitations() async throws -> RecitationsResponse {
         let query: [URLQueryItem] = [
             URLQueryItem(name: "language", value: "en")

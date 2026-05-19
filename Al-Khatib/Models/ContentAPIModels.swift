@@ -189,6 +189,39 @@ struct TafsirPayload: Decodable, Sendable {
     }
 }
 
+struct HadithsByAyahResponse: Decodable, Sendable {
+    let hadiths: [HadithReference]?
+    let page: Int?
+    let limit: Int?
+    let hasMore: Bool?
+    let language: String?
+    let direction: String?
+}
+
+struct HadithReference: Decodable, Sendable {
+    let urn: Int?
+    let collection: String?
+    let bookNumber: String?
+    let chapterId: String?
+    let hadithNumber: String?
+    let name: String?
+    let hadith: [HadithText]?
+}
+
+struct HadithText: Decodable, Sendable {
+    let lang: String?
+    let chapterNumber: String?
+    let chapterTitle: String?
+    let body: String?
+    let urn: Int?
+    let grades: [HadithGrade]?
+}
+
+struct HadithGrade: Decodable, Sendable {
+    let gradedBy: String?
+    let grade: String?
+}
+
 struct RecitationsResponse: Decodable, Sendable {
     let recitations: [RecitationPayload]?
 }

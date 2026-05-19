@@ -13,20 +13,31 @@ enum HTMLContentStyle {
     case article
     case tafsirReader
     case verseCard
+    case verseCardOnDark
+
+    var isVerseCard: Bool {
+        switch self {
+        case .verseCard, .verseCardOnDark: true
+        default: false
+        }
+    }
 }
 
 struct HTMLContentWebView: UIViewRepresentable {
     let htmlFragment: String
     var style: HTMLContentStyle = .article
+    var fontScale: Double = 1.0
     var contentHeight: Binding<CGFloat>?
 
     init(
         htmlFragment: String,
         style: HTMLContentStyle = .article,
+        fontScale: Double = 1.0,
         contentHeight: Binding<CGFloat>? = nil
     ) {
         self.htmlFragment = htmlFragment
         self.style = style
+        self.fontScale = fontScale
         self.contentHeight = contentHeight
     }
 
@@ -40,6 +51,9 @@ struct HTMLContentWebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+        if #available(iOS 15.0, *) {
+            webView.underPageBackgroundColor = .clear
+        }
         webView.navigationDelegate = context.coordinator
         context.coordinator.webViewRef = webView
         configureScroll(webView, style: style)
@@ -49,10 +63,16 @@ struct HTMLContentWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         context.coordinator.heightBinding = contentHeight
         context.coordinator.style = style
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        if #available(iOS 15.0, *) {
+            webView.underPageBackgroundColor = .clear
+        }
         configureScroll(webView, style: style)
         let baseDirectory: URL?
         let embedFont: Bool
-        if style == .verseCard {
+        if style.isVerseCard {
             baseDirectory = AlKhatibTypography.verseArabicHTMLBaseDirectory()
             embedFont = baseDirectory != nil
         } else {
@@ -63,13 +83,19 @@ struct HTMLContentWebView: UIViewRepresentable {
         let key = ContentLoadSignature(
             htmlFragment: htmlFragment,
             style: style,
+            fontScale: fontScale,
             embedVerseWebFont: embedFont,
             baseURLPath: baseDirectory?.standardizedFileURL.path ?? ""
         )
         guard context.coordinator.lastSignature != key else { return }
         context.coordinator.lastSignature = key
 
-        let html = Self.document(from: htmlFragment, style: style, embedVerseWebFont: embedFont)
+        let html = Self.document(
+            from: htmlFragment,
+            style: style,
+            embedVerseWebFont: embedFont,
+            fontScale: fontScale
+        )
         webView.loadHTMLString(html, baseURL: baseDirectory)
     }
 
@@ -79,8 +105,8 @@ struct HTMLContentWebView: UIViewRepresentable {
             webView.scrollView.isScrollEnabled = true
             webView.scrollView.bounces = true
             webView.scrollView.contentInsetAdjustmentBehavior = .automatic
-        case .verseCard:
-            webView.scrollView.isScrollEnabled = true
+        case .verseCard, .verseCardOnDark:
+            webView.scrollView.isScrollEnabled = false
             webView.scrollView.bounces = false
             webView.scrollView.contentInsetAdjustmentBehavior = .never
         }
@@ -98,7 +124,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            guard style == .verseCard, let binding = heightBinding else { return }
+            guard style.isVerseCard, let binding = heightBinding else { return }
             webView.evaluateJavaScript("document.body.scrollHeight") { result, _ in
                 let raw: CGFloat
                 if let n = result as? NSNumber {
@@ -123,19 +149,35 @@ struct HTMLContentWebView: UIViewRepresentable {
     fileprivate struct ContentLoadSignature: Equatable {
         let htmlFragment: String
         let style: HTMLContentStyle
+        let fontScale: Double
         let embedVerseWebFont: Bool
         let baseURLPath: String
     }
 
-    private static func document(from raw: String, style: HTMLContentStyle, embedVerseWebFont: Bool = false) -> String {
+    private static func document(
+        from raw: String,
+        style: HTMLContentStyle,
+        embedVerseWebFont: Bool = false,
+        fontScale: Double = 1.0
+    ) -> String {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.range(of: #"^\s*<(html\b|!DOCTYPE\s)"#, options: [.regularExpression, .caseInsensitive]) != nil {
             return trimmed
         }
-        return wrappedFragment(trimmed, style: style, embedVerseWebFont: embedVerseWebFont)
+        return wrappedFragment(
+            trimmed,
+            style: style,
+            embedVerseWebFont: embedVerseWebFont,
+            fontScale: fontScale
+        )
     }
 
-    private static func wrappedFragment(_ body: String, style: HTMLContentStyle, embedVerseWebFont: Bool) -> String {
+    private static func wrappedFragment(
+        _ body: String,
+        style: HTMLContentStyle,
+        embedVerseWebFont: Bool,
+        fontScale: Double
+    ) -> String {
         let extraCSS: String
         switch style {
         case .article:
@@ -152,96 +194,21 @@ struct HTMLContentWebView: UIViewRepresentable {
         case .tafsirReader:
             extraCSS = Self.tafsirReaderBodyCSS()
 
-        case .verseCard:
-            let fontFace: String = {
-                guard embedVerseWebFont else { return "" }
-                let file = AlKhatibTypography.verseWebFontRelativeFileName
-                return """
-
-                @font-face {
-                  font-family: 'AlKhatibQuranWeb';
-                  src: url('\(file)') format('truetype');
-                  font-weight: normal;
-                  font-style: normal;
-                  font-display: swap;
-                }
-                """
-            }()
-            let arabicFontStack =
-                embedVerseWebFont
-                ? "'AlKhatibQuranWeb', 'Geeza Pro', 'Damascus', 'Arabic Typesetting', 'Noto Sans Arabic', 'Noto Sans Arabic UI', serif"
-                : "'Geeza Pro', 'Damascus', 'Arabic Typesetting', 'Noto Sans Arabic', 'Noto Sans Arabic UI', serif"
-            extraCSS = """
-                \(fontFace)
-                html, body {
-                  background: transparent !important;
-                  color-scheme: light only;
-                }
-                body {
-                  direction: rtl;
-                  text-align: right;
-                  unicode-bidi: plaintext;
-                  font-family: \(arabicFontStack);
-                  font-size: clamp(21px, 4.8vw, 28px);
-                  line-height: 1.82;
-                  padding: 4px 0 12px;
-                  color: #1D1D1F;
-                  -webkit-hyphens: none;
-                  margin: 0;
-                  -webkit-font-smoothing: antialiased;
-                }
-                tajweed { display: inline; }
-                span.end { opacity: 0.95; font-weight: 600; }
-                .ayah-end-symbol {
-                  display: inline-grid;
-                  place-items: center;
-                  white-space: nowrap;
-                  unicode-bidi: embed;
-                  font-family: \(arabicFontStack);
-                  color: rgba(148, 80, 5, 0.95);
-                  margin-inline-start: 0.3em;
-                  width: 1.42em;
-                  height: 1.42em;
-                  font-size: 1em;
-                  vertical-align: -0.12em;
-                  line-height: 1;
-                  font-feature-settings: "liga" 1, "kern" 1;
-                }
-                .ayah-end-rosette {
-                  grid-area: 1 / 1;
-                  font-size: 1.42em;
-                  line-height: 1;
-                  color: rgba(148, 80, 5, 0.95);
-                }
-                .ayah-end-number {
-                  grid-area: 1 / 1;
-                  font-size: 0.56em;
-                  line-height: 1;
-                  font-weight: 700;
-                  transform: translateY(-0.01em);
-                  color: rgba(148, 80, 5, 0.98);
-                }
-                .ghunnah { color: #2E7D32; }
-                .slnt { color: #5C6F7A; }
-                .madda_normal { color: #3949AB; }
-                .madda_permissible { color: #6A1B9A; }
-                .madda_obligatory { color: #7B1FA2; }
-                .qalaqah { color: #D84315; }
-                .idgham_ghunnah { color: #00897B; }
-                .ikhafa { color: #00838F; }
-                .ham_wasl { color: #558B2F; }
-                .end { color: rgba(148, 80, 5, 0.95); }
-            """
+        case .verseCard, .verseCardOnDark:
+            extraCSS = verseCardCSS(
+                onDark: style == .verseCardOnDark,
+                embedVerseWebFont: embedVerseWebFont,
+                fontScale: fontScale
+            )
         }
 
         let (lang, dir) = htmlLocale(for: style)
         let prose = proseRules(for: style)
+        // Keep light color-scheme for verse cards so WKWebView does not paint a black page.
         let colorSchemeMeta: String =
-            style == .verseCard
-            ? "light"
-            : "light dark"
+            style.isVerseCard ? "light" : "light dark"
         let colorSchemeCSS: String =
-            style == .verseCard
+            style.isVerseCard
             ? ":root { color-scheme: light only; }"
             : ":root { color-scheme: light dark; }"
 
@@ -269,11 +236,114 @@ struct HTMLContentWebView: UIViewRepresentable {
 
     private static func htmlLocale(for style: HTMLContentStyle) -> (lang: String, dir: String) {
         switch style {
-        case .verseCard:
+        case .verseCard, .verseCardOnDark:
             ("ar", "rtl")
         case .tafsirReader, .article:
             ("en", "ltr")
         }
+    }
+
+    private static func verseCardCSS(onDark: Bool, embedVerseWebFont: Bool, fontScale: Double) -> String {
+        let scale = min(max(fontScale, 0.85), 1.45)
+        let minPx = 21 * scale
+        let maxPx = 28 * scale
+        let vw = 4.8 * scale
+        let fontFace: String = {
+            guard embedVerseWebFont else { return "" }
+            let file = AlKhatibTypography.verseWebFontRelativeFileName
+            return """
+
+            @font-face {
+              font-family: 'AlKhatibQuranWeb';
+              src: url('\(file)') format('truetype');
+              font-weight: normal;
+              font-style: normal;
+              font-display: swap;
+            }
+            """
+        }()
+        let arabicFontStack =
+            embedVerseWebFont
+            ? "'AlKhatibQuranWeb', 'Geeza Pro', 'Damascus', 'Arabic Typesetting', 'Noto Sans Arabic', 'Noto Sans Arabic UI', serif"
+            : "'Geeza Pro', 'Damascus', 'Arabic Typesetting', 'Noto Sans Arabic', 'Noto Sans Arabic UI', serif"
+        let bodyColor = onDark ? "#FFFFFF" : "#1D1D1F"
+        let endGold = onDark ? "rgba(212, 175, 55, 0.95)" : "rgba(148, 80, 5, 0.95)"
+        let tajweed = onDark
+            ? """
+                .ghunnah { color: #81C784; }
+                .slnt { color: #B0BEC5; }
+                .madda_normal { color: #9FA8DA; }
+                .madda_permissible { color: #CE93D8; }
+                .madda_obligatory { color: #E1BEE7; }
+                .qalaqah { color: #FFAB91; }
+                .idgham_ghunnah { color: #80CBC4; }
+                .ikhafa { color: #80DEEA; }
+                .ham_wasl { color: #AED581; }
+              """
+            : """
+                .ghunnah { color: #2E7D32; }
+                .slnt { color: #5C6F7A; }
+                .madda_normal { color: #3949AB; }
+                .madda_permissible { color: #6A1B9A; }
+                .madda_obligatory { color: #7B1FA2; }
+                .qalaqah { color: #D84315; }
+                .idgham_ghunnah { color: #00897B; }
+                .ikhafa { color: #00838F; }
+                .ham_wasl { color: #558B2F; }
+              """
+        return """
+            \(fontFace)
+            html, body {
+              background: transparent !important;
+              color-scheme: light only;
+            }
+            body {
+              direction: rtl;
+              text-align: right;
+              unicode-bidi: plaintext;
+              font-family: \(arabicFontStack);
+              font-size: clamp(\(String(format: "%.1f", minPx))px, \(String(format: "%.1f", vw))vw, \(String(format: "%.1f", maxPx))px);
+              line-height: 1.82;
+              padding: 4px 0 12px;
+              color: \(bodyColor);
+              -webkit-hyphens: none;
+              margin: 0;
+              -webkit-font-smoothing: antialiased;
+            }
+            tajweed { display: inline; }
+            span.end { opacity: 0.95; font-weight: 600; color: \(bodyColor); }
+            .ayah-end-symbol {
+              display: inline-grid;
+              place-items: center;
+              white-space: nowrap;
+              unicode-bidi: embed;
+              font-family: \(arabicFontStack);
+              color: \(endGold);
+              margin-inline-start: 0.3em;
+              width: 1.42em;
+              height: 1.42em;
+              font-size: 1em;
+              vertical-align: -0.12em;
+              line-height: 1;
+              font-feature-settings: "liga" 1, "kern" 1;
+            }
+            .ayah-end-rosette {
+              grid-area: 1 / 1;
+              font-size: 1.42em;
+              line-height: 1;
+              color: \(endGold);
+            }
+            .ayah-end-number {
+              grid-area: 1 / 1;
+              font-size: 0.56em;
+              line-height: 1;
+              font-weight: 700;
+              transform: translateY(-0.01em);
+              color: \(endGold);
+            }
+            \(tajweed)
+            .end { color: \(endGold); }
+        """
     }
 
     private static func proseRules(for style: HTMLContentStyle) -> String {
@@ -289,7 +359,7 @@ struct HTMLContentWebView: UIViewRepresentable {
                 sup, sub { font-size: 0.75em; }
                 code { font-family: ui-monospace, Menlo, monospace; font-size: 0.9em; }
             """
-        case .article, .verseCard:
+        case .article, .verseCard, .verseCardOnDark:
             return """
                 p { margin: 0 0 12px; }
                 div { margin-bottom: 8px; }

@@ -26,6 +26,7 @@ struct ChaptersView: View {
             }
             .navigationDestination(for: QuranChapter.self) { chapter in
                 ChapterVersesView(chapter: chapter)
+                    .toolbarBackground(.hidden, for: .navigationBar)
             }
         }
         .task {
