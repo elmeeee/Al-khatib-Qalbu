@@ -61,15 +61,15 @@ struct RootTabView: View {
             ReflectionView(verseState: verseState)
                 .tag(Tab.reflect)
                 .tabItem { Label("Reflect", systemImage: "square.and.pencil") }
-            JourneyView(verseState: verseState)
+            ChaptersView()
                 .tag(Tab.journey)
-                .tabItem { Label("Journey", systemImage: "flame.fill") }
+                .tabItem { Label("Quran", systemImage: "book.fill") }
         }
         .task {
             await verseState.ensureProfileLoaded(container: container)
         }
         .onChange(of: selectedTab) { _, newTab in
-            guard newTab == .journey || newTab == .reflect else { return }
+            guard newTab == .reflect else { return }
             Task { @MainActor in
                 await verseState.ensureProfileLoaded(container: container)
                 guard verseState.hasResolvedSession else { return }

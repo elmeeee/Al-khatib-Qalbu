@@ -9,6 +9,8 @@
 import Foundation
 
 enum QuranContentEndpoint: QFEndpoint {
+    case chapters(query: [URLQueryItem])
+    case versesByChapter(chapterNumber: Int, query: [URLQueryItem])
     case randomAyah(query: [URLQueryItem])
     case resourcesRecitations(query: [URLQueryItem])
     case tafsirByAyah(resourceId: String, ayahKey: String, query: [URLQueryItem])
@@ -18,6 +20,10 @@ enum QuranContentEndpoint: QFEndpoint {
 
     var path: String {
         switch self {
+        case .chapters:
+            return AppEndpoints.Content.chapters
+        case .versesByChapter(let chapterNumber, _):
+            return AppEndpoints.Content.versesByChapter(chapterNumber)
         case .randomAyah:
             return AppEndpoints.Content.versesRandom
         case .resourcesRecitations:
@@ -29,7 +35,9 @@ enum QuranContentEndpoint: QFEndpoint {
 
     var query: [URLQueryItem] {
         switch self {
-        case .randomAyah(let query),
+        case .chapters(let query),
+             .versesByChapter(_, let query),
+             .randomAyah(let query),
              .resourcesRecitations(let query),
              .tafsirByAyah(_, _, let query):
             return query

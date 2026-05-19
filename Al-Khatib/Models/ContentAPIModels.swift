@@ -66,6 +66,13 @@ struct RandomAyahPayload: Decodable, Sendable {
         guard let vk = verseKey?.split(separator: ":").last else { return nil }
         return Int(String(vk)).flatMap { $0 > 0 ? $0 : nil }
     }
+
+    var listIdentity: String {
+        if let verseKey, verseKey.isEmpty == false { return verseKey }
+        if let id { return "id-\(id)" }
+        if let verseNumber { return "ayah-\(verseNumber)" }
+        return "verse-\(verseNumber ?? 0)"
+    }
 }
 
 private enum QuranAyahEndBadge {
@@ -204,4 +211,99 @@ struct RecitationPayload: Decodable, Sendable {
 
 struct RecitationTranslatedName: Decodable, Sendable {
     let name: String?
+}
+
+struct ChaptersResponse: Decodable, Sendable {
+    let chapters: [QuranChapter]
+
+    enum CodingKeys: String, CodingKey {
+        case chapters
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        chapters = (try? c.decode([QuranChapter].self, forKey: .chapters)) ?? []
+    }
+}
+
+struct QuranChapter: Decodable, Sendable, Identifiable, Hashable {
+    let id: Int
+    let revelationPlace: String?
+    let nameSimple: String?
+    let nameComplex: String?
+    let nameArabic: String?
+    let versesCount: Int?
+    let translatedName: ChapterTranslatedName?
+
+    /// Latin transliteration, e.g. "Al-Fātiĥah".
+    var displayComplexName: String {
+        if let nameComplex, nameComplex.isEmpty == false { return nameComplex }
+        if let nameSimple, nameSimple.isEmpty == false { return nameSimple }
+        return "Chapter \(id)"
+    }
+
+    /// Localized title from `translated_name.name`, e.g. "The Opener".
+    var displayTranslatedName: String {
+        translatedName?.name ?? ""
+    }
+
+    var displayTitle: String {
+        let translated = displayTranslatedName
+        if translated.isEmpty == false { return translated }
+        return displayComplexName
+    }
+
+    var versesCountLabel: String? {
+        guard let versesCount else { return nil }
+        return versesCount == 1 ? "1 ayah" : "\(versesCount) ayahs"
+    }
+
+    var revelationLabel: String {
+        switch revelationPlace?.lowercased() {
+        case "makkah", "mecca": "Meccan"
+        case "madinah", "medina": "Medinan"
+        default: revelationPlace?.capitalized ?? ""
+        }
+    }
+}
+
+struct ChapterTranslatedName: Decodable, Sendable, Hashable {
+    let languageName: String?
+    let name: String?
+}
+
+struct VersesByChapterResponse: Decodable, Sendable {
+    let verses: [RandomAyahPayload]
+    let pagination: ContentPagination?
+
+    enum CodingKeys: String, CodingKey {
+        case verses, pagination
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        verses = (try? c.decode([RandomAyahPayload].self, forKey: .verses)) ?? []
+        pagination = try? c.decode(ContentPagination.self, forKey: .pagination)
+    }
+}
+
+struct ContentPagination: Decodable, Sendable {
+    let perPage: Int?
+    let currentPage: Int?
+    let nextPage: Int?
+    let totalPages: Int?
+    let totalRecords: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case perPage = "per_page"
+        case currentPage = "current_page"
+        case nextPage = "next_page"
+        case totalPages = "total_pages"
+        case totalRecords = "total_records"
+    }
+
+    var hasNextPage: Bool {
+        guard let nextPage, let currentPage else { return false }
+        return nextPage > currentPage
+    }
 }

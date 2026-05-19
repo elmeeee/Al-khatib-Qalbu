@@ -73,7 +73,11 @@ enum AppEndpoints {
     }
 
     enum Content {
+        static let chapters = "chapters"
         static let versesRandom = "verses/random"
+        static func versesByChapter(_ chapterNumber: Int) -> String {
+            "verses/by_chapter/\(chapterNumber)"
+        }
         static let resourcesRecitations = "resources/recitations"
         static func verseByKey(_ key: String) -> String { "verses/by_key/\(key)" }
         static func hadithsByAyah(_ ayahKey: String) -> String {
