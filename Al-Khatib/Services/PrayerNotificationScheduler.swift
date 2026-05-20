@@ -79,8 +79,8 @@ struct NightDivisionEntry: Sendable {
 @MainActor
 final class PrayerNotificationScheduler {
     private let center = UNUserNotificationCenter.current()
-    private let prayerPrefix = "alkhatib.prayer."
-    private let nightPrefix = "alkhatib.night."
+    private let prayerPrefix = "alkhatib.prayer"
+    private let nightPrefix = "alkhatib.night"
 
     func requestAuthorizationIfNeeded() async -> Bool {
         let settings = await center.notificationSettings()
@@ -116,23 +116,47 @@ final class PrayerNotificationScheduler {
         }
 
         let now = Date()
-        for prayer in prayers where prayer.date > now {
-            await addNotification(
-                identifier: "\(prayerPrefix)\(prayer.name).\(Int(prayer.date.timeIntervalSince1970))",
-                fireDate: prayer.date,
-                title: PrayerNotificationCopy.title(for: prayer.name, at: prayer.date),
-                body: PrayerNotificationCopy.body(for: prayer.name)
-            )
+        let calendar = Calendar.current
+        var scheduledCount = 0
+
+        for prayer in prayers {
+            for fireDate in Self.upcomingOccurrences(of: prayer.date, from: now, calendar: calendar) {
+                let id = "\(prayerPrefix).\(prayer.name).\(Int(fireDate.timeIntervalSince1970))"
+                await addNotification(
+                    identifier: id,
+                    fireDate: fireDate,
+                    title: PrayerNotificationCopy.title(for: prayer.name, at: fireDate),
+                    body: PrayerNotificationCopy.body(for: prayer.name)
+                )
+                scheduledCount += 1
+            }
         }
 
-        for division in nightDivisions where division.date > now {
-            await addNotification(
-                identifier: "\(nightPrefix).\(division.kind.rawValue).\(Int(division.date.timeIntervalSince1970))",
-                fireDate: division.date,
-                title: division.kind.notificationTitle,
-                body: division.kind.notificationBody
-            )
+        for division in nightDivisions {
+            for fireDate in Self.upcomingOccurrences(of: division.date, from: now, calendar: calendar) {
+                let id = "\(nightPrefix).\(division.kind.rawValue).\(Int(fireDate.timeIntervalSince1970))"
+                await addNotification(
+                    identifier: id,
+                    fireDate: fireDate,
+                    title: division.kind.notificationTitle,
+                    body: division.kind.notificationBody
+                )
+                scheduledCount += 1
+            }
         }
+
+        prayerNotifLog.debug("Scheduled \(scheduledCount, privacy: .public) prayer/night notifications")
+    }
+
+    /// Today’s time if still in the future; otherwise same clock time **tomorrow** (approximation until the next Al-Adhan fetch).
+    private static func upcomingOccurrences(of date: Date, from now: Date, calendar: Calendar) -> [Date] {
+        if date > now {
+            return [date]
+        }
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: date), tomorrow > now else {
+            return []
+        }
+        return [tomorrow]
     }
 
     private func addNotification(
@@ -146,10 +170,14 @@ final class PrayerNotificationScheduler {
         content.body = body
         content.sound = .default
 
-        let comps = Calendar.current.dateComponents(
+        var comps = Calendar.current.dateComponents(
             [.year, .month, .day, .hour, .minute],
             from: fireDate
         )
+        comps.calendar = Calendar.current
+        comps.timeZone = TimeZone.current
+        comps.second = 0
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 

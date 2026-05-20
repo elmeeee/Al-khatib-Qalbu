@@ -8,9 +8,15 @@
 
 import Foundation
 
+
 enum APICache {
-    private nonisolated static let profileTTL: TimeInterval = 0
-    private nonisolated static let reflectFeedTTL: TimeInterval = 0
+    #if DEBUG
+    private nonisolated static let profileTTL: TimeInterval = 30
+    private nonisolated static let reflectFeedTTL: TimeInterval = 30
+    #else
+    private nonisolated static let profileTTL: TimeInterval = 300
+    private nonisolated static let reflectFeedTTL: TimeInterval = 45
+    #endif
 
     actor Profile {
         static let shared = Profile()
@@ -26,6 +32,10 @@ enum APICache {
                 return nil
             }
             return value
+        }
+
+        func isFresh() -> Bool {
+            cached() != nil
         }
 
         func store(_ profile: UserProfilePayload) {

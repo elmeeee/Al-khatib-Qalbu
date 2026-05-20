@@ -54,7 +54,7 @@ struct ReflectionView: View {
                 } else {
                     reelBootLoading
                 }
-            } else if verseState.hasResolvedSession == false && hasAccessToken == false {
+            } else if verseState.hasResolvedSession == false || verseState.isRefreshingProfile {
                 LoadingSkeleton()
             } else if verseState.hasResolvedSession {
                 SignInPromptView(
@@ -94,8 +94,14 @@ struct ReflectionView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
-                if verseState.isLoggedIn == false {
+                hasAccessToken = await container?.userSession.hasUserAccessToken() ?? false
+                if hasAccessToken == false {
                     vm = nil
+                    await verseState.ensureProfileLoaded(container: container)
+                } else if isTabSelected {
+                    await bootstrapFeed(force: true)
+                } else {
+                    container?.warmReflectDataIfSignedIn()
                 }
             }
         }
@@ -112,9 +118,8 @@ struct ReflectionView: View {
             }
         }
         .task(id: isTabSelected) {
-            await refreshAccessTokenFlag()
             guard isTabSelected else { return }
-            await bootstrapFeed()
+            await openReflectTab()
         }
         .onChange(of: verseState.feedNeedsRefresh) { _, needsRefresh in
             guard needsRefresh, verseState.isLoggedIn else { return }
@@ -156,7 +161,27 @@ struct ReflectionView: View {
     }
 
     private var canShowReflectFeed: Bool {
-        verseState.isLoggedIn || hasAccessToken
+        hasAccessToken || verseState.isLoggedIn
+    }
+
+    private func openReflectTab() async {
+        hasAccessToken = await container?.userSession.hasUserAccessToken() ?? false
+        guard hasAccessToken else {
+            await verseState.ensureProfileLoaded(container: container)
+            vm = nil
+            return
+        }
+
+        if vm == nil, let container {
+            vm = ReflectionViewModel(reflect: container.reflect)
+        }
+        container?.warmReflectDataIfSignedIn()
+        vm?.scheduleLoad(refresh: true, force: false)
+
+        hasAccessToken = await container?.userSession.hasUserAccessToken() ?? false
+        if hasAccessToken == false {
+            vm = nil
+        }
     }
 
     private func refreshAccessTokenFlag() async {
@@ -168,16 +193,14 @@ struct ReflectionView: View {
     }
 
     private func bootstrapFeed(force: Bool = false) async {
-        let hasAccess = await hasToken()
-        guard canShowReflectFeed || hasAccess else { return }
         if let c = container, vm == nil {
             vm = ReflectionViewModel(reflect: c.reflect)
         }
-        if force {
-            vm?.scheduleLoad(refresh: true, force: true)
-        } else {
-            vm?.scheduleLoad(refresh: true, force: false)
-        }
+        vm?.scheduleLoad(refresh: true, force: force)
+
+        let hasAccess = await hasToken()
+        hasAccessToken = hasAccess
+        guard canShowReflectFeed || hasAccess else { return }
     }
 
     private func hasToken() async -> Bool {

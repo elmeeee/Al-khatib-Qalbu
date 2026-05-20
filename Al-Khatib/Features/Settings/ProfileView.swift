@@ -55,11 +55,23 @@ struct ProfileView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             isOAuthPresenting = container?.oauth.isWebAuthInProgress == true
+            guard isOAuthPresenting == false else { return }
+            Task { @MainActor in
+                if await container?.userSession.hasUserAccessToken() == true {
+                    await vm?.fetchProfile(force: true)
+                } else {
+                    vm?.profile = nil
+                }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
                 guard container?.oauth.isWebAuthInProgress != true else { return }
-                await vm?.fetchProfile()
+                if await container?.userSession.hasUserAccessToken() == true {
+                    await vm?.fetchProfile(force: true)
+                } else {
+                    vm?.profile = nil
+                }
             }
         }
         .toolbar {

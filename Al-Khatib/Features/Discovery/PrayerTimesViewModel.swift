@@ -63,6 +63,9 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     private var scheduleAnchorDate: Date?
     private var tickerCancellable: AnyCancellable?
     private var methodChangeCancellable: AnyCancellable?
+    /// Skip duplicate Al-Adhan calls (appear + scene active + multiple GPS callbacks).
+    private var lastSuccessfulTimingsKey: String?
+    private var lastSuccessfulTimingsAt: Date?
 
     func remainingText(at now: Date) -> String? {
         guard let target = nextPrayer?.date else { return nil }
@@ -119,7 +122,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         guard let location = lastKnownLocation else { return }
         guard !isLoading else { return }
         isLoading = true
-        Task { await fetchPrayerTimes(for: location) }
+        Task { await fetchPrayerTimes(for: location, bypassDedupe: true) }
     }
 
     func refreshIfNeeded() {
@@ -127,7 +130,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
 
         if let cachedLocation = lastKnownLocation {
             isLoading = true
-            Task { await fetchPrayerTimes(for: cachedLocation) }
+            Task { await fetchPrayerTimes(for: cachedLocation, bypassDedupe: false) }
             return
         }
 
@@ -178,7 +181,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
             await autoDetectCalculationMethodIfNeeded(countryCode: geocode.countryCode)
         }
 
-        Task { await fetchPrayerTimes(for: location) }
+        Task { await fetchPrayerTimes(for: location, bypassDedupe: false) }
     }
 
     private func autoDetectCalculationMethodIfNeeded(countryCode: String?) async {
@@ -190,7 +193,24 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         detected.persist(notify: false)
     }
 
-    private func fetchPrayerTimes(for location: CLLocation) async {
+    private func timingsDedupeKey(for location: CLLocation) -> String {
+        let lat = (location.coordinate.latitude * 10_000).rounded() / 10_000
+        let lon = (location.coordinate.longitude * 10_000).rounded() / 10_000
+        let day = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
+        return "\(lat)|\(lon)|\(day)|\(calculationMethod.rawValue)"
+    }
+
+    private func fetchPrayerTimes(for location: CLLocation, bypassDedupe: Bool) async {
+        let key = timingsDedupeKey(for: location)
+        if bypassDedupe == false,
+           let prevKey = lastSuccessfulTimingsKey,
+           prevKey == key,
+           let at = lastSuccessfulTimingsAt,
+           Date().timeIntervalSince(at) < 90 {
+            isLoading = false
+            return
+        }
+
         let lat = location.coordinate.latitude
         let lon = location.coordinate.longitude
         let timestamp = Int(Date().timeIntervalSince1970)
@@ -208,8 +228,12 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let envelope = try JSONDecoder().decode(AladhanTimingsEnvelope.self, from: data)
-            applyTimings(envelope.data)
             errorMessage = nil
+            let applied = applyTimings(envelope.data)
+            if applied {
+                lastSuccessfulTimingsKey = key
+                lastSuccessfulTimingsAt = Date()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -217,7 +241,8 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         isLoading = false
     }
 
-    private func applyTimings(_ data: AladhanTimingsData) {
+    @discardableResult
+    private func applyTimings(_ data: AladhanTimingsData) -> Bool {
         let timings = data.timings
         let now = Date()
         let calendar = Calendar.current
@@ -269,7 +294,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
 
         guard !todaySchedule.isEmpty else {
             errorMessage = "Unable to resolve prayer schedule from the timetable response."
-            return
+            return false
         }
 
         let nightDivisions = NightDivisionEntry.Kind.allCases.compactMap { kind -> NightDivisionEntry? in
@@ -288,13 +313,14 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
                 nightDivisions: nightSnapshot
             )
         }
+        return true
     }
 
     private func handleTick(at now: Date) {
         if let anchor = scheduleAnchorDate, !Calendar.current.isDate(now, inSameDayAs: anchor) {
             guard !isLoading, let location = lastKnownLocation else { return }
             isLoading = true
-            Task { await fetchPrayerTimes(for: location) }
+            Task { await fetchPrayerTimes(for: location, bypassDedupe: false) }
             return
         }
         if let end = nextPrayer?.date, now >= end {

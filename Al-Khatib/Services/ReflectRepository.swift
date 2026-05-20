@@ -91,11 +91,13 @@ struct ReflectRepository: Sendable {
             bodyData: bodyData,
             idempotencyKey: idempotencyKey
         )
-        let envelope: PostCreateEnvelope = try await client.send(endpoint)
-
+        async let postEnvelope: PostCreateEnvelope = client.send(endpoint)
         if refs.isEmpty == false {
-            do { try await habits.logQuranActivityForToday(verses: refs.count) } catch { }
+            Task.detached(priority: .background) {
+                try? await self.habits.logQuranActivityForToday(verses: refs.count)
+            }
         }
+        let envelope = try await postEnvelope
 
         guard let created = envelope.createdPost else {
             throw QFError.parsingError("create post response missing post payload")

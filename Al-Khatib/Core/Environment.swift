@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum AppEnvironment: String, Sendable {
+enum AppEnvironment: String, Sendable, CaseIterable {
     case development = "DEVELOPMENT"
     case production = "PRODUCTION"
 

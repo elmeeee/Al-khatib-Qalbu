@@ -463,14 +463,12 @@ struct TodayDiscoveryView: View {
         defer { isPostingReflection = false }
 
         await verseState.ensureProfileLoaded(container: c)
+
         if verseState.isLoggedIn == false {
             await verseState.signIn(container: c)
-            await verseState.ensureProfileLoaded(container: c)
         }
-        guard verseState.isLoggedIn else { return }
-
-        guard let authorId = verseState.userId, authorId.isEmpty == false else {
-            await showReflectStatus("Could not load your profile. Try signing in again.", isError: true)
+        guard verseState.isLoggedIn, let authorId = verseState.userId, authorId.isEmpty == false else {
+            await showReflectStatus("Please sign in to publish a reflection.", isError: true)
             return
         }
 
@@ -558,12 +556,6 @@ extension TodayDiscoveryView {
         }
         .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
         .padding(.top, 16)
-        .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
-            Task { @MainActor in
-                guard container?.oauth.isWebAuthInProgress != true else { return }
-                await verseState.ensureProfileLoaded(container: container)
-            }
-        }
     }
 
     @ViewBuilder

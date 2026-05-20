@@ -8,11 +8,11 @@
 
 
 import Foundation
+import OSLog
 
-actor QFApiClient {
-    /// Use the **shared** session so **Prowl** (URLProtocol.registerClass) and other inspectors
-    /// reliably see Quran Foundation traffic. Dedicated `URLSession(configuration:)` instances
-    /// may not observe the same protocol stack ordering on-device.
+private let oauthLog = Logger(subsystem: "co.kamy.Al-Khatib", category: "OAuth.Refresh")
+
+final class QFApiClient: Sendable {
     private static let networkingSession = URLSession.shared
 
     enum RequestRoute {
@@ -46,8 +46,8 @@ actor QFApiClient {
         self.refreshManager = QFRefreshTokenManager()
     }
 
-    /// Per-request timeouts (was previously on URLSessionConfiguration).
-    private nonisolated static let requestTimeout: TimeInterval = 15
+    private nonisolated static let contentRequestTimeout: TimeInterval = 20
+    private nonisolated static let userRequestTimeout: TimeInterval = 30
 
     func send<T: Decodable & Sendable, E: QFEndpoint>(_ endpoint: E) async throws -> T {
         let route = routeConfig(for: endpoint.route)
@@ -95,7 +95,7 @@ actor QFApiClient {
             let url = self.makeURL(base: base, prefix: prefix, path: path, query: query)
             var req = URLRequest(url: url)
             req.httpMethod = method
-            req.timeoutInterval = Self.requestTimeout
+            req.timeoutInterval = Self.timeoutInterval(for: retryContext)
             req.cachePolicy = .reloadIgnoringLocalCacheData
             QFHeadersManager.apply(
                 to: &req,
@@ -199,7 +199,7 @@ actor QFApiClient {
             .appendingPathComponent(AppEndpoints.OAuth.token)
         var req = URLRequest(url: tokenURL)
         req.httpMethod = "POST"
-        req.timeoutInterval = Self.requestTimeout
+        req.timeoutInterval = Self.userRequestTimeout
         req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         if let secret = configuration.clientSecret, secret.isEmpty == false {
@@ -208,11 +208,12 @@ actor QFApiClient {
                 .base64EncodedString() ?? ""
             req.setValue("Basic \(basic)", forHTTPHeaderField: "Authorization")
         }
+        // OAuth 2.0 RFC 6749 §6 — only required fields. "redirect_uri" is NOT required
+        // and some servers reject requests that include it for refresh_token grants.
         let body = [
             "grant_type=refresh_token",
             "client_id=\(percentEncode(configuration.clientId))",
-            "refresh_token=\(percentEncode(refresh))",
-            "redirect_uri=\(percentEncode(configuration.oauthRedirectURI.absoluteString))"
+            "refresh_token=\(percentEncode(refresh))"
         ].joined(separator: "&")
         req.httpBody = body.data(using: .utf8)
 
@@ -220,14 +221,40 @@ actor QFApiClient {
         try validateHTTP(response, data: data, expectedMinStatus: 200, expectedMaxStatus: 299)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        // Some servers return {"error": "invalid_grant"} as HTTP 400 instead of 401.
+        // Check before assuming the decode succeeds.
+        if let text = String(data: data, encoding: .utf8),
+           text.contains("\"error\"") {
+            let lower = text.lowercased()
+            if lower.contains("invalid_grant") || lower.contains("invalid_token") {
+                oauthLog.error("Refresh token rejected by server: invalid_grant — clearing session")
+                await userSession.clear()
+                throw QFError.missingUserSession
+            }
+        }
+
         let decoded = try decoder.decode(UserRefreshTokenResponse.self, from: data)
         guard decoded.accessToken.isEmpty == false else {
             throw QFError.parsingError("refresh access_token missing")
+        }
+        // Persist the new refresh token if the server rotated it (standard practice).
+        if let newRefresh = decoded.refreshToken, newRefresh.isEmpty == false {
+            oauthLog.debug("Refresh token rotated — persisting new token")
         }
         await userSession.setUserTokens(
             accessToken: decoded.accessToken,
             refreshToken: decoded.refreshToken ?? refresh
         )
+    }
+
+    private nonisolated static func timeoutInterval(for retry: RetryContext) -> TimeInterval {
+        switch retry {
+        case .contentToken:
+            return contentRequestTimeout
+        case .userToken:
+            return userRequestTimeout
+        }
     }
 
     private func percentEncode(_ s: String) -> String {

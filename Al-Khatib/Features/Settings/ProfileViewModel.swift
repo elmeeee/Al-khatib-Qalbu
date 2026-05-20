@@ -30,12 +30,14 @@ final class ProfileViewModel {
         errorMessage = nil
         do {
             profile = try await container.habits.fetchMyProfile(force: force)
-        } catch QFError.missingUserSession {
-            profile = nil
-            errorMessage = "missing_user_session"
         } catch {
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             profile = nil
+            if TodayVerseState.isAuthenticationFailure(error) {
+                await container.clearUserSession()
+                errorMessage = nil
+            } else {
+                errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            }
         }
         isLoading = false
     }

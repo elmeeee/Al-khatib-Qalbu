@@ -56,9 +56,28 @@ final class AppContainer {
         ReflectionSyncService(store: reflectionStore, reflect: reflect, habits: habits)
     }
 
-    func signOut() async {
+    /// Logout or expired session — clears Keychain tokens, caches, and local Reflect data.
+    func clearUserSession() async {
         await oauth.signOut()
         await APICache.clearAll()
         reflectionStore.removeAll()
+    }
+
+    func signOut() async {
+        await clearUserSession()
+    }
+
+    /// Prefetch profile + Reflect feed in parallel after sign-in (my-posts loads only when that tab is opened).
+    func warmReflectDataIfSignedIn() {
+        Task(priority: .utility) {
+            guard await userSession.hasUserAccessToken() else { return }
+            async let profile: Void = { _ = try? await habits.fetchMyProfile() }()
+            async let feed: Void = { _ = try? await reflect.fetchFeed(page: 1, limit: 8) }()
+            _ = await (profile, feed)
+        }
+    }
+
+    func warmUserProfileIfSignedIn() {
+        warmReflectDataIfSignedIn()
     }
 }

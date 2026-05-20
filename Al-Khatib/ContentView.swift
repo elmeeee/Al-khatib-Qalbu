@@ -38,14 +38,18 @@ struct ContentView: View {
         .task(id: hasCompletedOnboarding) {
             guard hasCompletedOnboarding else { return }
             await verseState.ensureProfileLoaded(container: container)
+            container?.warmUserProfileIfSignedIn()
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             verseState.syncOAuthUIState(container: container)
+            Task { @MainActor in
+                await verseState.handleOAuthFlowDidChange(container: container)
+                container?.warmReflectDataIfSignedIn()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
-                guard container?.oauth.isWebAuthInProgress != true else { return }
-                await verseState.ensureProfileLoaded(container: container)
+                await verseState.handleUserSessionDidChange(container: container)
             }
         }
     }

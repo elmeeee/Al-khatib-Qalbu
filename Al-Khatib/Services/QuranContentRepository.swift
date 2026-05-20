@@ -103,9 +103,11 @@ struct QuranContentRepository: Sendable {
     }
 
     func getTafsirByAyah(resourceId: String, ayahKey: String) async throws -> TafsirResponse {
-        return try await client.send(
-            QuranContentEndpoint.tafsirByAyah(resourceId: resourceId, ayahKey: ayahKey, query: [])
-        )
+        try await TafsirByAyahCache.shared.response(resourceId: resourceId, ayahKey: ayahKey) {
+            try await client.send(
+                QuranContentEndpoint.tafsirByAyah(resourceId: resourceId, ayahKey: ayahKey, query: [])
+            )
+        }
     }
 
     func getHadithsByAyah(
@@ -132,6 +134,50 @@ struct QuranContentRepository: Sendable {
         return try await client.send(
             QuranContentEndpoint.resourcesRecitations(query: query)
         )
+    }
+}
+
+/// One in-flight request + short in-memory cache so Today (prefetch + share + sheet) does not
+/// hit the tafsir endpoint multiple times for the same ayah.
+private actor TafsirByAyahCache {
+    static let shared = TafsirByAyahCache()
+
+    private var inflight: [String: Task<TafsirResponse, Error>] = [:]
+    private var memory: [String: (TafsirResponse, Date)] = [:]
+    private let ttl: TimeInterval = 600
+
+    func response(
+        resourceId: String,
+        ayahKey: String,
+        fetch: @Sendable @escaping () async throws -> TafsirResponse
+    ) async throws -> TafsirResponse {
+        let key = "\(resourceId)|\(ayahKey)"
+        if let (cached, at) = memory[key], Date().timeIntervalSince(at) < ttl {
+            return cached
+        }
+        if let task = inflight[key] {
+            return try await task.value
+        }
+        let task = Task { try await fetch() }
+        inflight[key] = task
+        do {
+            let value = try await task.value
+            memory[key] = (value, Date())
+            inflight[key] = nil
+            pruneMemoryIfNeeded()
+            return value
+        } catch {
+            inflight[key] = nil
+            throw error
+        }
+    }
+
+    private func pruneMemoryIfNeeded() {
+        guard memory.count > 80 else { return }
+        let now = Date()
+        memory = memory.filter { _, pair in
+            now.timeIntervalSince(pair.1) < ttl
+        }
     }
 }
 

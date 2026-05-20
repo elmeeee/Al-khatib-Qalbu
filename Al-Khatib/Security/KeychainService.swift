@@ -79,4 +79,15 @@ struct KeychainService: Sendable {
         ]
         SecItemDelete(query as CFDictionary)
     }
+
+    /// Removes OAuth user tokens from Keychain (current + all build environments).
+    func clearUserOAuthTokens() {
+        let userKeys: [Key] = [.userAccessToken, .userRefreshToken]
+        for key in userKeys {
+            delete(for: key, environment: nil)
+            for env in AppEnvironment.allCases {
+                delete(for: key, environment: env)
+            }
+        }
+    }
 }

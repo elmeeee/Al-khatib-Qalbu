@@ -47,13 +47,16 @@ actor QFUserSession {
         await notifySessionDidChange()
     }
 
+    /// Wipes user OAuth tokens from memory, UserDefaults, and Keychain.
     func clear() async {
         inMemory = nil
         inMemoryRefresh = nil
-        defaults.removeObject(forKey: defaultsKey)
-        defaults.removeObject(forKey: refreshDefaultsKey)
-        keychain.delete(for: .userAccessToken, environment: environment)
-        keychain.delete(for: .userRefreshToken, environment: environment)
+        for env in AppEnvironment.allCases {
+            let suffix = env.rawValue.lowercased()
+            defaults.removeObject(forKey: "qf.userAccessToken.\(suffix)")
+            defaults.removeObject(forKey: "qf.userRefreshToken.\(suffix)")
+        }
+        keychain.clearUserOAuthTokens()
         await notifySessionDidChange()
     }
 
@@ -98,21 +101,17 @@ actor QFUserSession {
 
     private func loadToken(kind: TokenKind) -> String? {
         if let token = inMemoryToken(for: kind), token.isEmpty == false {
-            userSessionLog.debug("Returning in-memory \(self.tokenName(kind), privacy: .public) token, length=\(token.count, privacy: .public)")
             return token
         }
         if let token = try? keychain.getString(for: keychainKey(for: kind), environment: environment), token.isEmpty == false {
             setInMemoryToken(token, for: kind)
-            userSessionLog.debug("Returning keychain \(self.tokenName(kind), privacy: .public) token, length=\(token.count, privacy: .public)")
             return token
         }
         if let token = defaults.string(forKey: defaultsKey(for: kind)), token.isEmpty == false {
             setInMemoryToken(token, for: kind)
-            userSessionLog.debug("Returning defaults \(self.tokenName(kind), privacy: .public) token, length=\(token.count, privacy: .public)")
             return token
         }
         if let token = ProcessInfo.processInfo.environment[processEnvKey(for: kind)], token.isEmpty == false {
-            userSessionLog.debug("Returning process-env \(self.tokenName(kind), privacy: .public) token, length=\(token.count, privacy: .public)")
             return token
         }
         return nil

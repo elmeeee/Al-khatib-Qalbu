@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Prowl
+import UserNotifications
 
 @main
 struct Al_KhatibApp: App {
@@ -15,6 +16,7 @@ struct Al_KhatibApp: App {
 
     init() {
         Prowl.start()
+        UNUserNotificationCenter.current().delegate = PrayerNotificationCenterDelegate.shared
         self.appContainer = AppContainer()
         _ = AlKhatibTypography.verseArabicHTMLBaseDirectory()
         Task { @MainActor in

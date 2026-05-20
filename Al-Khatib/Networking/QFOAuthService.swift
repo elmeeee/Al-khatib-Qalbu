@@ -108,6 +108,8 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
         if authSession != nil {
             cancelActiveWebAuthSession()
         }
+        lastHandledCode = nil
+        isHandlingCallback = false
         let verifier = Self.randomURLSafe(length: 64)
         let challenge = Self.codeChallenge(from: verifier)
         let state = Self.randomURLSafe(length: 32)
@@ -152,6 +154,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
                 clearPendingAuth()
                 return
             }
+            clearPendingAuth()
             oauthConsole("signIn failed: \(error.localizedDescription)")
             throw error
         }
@@ -229,6 +232,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             lastHandledCode = code
             try await completeSignIn(from: url)
         } catch {
+            clearPendingAuth()
             oauthLog.error("Callback handling failed: \(error.localizedDescription, privacy: .public)")
             oauthConsole("handleIncomingCallback failed: \(error.localizedDescription)")
         }
@@ -388,8 +392,15 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             throw QFOAuthError.tokenExchangeFailed("http \(http.statusCode) \(snippet)")
         }
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .useDefaultKeys
-        let decoded = try decoder.decode(UserTokenResponse.self, from: data)
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let decoded: UserTokenResponse
+        do {
+            decoded = try decoder.decode(UserTokenResponse.self, from: data)
+        } catch {
+            let snippet = String(data: data, encoding: .utf8) ?? ""
+            oauthConsole("token decode failed: \(error.localizedDescription) body=\(snippet.prefix(300))")
+            throw QFOAuthError.tokenExchangeFailed(error.localizedDescription)
+        }
         switch grant {
         case .authorizationCode:
             oauthLog.debug("authorization_code response refreshTokenPresent=\(decoded.refreshToken != nil, privacy: .public)")
@@ -439,7 +450,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             throw QFOAuthError.tokenExchangeFailed("introspect http \(http.statusCode)")
         }
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .useDefaultKeys
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         return try decoder.decode(OAuthIntrospectionResponse.self, from: data)
     }
 

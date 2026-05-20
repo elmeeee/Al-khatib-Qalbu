@@ -40,7 +40,7 @@ final class ReflectionViewModel {
     var isPostingShare = false
 
     private let reflect: ReflectRepository
-    private let pageSize = 12
+    private let pageSize = 8
     private var loadTask: Task<Void, Never>?
     private var loadGeneration: UInt = 0
     private var togglingLikePostIDs: Set<String> = []
@@ -125,12 +125,32 @@ final class ReflectionViewModel {
             if Task.isCancelled { return }
             if let generation, generation != loadGeneration { return }
             if refresh { posts = [] }
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            errorMessage = Self.userFacingMessage(for: error, segment: segment)
         }
     }
 
     func showMyPostsAfterPublish() {
         onSegmentChanged(to: .myPosts)
+    }
+
+    private static func userFacingMessage(for error: Error, segment: ReflectPostsSegment) -> String {
+        if case QFError.networkError(let urlError) = error {
+            switch urlError.code {
+            case .timedOut:
+                return "The server took too long to respond. Check your connection and try again."
+            case .notConnectedToInternet, .networkConnectionLost:
+                return "No internet connection. Connect and try again."
+            default:
+                break
+            }
+        }
+        let detail = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        if detail.isEmpty {
+            return segment == .myPosts
+                ? "Could not load your reflections."
+                : "Could not load the Reflect feed."
+        }
+        return detail
     }
 
     func isTogglingLike(postId: String) -> Bool {

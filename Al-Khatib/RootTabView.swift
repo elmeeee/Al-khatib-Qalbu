@@ -106,7 +106,6 @@ struct RootTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
                 guard container?.oauth.isWebAuthInProgress == false else { return }
-                await verseState.ensureProfileLoaded(container: container)
                 guard await vm.shouldResetToDiscover(container: container) else { return }
                 if selectedTab != .today {
                     selectedTab = .today

@@ -41,9 +41,14 @@ struct UserHabitRepository: Sendable {
         if force == false, let cached = await APICache.Profile.shared.cached() {
             return cached
         }
-        let profile: UserProfilePayload = try await client.send(ReflectEndpoint.profile)
-        await APICache.Profile.shared.store(profile)
-        return profile
+        return try await APICoalescer.profile.run {
+            if force == false, let cached = await APICache.Profile.shared.cached() {
+                return cached
+            }
+            let profile: UserProfilePayload = try await self.client.send(ReflectEndpoint.profile)
+            await APICache.Profile.shared.store(profile)
+            return profile
+        }
     }
 
     func patchMyProfileNoop(postAs: Bool) async throws -> Bool {
