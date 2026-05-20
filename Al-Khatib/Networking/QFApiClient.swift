@@ -10,6 +10,11 @@
 import Foundation
 
 actor QFApiClient {
+    /// Use the **shared** session so **Prowl** (URLProtocol.registerClass) and other inspectors
+    /// reliably see Quran Foundation traffic. Dedicated `URLSession(configuration:)` instances
+    /// may not observe the same protocol stack ordering on-device.
+    private static let networkingSession = URLSession.shared
+
     enum RequestRoute {
         case content
         case user
@@ -37,19 +42,12 @@ actor QFApiClient {
         self.configuration = configuration
         self.auth = auth
         self.userSession = userSession
-        self.session = Self.makeOptimizedSession()
+        self.session = Self.networkingSession
         self.refreshManager = QFRefreshTokenManager()
     }
 
-    private static func makeOptimizedSession() -> URLSession {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 45
-        config.httpMaximumConnectionsPerHost = 6
-        config.waitsForConnectivity = true
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
-        return URLSession(configuration: config)
-    }
+    /// Per-request timeouts (was previously on URLSessionConfiguration).
+    private nonisolated static let requestTimeout: TimeInterval = 15
 
     func send<T: Decodable & Sendable, E: QFEndpoint>(_ endpoint: E) async throws -> T {
         let route = routeConfig(for: endpoint.route)
@@ -97,6 +95,8 @@ actor QFApiClient {
             let url = self.makeURL(base: base, prefix: prefix, path: path, query: query)
             var req = URLRequest(url: url)
             req.httpMethod = method
+            req.timeoutInterval = Self.requestTimeout
+            req.cachePolicy = .reloadIgnoringLocalCacheData
             QFHeadersManager.apply(
                 to: &req,
                 token: token,
@@ -199,6 +199,7 @@ actor QFApiClient {
             .appendingPathComponent(AppEndpoints.OAuth.token)
         var req = URLRequest(url: tokenURL)
         req.httpMethod = "POST"
+        req.timeoutInterval = Self.requestTimeout
         req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         if let secret = configuration.clientSecret, secret.isEmpty == false {
@@ -218,7 +219,7 @@ actor QFApiClient {
         let (data, response) = try await session.data(for: req)
         try validateHTTP(response, data: data, expectedMinStatus: 200, expectedMaxStatus: 299)
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .useDefaultKeys
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
         let decoded = try decoder.decode(UserRefreshTokenResponse.self, from: data)
         guard decoded.accessToken.isEmpty == false else {
             throw QFError.parsingError("refresh access_token missing")
@@ -256,7 +257,7 @@ private extension URLSession {
             do {
                 return try await Task.detached(priority: .userInitiated) {
                     let d = JSONDecoder()
-                    d.keyDecodingStrategy = .useDefaultKeys
+                    d.keyDecodingStrategy = .convertFromSnakeCase
                     return try d.decode(T.self, from: payload)
                 }.value
             } catch {

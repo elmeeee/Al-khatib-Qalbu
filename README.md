@@ -11,10 +11,6 @@
 
 ---
 
-## Hackathon submission — copy for the form
-
-Use these answers directly in the project overview fields.
-
 ### Project Name
 
 **Al-Khatib**
@@ -42,18 +38,6 @@ Engagement is intentional: short daily touchpoints, deeper surah study, and soci
 
 ---
 
-## Submission checklist
-
-| Requirement | Status / notes |
-|-------------|----------------|
-| Short project description | This README + form section above |
-| Demo video (2–3 min) | Record using [Demo script](#demo-video-script-23-minutes) below; paste URL at top of README |
-| Live demo / working prototype | Build & run on simulator or device (see [Getting started](#getting-started)) |
-| GitHub / code link | [github.com/elmeeee/Al-khatib-Qalbu](https://github.com/elmeeee/Al-khatib-Qalbu) |
-| QF API usage explanation | [Quran Foundation API integration](#quran-foundation-api-integration) |
-
----
-
 ## Table of contents
 
 1. [Features by tab](#features-by-tab)
@@ -62,10 +46,7 @@ Engagement is intentional: short daily touchpoints, deeper surah study, and soci
 4. [Authentication model](#authentication-model)
 5. [Architecture](#architecture)
 6. [Getting started](#getting-started)
-7. [Demo video script (2–3 minutes)](#demo-video-script-23-minutes)
-8. [Judging criteria alignment](#judging-criteria-alignment)
-9. [Known limitations](#known-limitations)
-10. [License & credits](#license--credits)
+7. [License & credits](#license--credits)
 
 ---
 
@@ -353,28 +334,6 @@ Al-Khatib/
 1. Open `Al-Khatib.xcodeproj` in Xcode.
 2. Select the **Al-Khatib** scheme and an iPhone simulator (e.g. iPhone 17).
 3. **Product → Run** (⌘R).
-
-### Recommended demo account flow
-
-1. Complete onboarding.
-2. **Today** — wait for random ayah; play audio; open tafsir.
-3. **Profile** (from Today) — Sign in with Quran Foundation.
-4. **Today** — tap Reflect / publish (optional Groq draft).
-5. **Reflect** — scroll feed; tap **like**.
-6. **Quran** — open a surah; scroll; show continue reading if a prior session exists.
----
-
-## Judging criteria alignment
-
-| Category (weight) | How Al-Khatib addresses it |
-|-------------------|----------------------------|
-| **Impact on Quran engagement (30)** | Daily ayah, deep reader (tafsir/hadith/audio), community Reflect feed, continue reading |
-| **Product quality & UX (20)** | Cohesive emerald design, tab structure, skeletons, gated login UX; non-functional Reflect actions hidden |
-| **Technical execution (20)** | Typed API client, OAuth+PKCE, token refresh, caching, debounced reading sessions, tests for critical decode paths |
-| **Innovation & creativity (15)** | Today + prayer rhythm; vertical reel Reflect; read-to-publish flow; optional AI assist grounded in tafsir |
-| **Effective use of APIs (15)** | Six Content endpoints, five Reflect endpoints (+ activity_days), Auth v1 reading sessions, full OAuth — see tables above |
-
----
 
 ## Known limitations
 

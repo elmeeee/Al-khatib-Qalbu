@@ -9,15 +9,20 @@
 import Foundation
 
 enum APICache {
+    private nonisolated static let profileTTL: TimeInterval = 0
+    private nonisolated static let reflectFeedTTL: TimeInterval = 0
+
     actor Profile {
         static let shared = Profile()
 
         private var value: UserProfilePayload?
         private var fetchedAt: Date?
-        private let ttl: TimeInterval = 300
 
         func cached() -> UserProfilePayload? {
-            guard let value, let fetchedAt, Date().timeIntervalSince(fetchedAt) < ttl else {
+            guard APICache.profileTTL > 0,
+                  let value,
+                  let fetchedAt,
+                  Date().timeIntervalSince(fetchedAt) < APICache.profileTTL else {
                 return nil
             }
             return value
@@ -45,7 +50,6 @@ enum APICache {
 
         private var feed: Entry?
         private var myPosts: Entry?
-        private let ttl: TimeInterval = 45
 
         func cachedFeed(limit: Int) -> ReflectFeedEnvelope? {
             cached(entry: feed, limit: limit)
@@ -69,7 +73,10 @@ enum APICache {
         }
 
         private func cached(entry: Entry?, limit: Int) -> ReflectFeedEnvelope? {
-            guard let entry, entry.limit == limit, Date().timeIntervalSince(entry.fetchedAt) < ttl else {
+            guard APICache.reflectFeedTTL > 0,
+                  let entry,
+                  entry.limit == limit,
+                  Date().timeIntervalSince(entry.fetchedAt) < APICache.reflectFeedTTL else {
                 return nil
             }
             return entry.envelope
