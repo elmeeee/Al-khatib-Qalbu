@@ -101,7 +101,6 @@ struct ChaptersView: View {
                 .foregroundColor(Color.Theme.deepEmerald.opacity(0.55))
                 .padding(.leading, 22)
 
-            // Golden accent underline
             HStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(
@@ -270,7 +269,7 @@ private struct QuranChapterRow: View {
     let chapter: QuranChapter
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(alignment: .top, spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(
@@ -289,49 +288,54 @@ private struct QuranChapterRow: View {
             }
             .frame(width: 40, height: 40)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(chapter.displayComplexName)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(chapter.displayComplexName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                HStack(spacing: 6) {
-                    if chapter.displayTranslatedName.isEmpty == false {
-                        Text(chapter.displayTranslatedName)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Color.Theme.deepEmerald.opacity(0.75))
-                            .lineLimit(1)
+                        if chapter.displayTranslatedName.isEmpty == false {
+                            Text(chapter.displayTranslatedName)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color.Theme.deepEmerald.opacity(0.75))
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(2)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
+                    if let arabic = chapter.nameArabic, arabic.isEmpty == false {
+                        Text(arabic)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(Color.Theme.deepEmerald)
+                            .multilineTextAlignment(.trailing)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .layoutPriority(1)
+                            .environment(\.layoutDirection, .rightToLeft)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Color.Theme.deepEmerald.opacity(0.05))
+                            )
+                    }
+                }
+
+                HStack(spacing: 8) {
                     ChapterRevelationBadge(chapter: chapter)
 
                     if let countLabel = chapter.versesCountLabel {
-                        Text("\u{2022}")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary.opacity(0.5))
                         Text(countLabel)
-                            .font(.system(size: 12))
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.secondary)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                 }
             }
-
-            Spacer(minLength: 8)
-
-            // Arabic name with subtle background
-            if let arabic = chapter.nameArabic, arabic.isEmpty == false {
-                Text(arabic)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(Color.Theme.deepEmerald)
-                    .multilineTextAlignment(.trailing)
-                    .environment(\.layoutDirection, .rightToLeft)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.Theme.deepEmerald.opacity(0.05))
-                    )
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(14)
         .background(

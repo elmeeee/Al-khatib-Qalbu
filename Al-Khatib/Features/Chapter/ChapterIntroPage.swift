@@ -23,7 +23,6 @@ struct ChapterIntroPage: View {
         ZStack {
             ChapterReaderBackground()
 
-            // Radial glow behind surah name
             GeometryReader { geo in
                 RadialGradient(
                     colors: [
@@ -41,15 +40,12 @@ struct ChapterIntroPage: View {
             VStack(spacing: 0) {
                 Spacer(minLength: 20)
 
-                // Bismillah
                 Text("\u{FDFD}")
                     .font(.system(size: 32))
                     .foregroundColor(Color.Theme.gold.opacity(0.75))
                     .padding(.bottom, 24)
 
-                // Ornamental frame corners
                 VStack(spacing: 16) {
-                    // Top ornament line
                     HStack(spacing: 12) {
                         ornamentLine
                         Text("\u{2726}")
@@ -80,7 +76,6 @@ struct ChapterIntroPage: View {
                     ChapterRevelationBadge(chapter: chapter)
                         .padding(.top, 4)
 
-                    // Bottom ornament line
                     HStack(spacing: 12) {
                         ornamentLine
                         Text("\u{25C6}")

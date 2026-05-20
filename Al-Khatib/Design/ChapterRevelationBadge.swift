@@ -16,8 +16,10 @@ struct ChapterRevelationBadge: View {
             Text(chapter.revelationLabel)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(foregroundColor)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.vertical, 4)
                 .background(Capsule().fill(foregroundColor.opacity(0.12)))
         }
     }

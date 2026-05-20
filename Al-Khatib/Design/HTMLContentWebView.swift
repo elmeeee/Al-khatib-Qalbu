@@ -101,7 +101,10 @@ struct HTMLContentWebView: UIViewRepresentable {
         context.coordinator.lastSignature = key
 
         if style.isVerseCard, let binding = contentHeight {
-            binding.wrappedValue = AyahArabicWebBlock.placeholderHeight
+            let placeholder = AyahArabicWebBlock.placeholderHeight
+            DispatchQueue.main.async {
+                binding.wrappedValue = placeholder
+            }
         }
 
         let html = Self.document(
@@ -138,13 +141,25 @@ struct HTMLContentWebView: UIViewRepresentable {
     }
 
     private func resizeVerseWebView(_ webView: WKWebView, height: CGFloat) {
-        var width = webView.bounds.width
-        if width < 1 {
-            width = webView.superview?.bounds.width ?? 0
+        Self.applyVerseWebViewFrame(webView, height: height)
+    }
+
+    fileprivate static func verseLayoutWidth(for webView: WKWebView) -> CGFloat? {
+        if webView.bounds.width >= 1 {
+            return webView.bounds.width
         }
-        if width < 1 {
-            width = max(UIScreen.main.bounds.width - 72, 280)
+        if let superviewWidth = webView.superview?.bounds.width, superviewWidth >= 1 {
+            return superviewWidth
         }
+        if let screen = webView.window?.windowScene?.screen {
+            let horizontalInset: CGFloat = 72
+            return max(screen.bounds.width - horizontalInset, 1)
+        }
+        return nil
+    }
+
+    fileprivate static func applyVerseWebViewFrame(_ webView: WKWebView, height: CGFloat) {
+        guard let width = verseLayoutWidth(for: webView) else { return }
         let size = CGSize(width: width, height: height)
         webView.frame = CGRect(origin: .zero, size: size)
         webView.scrollView.frame = CGRect(origin: .zero, size: size)
@@ -177,6 +192,14 @@ struct HTMLContentWebView: UIViewRepresentable {
         }
 
         private func measureVerseCardHeight(webView: WKWebView, binding: Binding<CGFloat>) {
+            guard HTMLContentWebView.verseLayoutWidth(for: webView) != nil else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self, weak webView] in
+                    guard let self, let webView else { return }
+                    self.measureVerseCardHeight(webView: webView, binding: binding)
+                }
+                return
+            }
+
             resizeVerseWebView(webView, height: 12_000)
 
             let script = """
@@ -225,16 +248,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         }
 
         private func resizeVerseWebView(_ webView: WKWebView, height: CGFloat) {
-            var width = webView.bounds.width
-            if width < 1 {
-                width = webView.superview?.bounds.width ?? 0
-            }
-            if width < 1 {
-                width = max(UIScreen.main.bounds.width - 72, 280)
-            }
-            let size = CGSize(width: width, height: height)
-            webView.frame = CGRect(origin: .zero, size: size)
-            webView.scrollView.frame = CGRect(origin: .zero, size: size)
+            HTMLContentWebView.applyVerseWebViewFrame(webView, height: height)
         }
     }
 

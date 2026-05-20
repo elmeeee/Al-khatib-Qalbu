@@ -95,7 +95,6 @@ final class PrayerNotificationScheduler {
             do {
                 return try await center.requestAuthorization(options: [.alert, .sound, .badge])
             } catch {
-                prayerNotifLog.error("Notification authorization failed: \(error.localizedDescription, privacy: .public)")
                 return false
             }
         @unknown default:
@@ -110,7 +109,6 @@ final class PrayerNotificationScheduler {
         options: PrayerNotificationPreferences.ScheduleOptions
     ) async {
         guard await requestAuthorizationIfNeeded() else {
-            prayerNotifLog.debug("Skipping notifications — authorization not granted")
             return
         }
 
@@ -173,11 +171,8 @@ final class PrayerNotificationScheduler {
                 scheduledCount += 1
             }
         }
-
-        prayerNotifLog.debug("Scheduled \(scheduledCount, privacy: .public) prayer/night notifications")
     }
 
-    /// Today’s time if still in the future; otherwise same clock time **tomorrow** (approximation until the next Al-Adhan fetch).
     private static func upcomingOccurrences(of date: Date, from now: Date, calendar: Calendar) -> [Date] {
         if date > now {
             return [date]
