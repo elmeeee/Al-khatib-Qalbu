@@ -58,6 +58,7 @@ final class AppContainer {
 
     func signOut() async {
         await oauth.signOut()
+        await APICache.clearAll()
         reflectionStore.removeAll()
     }
 }

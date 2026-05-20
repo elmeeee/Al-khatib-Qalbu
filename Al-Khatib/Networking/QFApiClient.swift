@@ -218,7 +218,7 @@ actor QFApiClient {
         let (data, response) = try await session.data(for: req)
         try validateHTTP(response, data: data, expectedMinStatus: 200, expectedMaxStatus: 299)
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.keyDecodingStrategy = .useDefaultKeys
         let decoded = try decoder.decode(UserRefreshTokenResponse.self, from: data)
         guard decoded.accessToken.isEmpty == false else {
             throw QFError.parsingError("refresh access_token missing")
@@ -248,14 +248,17 @@ private struct UserRefreshTokenResponse: Decodable, Sendable {
 }
 
 private extension URLSession {
-    func decodeResponse<T: Decodable>(_ type: T.Type, request: URLRequest) async throws -> T {
+    func decodeResponse<T: Decodable & Sendable>(_ type: T.Type, request: URLRequest) async throws -> T {
         do {
             let (data, response) = try await self.data(for: request)
             try validateHTTP(response, data: data, expectedMinStatus: 200, expectedMaxStatus: 299)
+            let payload = data
             do {
-                let d = JSONDecoder()
-                d.keyDecodingStrategy = .convertFromSnakeCase
-                return try d.decode(T.self, from: data)
+                return try await Task.detached(priority: .userInitiated) {
+                    let d = JSONDecoder()
+                    d.keyDecodingStrategy = .useDefaultKeys
+                    return try d.decode(T.self, from: payload)
+                }.value
             } catch {
                 throw QFError.parsingError("decode \(T.self): \(error.localizedDescription)")
             }

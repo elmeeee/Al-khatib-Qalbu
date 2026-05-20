@@ -20,7 +20,7 @@ struct Al_KhatibTests {
         }
         """.data(using: .utf8)!
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.keyDecodingStrategy = .useDefaultKeys
         let payload = try decoder.decode(RandomAyahPayload.self, from: json)
         #expect(payload.textUthmaniTajweed?.contains("tajweed") == true)
         #expect(payload.tajweedWebHTMLFragment().contains("tajweed"))

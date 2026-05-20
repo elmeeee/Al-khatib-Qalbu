@@ -101,7 +101,7 @@ actor QFAuthManager {
         try validateHTTP(response, data: data, expectedMinStatus: 200, expectedMaxStatus: 299)
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.keyDecodingStrategy = .useDefaultKeys
         let decoded: TokenResponse
         do {
             decoded = try decoder.decode(TokenResponse.self, from: data)

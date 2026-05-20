@@ -102,20 +102,19 @@ struct ReflectionView: View {
         .onChange(of: verseState.isLoggedIn) { _, loggedIn in
             Task {
                 if loggedIn {
-                    await bootstrapFeed()
+                    if isTabSelected {
+                        await bootstrapFeed(force: true)
+                    }
                 } else {
                     vm = nil
                     await refreshAccessTokenFlag()
                 }
             }
         }
-        .task {
+        .task(id: isTabSelected) {
             await refreshAccessTokenFlag()
+            guard isTabSelected else { return }
             await bootstrapFeed()
-        }
-        .onChange(of: isTabSelected) { _, selected in
-            guard selected else { return }
-            Task { await bootstrapFeed(force: true) }
         }
         .onChange(of: verseState.feedNeedsRefresh) { _, needsRefresh in
             guard needsRefresh, verseState.isLoggedIn else { return }
@@ -131,9 +130,6 @@ struct ReflectionView: View {
         .onReceive(NotificationCenter.default.publisher(for: .reflectDidPost)) { _ in
             guard verseState.isLoggedIn else { return }
             vm?.showMyPostsAfterPublish()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .reflectTabDidBecomeActive)) { _ in
-            Task { await bootstrapFeed(force: true) }
         }
     }
 
@@ -177,7 +173,11 @@ struct ReflectionView: View {
         if let c = container, vm == nil {
             vm = ReflectionViewModel(reflect: c.reflect)
         }
-        await vm?.loadPosts(refresh: true, force: force)
+        if force {
+            vm?.scheduleLoad(refresh: true, force: true)
+        } else {
+            vm?.scheduleLoad(refresh: true, force: false)
+        }
     }
 
     private func hasToken() async -> Bool {

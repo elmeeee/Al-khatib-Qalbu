@@ -31,9 +31,6 @@ struct RandomAyahPayload: Decodable, Sendable {
     let juzNumber: Int?
     let audio: AudioPayload?
     let translations: [InlineTranslation]?
-
-    // Keys must stay camelCase: QFApiClient uses `convertFromSnakeCase`, which maps JSON
-    // `text_uthmani_tajweed` → `textUthmaniTajweed`. Explicit snake_case raw values break decoding.
     
     var displayText: String? {
         guard let raw = textUthmaniTajweed?

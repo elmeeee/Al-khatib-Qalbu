@@ -118,6 +118,14 @@ final class TodayVerseState {
             applySignedOutProfile()
             return
         }
+
+        if let cached = await APICache.Profile.shared.cached() {
+            userAvatarURL = cached.preferredAvatarURL
+            userDisplayName = cached.displayTitle
+            userId = cached.id
+            isLoggedIn = true
+        }
+
         do {
             let profile = try await container.habits.fetchMyProfile()
             userAvatarURL = profile.preferredAvatarURL

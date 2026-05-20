@@ -388,7 +388,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             throw QFOAuthError.tokenExchangeFailed("http \(http.statusCode) \(snippet)")
         }
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.keyDecodingStrategy = .useDefaultKeys
         let decoded = try decoder.decode(UserTokenResponse.self, from: data)
         switch grant {
         case .authorizationCode:
@@ -439,7 +439,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             throw QFOAuthError.tokenExchangeFailed("introspect http \(http.statusCode)")
         }
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.keyDecodingStrategy = .useDefaultKeys
         return try decoder.decode(OAuthIntrospectionResponse.self, from: data)
     }
 

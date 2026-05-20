@@ -40,8 +40,9 @@ final class ReflectionViewModel {
     var isPostingShare = false
 
     private let reflect: ReflectRepository
-    private let pageSize = 20
+    private let pageSize = 12
     private var loadTask: Task<Void, Never>?
+    private var loadGeneration: UInt = 0
     private var togglingLikePostIDs: Set<String> = []
 
     init(reflect: ReflectRepository) {
@@ -49,17 +50,26 @@ final class ReflectionViewModel {
     }
 
     func onSegmentChanged(to segment: ReflectPostsSegment) {
-        loadTask?.cancel()
         selectedSegment = segment
         posts = []
         errorMessage = nil
         currentPage = 1
         totalPages = 1
-        loadTask = Task { await loadPosts(refresh: true, force: true) }
+        scheduleLoad(refresh: true, force: true)
     }
 
-    func loadPosts(refresh: Bool, force: Bool = false) async {
+    func scheduleLoad(refresh: Bool, force: Bool = false) {
+        loadTask?.cancel()
+        loadGeneration &+= 1
+        let generation = loadGeneration
+        loadTask = Task {
+            await loadPosts(refresh: refresh, force: force, generation: generation)
+        }
+    }
+
+    func loadPosts(refresh: Bool, force: Bool = false, generation: UInt? = nil) async {
         if Task.isCancelled { return }
+        if let generation, generation != loadGeneration { return }
 
         if refresh {
             if force == false, isLoading { return }
@@ -77,20 +87,23 @@ final class ReflectionViewModel {
         let segment = selectedSegment
 
         defer {
-            isLoading = false
-            isLoadingMore = false
+            if generation == nil || generation == loadGeneration {
+                isLoading = false
+                isLoadingMore = false
+            }
         }
 
         do {
             let envelope: ReflectFeedEnvelope
             switch segment {
             case .feed:
-                envelope = try await reflect.fetchFeed(page: page, limit: pageSize)
+                envelope = try await reflect.fetchFeed(page: page, limit: pageSize, force: force)
             case .myPosts:
-                envelope = try await reflect.fetchMyPosts(page: page, limit: pageSize)
+                envelope = try await reflect.fetchMyPosts(page: page, limit: pageSize, force: force)
             }
 
             if Task.isCancelled { return }
+            if let generation, generation != loadGeneration { return }
 
             let rows = envelope.data ?? []
             totalPages = max(envelope.pages ?? 1, 1)
@@ -103,12 +116,14 @@ final class ReflectionViewModel {
             errorMessage = nil
         } catch QFError.missingUserSession {
             if Task.isCancelled { return }
+            if let generation, generation != loadGeneration { return }
             posts = []
             errorMessage = segment == .myPosts
                 ? "Sign in to see your reflections."
                 : "Sign in to see the Reflect feed."
         } catch {
             if Task.isCancelled { return }
+            if let generation, generation != loadGeneration { return }
             if refresh { posts = [] }
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
@@ -155,7 +170,7 @@ final class ReflectionViewModel {
         guard currentPage < totalPages else { return }
         guard let index = posts.firstIndex(where: { $0.id == currentPost.id }) else { return }
         guard index >= posts.count - 2 else { return }
-        Task { await loadPosts(refresh: false) }
+        scheduleLoad(refresh: false)
     }
 
     func prepareShareReflection(body: String, verseKey: String) {
@@ -209,5 +224,4 @@ final class ReflectionViewModel {
 
 extension Notification.Name {
     static let reflectDidPost = Notification.Name("reflectDidPost")
-    static let reflectTabDidBecomeActive = Notification.Name("reflectTabDidBecomeActive")
 }

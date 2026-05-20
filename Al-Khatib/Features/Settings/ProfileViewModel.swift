@@ -23,11 +23,13 @@ final class ProfileViewModel {
         self.container = container
     }
 
-    func fetchProfile() async {
-        isLoading = true
+    func fetchProfile(force: Bool = false) async {
+        if profile == nil {
+            isLoading = true
+        }
         errorMessage = nil
         do {
-            profile = try await container.habits.fetchMyProfile()
+            profile = try await container.habits.fetchMyProfile(force: force)
         } catch QFError.missingUserSession {
             profile = nil
             errorMessage = "missing_user_session"
@@ -43,7 +45,7 @@ final class ProfileViewModel {
         errorMessage = nil
         do {
             try await container.oauth.signIn()
-            await fetchProfile()
+            await fetchProfile(force: true)
         } catch {
             if error is CancellationError { return }
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription

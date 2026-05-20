@@ -17,12 +17,26 @@ struct ReflectRepository: Sendable {
         self.habits = habits
     }
 
-    func fetchFeed(page: Int = 1, limit: Int = 20) async throws -> ReflectFeedEnvelope {
-        try await client.send(ReflectFeedEndpoint(page: page, limit: limit))
+    func fetchFeed(page: Int = 1, limit: Int = 12, force: Bool = false) async throws -> ReflectFeedEnvelope {
+        if page == 1, force == false, let cached = await APICache.ReflectFeed.shared.cachedFeed(limit: limit) {
+            return cached
+        }
+        let envelope: ReflectFeedEnvelope = try await client.send(ReflectFeedEndpoint(page: page, limit: limit))
+        if page == 1 {
+            await APICache.ReflectFeed.shared.storeFeed(envelope, limit: limit)
+        }
+        return envelope
     }
 
-    func fetchMyPosts(page: Int = 1, limit: Int = 20) async throws -> ReflectFeedEnvelope {
-        try await client.send(ReflectMyPostsEndpoint(page: page, limit: limit))
+    func fetchMyPosts(page: Int = 1, limit: Int = 12, force: Bool = false) async throws -> ReflectFeedEnvelope {
+        if page == 1, force == false, let cached = await APICache.ReflectFeed.shared.cachedMyPosts(limit: limit) {
+            return cached
+        }
+        let envelope: ReflectFeedEnvelope = try await client.send(ReflectMyPostsEndpoint(page: page, limit: limit))
+        if page == 1 {
+            await APICache.ReflectFeed.shared.storeMyPosts(envelope, limit: limit)
+        }
+        return envelope
     }
 
     func toggleLike(postId: String) async throws -> Bool {
@@ -86,6 +100,7 @@ struct ReflectRepository: Sendable {
         guard let created = envelope.createdPost else {
             throw QFError.parsingError("create post response missing post payload")
         }
+        await APICache.ReflectFeed.shared.clear()
         return created
     }
 
