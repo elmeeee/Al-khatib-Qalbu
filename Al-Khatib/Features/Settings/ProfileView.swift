@@ -250,7 +250,7 @@ struct ProfileView: View {
 
     private var headerSignInCard: some View {
         HStack(spacing: 16) {
-            Image(systemName: "person.crop.circle.fill.badge.plus")
+            Image(systemName: "person.crop.circle.fill")
                 .font(.system(size: 40))
                 .foregroundColor(tealThemeColor)
                 .frame(width: 52, height: 52)
