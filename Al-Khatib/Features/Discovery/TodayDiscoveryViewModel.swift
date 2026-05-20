@@ -34,6 +34,7 @@ final class TodayDiscoveryViewModel {
     private var shareTextCache: [String: String] = [:]
     private var shareTafsirCache: [String: String] = [:]
     private let maxShareCacheEntries = 24
+    private var dailyAyahFetchGeneration = 0
 
     init(content: QuranContentRepository) {
         self.content = content
@@ -57,32 +58,9 @@ final class TodayDiscoveryViewModel {
     func loadDailyAyahWithHadith() {
         stopAudio()
         detail = nil
-        isDetailLoading = true
         errorMessage = nil
-        Task {
-            do {
-                async let ayahTask = content.getRandomAyah()
-                async let recitationsTask: [RecitationPayload]? = recitations.isEmpty
-                    ? (try? content.getRecitations().recitations)
-                    : nil
-
-                let response = try await ayahTask
-                guard let verse = response.verse else {
-                    throw QFError.parsingError("daily verse payload")
-                }
-
-                self.detail = .init(verse)
-                self.loadedTranslationId = ChapterReaderPreferences.selectedTranslationId(defaults: self.defaults)
-                self.defaults.set(Date().timeIntervalSince1970, forKey: self.randomAyahLastFetchKey)
-
-                if let fetched = await recitationsTask, fetched.isEmpty == false {
-                    self.recitations = fetched
-                }
-            } catch {
-                self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            }
-            self.isDetailLoading = false
-        }
+        isDetailLoading = true
+        Task { await performDailyAyahFetch(clearDetailOnStart: true) }
     }
 
     func autoRefreshDailyAyahIfNeeded(forceIfNoData: Bool = true) {
@@ -107,12 +85,26 @@ final class TodayDiscoveryViewModel {
     }
 
     func refreshDailyAyah() async {
-        guard isDetailLoading == false else { return }
         stopAudio()
-        detail = nil
+        errorMessage = nil
+        isDetailLoading = true
+        await performDailyAyahFetch(clearDetailOnStart: false)
+    }
+
+    private func performDailyAyahFetch(clearDetailOnStart: Bool) async {
+        dailyAyahFetchGeneration += 1
+        let generation = dailyAyahFetchGeneration
+
+        if clearDetailOnStart {
+            detail = nil
+        }
         isDetailLoading = true
         errorMessage = nil
-        defer { isDetailLoading = false }
+        defer {
+            if generation == dailyAyahFetchGeneration {
+                isDetailLoading = false
+            }
+        }
 
         do {
             async let ayahTask = content.getRandomAyah()
@@ -121,6 +113,7 @@ final class TodayDiscoveryViewModel {
                 : nil
 
             let response = try await ayahTask
+            guard generation == dailyAyahFetchGeneration else { return }
             guard let verse = response.verse else {
                 throw QFError.parsingError("daily verse payload")
             }
@@ -133,8 +126,19 @@ final class TodayDiscoveryViewModel {
                 recitations = fetched
             }
         } catch {
+            guard generation == dailyAyahFetchGeneration else { return }
+            guard Self.shouldSurfaceLoadError(error) else { return }
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
+    }
+
+    private static func shouldSurfaceLoadError(_ error: Error) -> Bool {
+        if error is CancellationError { return false }
+        if Task.isCancelled { return false }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return false }
+        let ns = error as NSError
+        if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return false }
+        return true
     }
 
     private func shouldRefreshRandomAyah(forceIfNoData: Bool) -> Bool {

@@ -169,13 +169,14 @@ struct TodayDiscoveryView: View {
                             verseOfTheDaySectionHeader(verse: vm?.detail)
                                 .padding(.top, 2)
 
-                            if vm == nil || vm?.isDetailLoading == true {
-                                LoadingSkeleton()
-                            } else if let d = vm?.detail {
+                            if let d = vm?.detail {
                                 ayahCard(for: d)
+                                    .opacity(vm?.isDetailLoading == true ? 0.55 : 1)
+                            } else if vm == nil || vm?.isDetailLoading == true {
+                                LoadingSkeleton()
                             }
 
-                            if let e = vm?.errorMessage {
+                            if let e = vm?.errorMessage, vm?.detail == nil, vm?.isDetailLoading == false {
                                 Text(e)
                                     .foregroundStyle(.red)
                                     .font(.footnote)
@@ -355,12 +356,10 @@ struct TodayDiscoveryView: View {
 
     private func refreshToday(vm: TodayDiscoveryViewModel?) async {
         async let prayerRefresh: Void = prayer.forceRefresh()
-        async let ayahRefresh: Void = {
-            if let vm {
-                await vm.refreshDailyAyah()
-            }
-        }()
-        _ = await (prayerRefresh, ayahRefresh)
+        if let vm {
+            await vm.refreshDailyAyah()
+        }
+        await prayerRefresh
     }
     
     private var ornamentalDivider: some View {
