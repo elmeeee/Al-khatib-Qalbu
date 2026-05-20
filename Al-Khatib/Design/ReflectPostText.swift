@@ -2,18 +2,22 @@
 //  ReflectPostText.swift
 //  Al-Khatib
 //
+//  Created by Elmee on 25/04/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
+//
 
 import SwiftUI
 
-/// Renders Quran Reflect post bodies: `*bold*` and `_italic_` (WhatsApp-style).
 struct ReflectPostText: View {
     let text: String
+    var foreground: Color = .primary
+    var fontSize: CGFloat = 15
 
     var body: some View {
         Text(ReflectPostFormatting.attributedString(from: text))
-            .font(.system(size: 15))
+            .font(.system(size: fontSize))
             .lineSpacing(3)
-            .foregroundColor(.primary)
+            .foregroundColor(foreground)
             .multilineTextAlignment(.leading)
     }
 }

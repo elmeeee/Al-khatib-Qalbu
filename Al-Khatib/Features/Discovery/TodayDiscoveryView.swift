@@ -9,12 +9,17 @@
 import SwiftUI
 import Combine
 
+private enum TodayDiscoveryLayout {
+    static let horizontalInset: CGFloat = 20
+}
+
 struct TodayDiscoveryView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: TodayDiscoveryViewModel?
     @StateObject private var audio = AudioPlayerController()
     @StateObject private var prayer = PrayerTimesController()
+    @State private var dashboardViewModel: PrayerDashboardViewModel?
 
     @State private var isGeneratingShare = false
     @State private var isPostingReflection = false
@@ -72,6 +77,9 @@ struct TodayDiscoveryView: View {
             }
         }
         .onAppear {
+            if dashboardViewModel == nil {
+                dashboardViewModel = PrayerDashboardViewModel(controller: prayer)
+            }
             guard let c = container, viewModel == nil else { return }
             let vm = TodayDiscoveryViewModel(
                 semantic: c.semantic,
@@ -151,7 +159,6 @@ struct TodayDiscoveryView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        Spacer(minLength: 88)
                         prayerCard
                         VStack(alignment: .leading, spacing: 14) {
                             HStack {
@@ -159,17 +166,6 @@ struct TodayDiscoveryView: View {
                                     .font(.system(size: 28, weight: .bold))
                                     .foregroundColor(Color.Theme.deepEmerald)
                                 Spacer()
-                                Button {
-                                    vm?.loadDailyAyahWithHadith()
-                                } label: {
-                                    Image(systemName: "arrow.clockwise")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(Color.Theme.deepEmerald)
-                                        .padding(8)
-                                        .background(Color.white.opacity(0.8))
-                                        .clipShape(Circle())
-                                }
-                                .disabled(vm == nil)
                             }
                             .padding(.top, 2)
 
@@ -186,9 +182,9 @@ struct TodayDiscoveryView: View {
                                     .padding(.top)
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
                         .padding(.top, 16)
-                        .padding(.bottom, 32)
+                        .padding(.bottom, 100)
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)
@@ -214,14 +210,14 @@ struct TodayDiscoveryView: View {
                             .foregroundStyle(Color.Theme.deepEmerald)
                         Spacer()
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
                     .padding(.top, 14)
                 }
 
                 VStack(alignment: .trailing, spacing: 0) {
                     AyahArabicWebBlock(payload: d)
                         .padding(.top, 8)
-                        .padding(.horizontal, 12)
+                        .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
                         .padding(.bottom, 14)
                 }
                 .frame(maxWidth: .infinity, alignment: .topTrailing)
@@ -232,7 +228,7 @@ struct TodayDiscoveryView: View {
                         .lineSpacing(3)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
                         .padding(.bottom, 14)
                 }
             }
@@ -410,7 +406,7 @@ extension TodayDiscoveryView {
             }
             .disabled(verseState.isLoggingIn)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
         .padding(.top, 16)
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
@@ -463,17 +459,19 @@ extension TodayDiscoveryView {
     }
 
     private var prayerCard: some View {
-        let skeleton = prayer.isLoading && (prayer.nextPrayerName?.isEmpty ?? true)
-        return VStack(spacing: 0) {
-            PrayerArcCardLiveContent(prayer: prayer, prayerArcSkeleton: skeleton)
+        Group {
+            if let dbVM = dashboardViewModel {
+                PrayerDashboardCard(viewModel: dbVM)
+            } else {
+                VStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.Theme.softGrey.opacity(0.4))
+                        .frame(height: 220)
+                }
+                .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
+                .padding(.top, 40)
+            }
         }
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#E8EBEF"), Color(hex: "#EEF2EE")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
     }
 }
 

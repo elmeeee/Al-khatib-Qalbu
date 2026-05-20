@@ -58,15 +58,23 @@ struct RootTabView: View {
             }
             .tag(Tab.today)
             .tabItem { Label("Today", systemImage: "sun.max.fill") }
-            ReflectionView(verseState: verseState)
-                .tag(Tab.reflect)
-                .tabItem { Label("Reflect", systemImage: "square.and.pencil") }
+            ReflectionView(
+                verseState: verseState,
+                isTabSelected: selectedTab == .reflect
+            )
+            .tag(Tab.reflect)
+            .tabItem { Label("Reflect", systemImage: "square.and.pencil") }
             ChaptersView()
                 .tag(Tab.journey)
                 .tabItem { Label("Quran", systemImage: "book.fill") }
         }
         .task {
             await verseState.ensureProfileLoaded(container: container)
+        }
+        .onChange(of: selectedTab) { _, tab in
+            if tab == .reflect {
+                NotificationCenter.default.post(name: .reflectTabDidBecomeActive, object: nil)
+            }
         }
         .onChange(of: verseState.shouldNavigateToReflect) { _, shouldNavigate in
             if shouldNavigate {

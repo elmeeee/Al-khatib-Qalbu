@@ -17,8 +17,8 @@ enum ReflectPostsSegment: String, CaseIterable, Identifiable, Equatable {
 
     var title: String {
         switch self {
-        case .feed: return "All Reflections"
-        case .myPosts: return "My Reflections"
+        case .feed: return "Reflect"
+        case .myPosts: return "My Reflect"
         }
     }
 }
@@ -63,7 +63,9 @@ final class ReflectionViewModel {
 
         if refresh {
             if force == false, isLoading { return }
-            isLoading = true
+            if posts.isEmpty {
+                isLoading = true
+            }
             errorMessage = nil
             currentPage = 1
         } else {
@@ -114,6 +116,14 @@ final class ReflectionViewModel {
 
     func showMyPostsAfterPublish() {
         onSegmentChanged(to: .myPosts)
+    }
+
+    func loadMoreIfNeeded(currentPost: ReflectFeedPost) {
+        guard isLoading == false, isLoadingMore == false else { return }
+        guard currentPage < totalPages else { return }
+        guard let index = posts.firstIndex(where: { $0.id == currentPost.id }) else { return }
+        guard index >= posts.count - 2 else { return }
+        Task { await loadPosts(refresh: false) }
     }
 
     func prepareShareReflection(body: String, verseKey: String) {
@@ -167,4 +177,5 @@ final class ReflectionViewModel {
 
 extension Notification.Name {
     static let reflectDidPost = Notification.Name("reflectDidPost")
+    static let reflectTabDidBecomeActive = Notification.Name("reflectTabDidBecomeActive")
 }

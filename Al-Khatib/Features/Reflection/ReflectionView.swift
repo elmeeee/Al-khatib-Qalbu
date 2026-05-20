@@ -17,23 +17,49 @@ struct ReflectionView: View {
     @State private var shareToastIsError = false
 
     let verseState: TodayVerseState
+    var isTabSelected: Bool = false
+
+    @State private var hasAccessToken = false
 
     var body: some View {
         ZStack {
-            Color.Theme.offWhite.ignoresSafeArea()
-
-            if verseState.isRefreshingProfile && verseState.isLoggedIn == false {
-                LoadingSkeleton()
-            } else if verseState.isLoggedIn {
-                if let m = vm {
-                    mainContent(m)
+            Group {
+                if canShowReflectFeed || verseState.isLoggedIn {
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#0B3D34"),
+                            Color.Theme.deepEmerald,
+                            Color(hex: "#051F1A")
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 } else {
-                    LoadingSkeleton()
+                    Color.Theme.offWhite
                 }
+            }
+            .ignoresSafeArea()
+
+            if shouldShowSignInPrompt {
+                SignInPromptView(
+                    title: "Sign in to Reflect",
+                    message: "Connect your Quran Reflect account to browse reflections and share your own.",
+                    isLoading: verseState.isLoggingIn
+                ) {
+                    Task { await verseState.signIn(container: container) }
+                }
+            } else if canShowReflectFeed {
+                if let m = vm {
+                    ReflectReelFeedView(viewModel: m)
+                } else {
+                    reelBootLoading
+                }
+            } else if verseState.hasResolvedSession == false && hasAccessToken == false {
+                LoadingSkeleton()
             } else if verseState.hasResolvedSession {
                 SignInPromptView(
                     title: "Sign in to Reflect",
-                    message: "Connect your Quran Reflect account to read community reflections and share your own.",
+                    message: "Connect your Quran Reflect account to browse reflections and share your own.",
                     isLoading: verseState.isLoggingIn
                 ) {
                     Task { await verseState.signIn(container: container) }
@@ -51,8 +77,8 @@ struct ReflectionView: View {
                     .background(shareToastIsError ? Color.red : Color.Theme.deepEmerald)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, y: 2)
-                    .padding(.top, 16)
+                    .shadow(color: Color.black.opacity(0.25), radius: 6, y: 2)
+                    .padding(.top, 56)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(1)
             }
@@ -67,15 +93,20 @@ struct ReflectionView: View {
         .onChange(of: verseState.isLoggedIn) { _, loggedIn in
             Task {
                 if loggedIn {
-                    await ensureViewModelAndLoad()
+                    await bootstrapFeed()
                 } else {
                     vm = nil
+                    await refreshAccessTokenFlag()
                 }
             }
         }
         .task {
-            guard verseState.isLoggedIn else { return }
-            await ensureViewModelAndLoad()
+            await refreshAccessTokenFlag()
+            await bootstrapFeed()
+        }
+        .onChange(of: isTabSelected) { _, selected in
+            guard selected else { return }
+            Task { await bootstrapFeed(force: true) }
         }
         .onChange(of: verseState.feedNeedsRefresh) { _, needsRefresh in
             guard needsRefresh, verseState.isLoggedIn else { return }
@@ -92,198 +123,59 @@ struct ReflectionView: View {
             guard verseState.isLoggedIn else { return }
             vm?.showMyPostsAfterPublish()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .reflectTabDidBecomeActive)) { _ in
+            Task { await bootstrapFeed(force: true) }
+        }
     }
 
-    private func ensureViewModelAndLoad() async {
+    private var reelBootLoading: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(hex: "#0B3D34"),
+                    Color.Theme.deepEmerald,
+                    Color(hex: "#051F1A")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            ProgressView()
+                .tint(.white)
+                .scaleEffect(1.1)
+        }
+    }
+
+    private var shouldShowSignInPrompt: Bool {
+        verseState.hasResolvedSession && verseState.isLoggedIn == false && hasAccessToken == false
+    }
+
+    private var canShowReflectFeed: Bool {
+        verseState.isLoggedIn || hasAccessToken
+    }
+
+    private func refreshAccessTokenFlag() async {
+        guard let container else {
+            hasAccessToken = false
+            return
+        }
+        hasAccessToken = await container.userSession.hasUserAccessToken()
+    }
+
+    private func bootstrapFeed(force: Bool = false) async {
+        let hasAccess = await hasToken()
+        guard canShowReflectFeed || hasAccess else { return }
         if let c = container, vm == nil {
             vm = ReflectionViewModel(reflect: c.reflect)
         }
-        await vm?.loadPosts(refresh: true)
+        await vm?.loadPosts(refresh: true, force: force)
     }
 
-    @ViewBuilder
-    private func mainContent(_ m: ReflectionViewModel) -> some View {
-        @Bindable var bindable = m
-
-        ZStack {
-            Color.Theme.offWhite.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                headerBar(bindable)
-
-                if bindable.isLoading && bindable.posts.isEmpty {
-                    postsLoadingBody
-                } else if let e = bindable.errorMessage, bindable.posts.isEmpty {
-                    postsErrorBody(e, segment: bindable.selectedSegment) {
-                        bindable.onSegmentChanged(to: bindable.selectedSegment)
-                    }
-                } else if bindable.posts.isEmpty {
-                    emptyPostsBody(segment: bindable.selectedSegment)
-                } else {
-                    postsList(bindable)
-                }
-            }
-        }
-        .sheet(isPresented: $showShareEditor) {
-            ShareReflectionSheet(verseState: verseState, vm: bindable) { message, isError in
-                shareToast = message
-                shareToastIsError = isError
-                withAnimation { showShareToast = true }
-                Task {
-                    try? await Task.sleep(nanoseconds: 3_000_000_000)
-                    withAnimation { showShareToast = false }
-                }
-            }
-        }
-    }
-
-    private func headerBar(_ bindable: ReflectionViewModel) -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Reflect")
-                    .font(.largeTitle.bold())
-                    .foregroundColor(Color.Theme.deepEmerald)
-                Spacer()
-
-                Button {
-                    bindable.onSegmentChanged(to: bindable.selectedSegment)
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color.Theme.deepEmerald)
-                        .padding(8)
-                        .background(Color.white.opacity(0.8))
-                        .clipShape(Circle())
-                }
-            }
-
-            ReflectPostsSegmentedControl(
-                selection: Binding(
-                    get: { bindable.selectedSegment },
-                    set: { bindable.onSegmentChanged(to: $0) }
-                )
-            )
-        }
-        .padding(.horizontal)
-        .padding(.top, 24)
-        .padding(.bottom, 8)
-    }
-
-    private var postsLoadingBody: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                ForEach(0..<4, id: \.self) { _ in
-                    FeedPostSkeletonCard()
-                }
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-        }
-    }
-
-    @ViewBuilder
-    private func postsErrorBody(
-        _ error: String,
-        segment: ReflectPostsSegment,
-        retry: @escaping () -> Void
-    ) -> some View {
-        ContentUnavailableView {
-            Label(
-                segment == .myPosts ? "Couldn't load your posts" : "Couldn't load feed",
-                systemImage: "wifi.exclamationmark"
-            )
-        } description: {
-            Text(error)
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-        } actions: {
-            Button("Try again", action: retry)
-                .buttonStyle(.borderedProminent)
-                .tint(Color.Theme.deepEmerald)
-        }
-    }
-
-    @ViewBuilder
-    private func emptyPostsBody(segment: ReflectPostsSegment) -> some View {
-        ContentUnavailableView {
-            Label(
-                segment == .myPosts ? "No posts yet" : "No reflections yet",
-                systemImage: "square.and.pencil"
-            )
-        } description: {
-            Text(
-                segment == .myPosts
-                    ? "Your published reflections will appear here."
-                    : "Community reflections will appear here."
-            )
-        }
-    }
-
-    private func postsList(_ bindable: ReflectionViewModel) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(bindable.posts) { post in
-                    FeedPostCard(post: post)
-                }
-
-                if bindable.isLoadingMore {
-                    ProgressView()
-                        .padding(.vertical, 12)
-                } else if bindable.currentPage < bindable.totalPages {
-                    Button {
-                        Task { await bindable.loadPosts(refresh: false) }
-                    } label: {
-                        Text("Load more")
-                            .font(.subheadline.bold())
-                            .foregroundColor(Color.Theme.deepEmerald)
-                    }
-                    .padding(.vertical, 12)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 32)
-        }
-        .refreshable {
-            await bindable.loadPosts(refresh: true, force: true)
-        }
+    private func hasToken() async -> Bool {
+        guard let container else { return false }
+        return await container.userSession.hasUserAccessToken()
     }
 }
-
-// MARK: - Segmented control (explicit tap → API fetch)
-
-private struct ReflectPostsSegmentedControl: View {
-    @Binding var selection: ReflectPostsSegment
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(ReflectPostsSegment.allCases) { segment in
-                let isSelected = selection == segment
-                Button {
-                    selection = segment
-                } label: {
-                    Text(segment.title)
-                        .font(.subheadline.weight(isSelected ? .semibold : .medium))
-                        .foregroundStyle(isSelected ? Color.Theme.deepEmerald : Color.primary.opacity(0.45))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 9)
-                        .background {
-                            if isSelected {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color.Theme.pureWhite)
-                            }
-                        }
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(3)
-        .background(Color.Theme.softGrey.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-    }
-}
-
-// MARK: - Compose sheet (manual post from verse context)
 
 struct ShareReflectionSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -438,182 +330,6 @@ struct ShareReflectionSheet: View {
         if vm.shareError == nil {
             dismiss()
         }
-    }
-}
-
-// MARK: - Feed Post Card
-
-struct FeedPostCard: View {
-    let post: ReflectFeedPost
-
-    private var formattedDate: String {
-        guard let createdAt = post.createdAt else { return "" }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: createdAt) else {
-            formatter.formatOptions = [.withInternetDateTime]
-            guard let date = formatter.date(from: createdAt) else { return createdAt }
-            return date.relativeFormatted
-        }
-        return date.relativeFormatted
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                if let avatarURL = post.author?.avatarURL {
-                    AsyncImage(url: avatarURL) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().scaledToFill()
-                                .frame(width: 36, height: 36)
-                                .clipShape(Circle())
-                        default:
-                            authorPlaceholder
-                        }
-                    }
-                } else {
-                    authorPlaceholder
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Text(post.author?.displayName ?? "Contributor")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.primary)
-                        if post.author?.verified == true {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(Color.Theme.deepEmerald)
-                        }
-                    }
-                    Text(formattedDate)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                if let postType = post.postTypeName {
-                    Text(postType)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Color.Theme.deepEmerald)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.Theme.deepEmerald.opacity(0.1))
-                        .cornerRadius(6)
-                }
-            }
-
-            if let ref = post.references?.first,
-               let key = ref.verseKey,
-               key.isEmpty == false {
-                HStack(spacing: 6) {
-                    Image(systemName: "book.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.Theme.gold)
-                    Text(VerseKeyFormat.humanLabel(for: key))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color.Theme.deepEmerald)
-                }
-            }
-
-            if let body = post.body, body.isEmpty == false {
-                ReflectPostText(text: body)
-            }
-
-            if let tags = post.tags, tags.isEmpty == false {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in
-                            if let name = tag.name {
-                                Text("#\(name)")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(Color.Theme.deepEmerald.opacity(0.8))
-                            }
-                        }
-                    }
-                }
-            }
-
-            Divider()
-
-            HStack(spacing: 0) {
-                actionChip(
-                    icon: post.isLiked == true ? "heart.fill" : "heart",
-                    count: post.likesCount,
-                    isActive: post.isLiked == true
-                )
-                Spacer()
-                actionChip(
-                    icon: "bubble.right",
-                    count: post.commentsCount,
-                    isActive: false
-                )
-                Spacer()
-            }
-        }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.Theme.softGrey.opacity(0.5), lineWidth: 1))
-    }
-
-    private var authorPlaceholder: some View {
-        Circle()
-            .fill(Color.Theme.softGrey.opacity(0.4))
-            .frame(width: 36, height: 36)
-            .overlay(
-                Image(systemName: "person.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color.Theme.softGrey)
-            )
-    }
-
-    @ViewBuilder
-    private func actionChip(icon: String, count: Int?, isActive: Bool) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(isActive ? Color.Theme.deepEmerald : .secondary)
-            if let c = count, c > 0 {
-                Text("\(c)")
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-    }
-}
-
-struct FeedPostSkeletonCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(Color.Theme.softGrey.opacity(0.3))
-                    .frame(width: 36, height: 36)
-                VStack(alignment: .leading, spacing: 4) {
-                    SkeletonBar(width: 100, height: 12, cornerRadius: 6)
-                    SkeletonBar(width: 60, height: 10, cornerRadius: 5)
-                }
-                Spacer()
-            }
-            ForEach(0..<3, id: \.self) { i in
-                SkeletonBar(width: i == 2 ? 200 : nil, height: 14, cornerRadius: 6)
-            }
-            Divider()
-            HStack {
-                SkeletonBar(width: 50, height: 12, cornerRadius: 6)
-                Spacer()
-                SkeletonBar(width: 50, height: 12, cornerRadius: 6)
-            }
-        }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.Theme.softGrey.opacity(0.5), lineWidth: 1))
     }
 }
 

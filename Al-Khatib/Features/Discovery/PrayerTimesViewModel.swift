@@ -46,6 +46,8 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     @Published var hijriDateLabel: String?
     @Published var gregorianDateLabel: String?
     @Published var calculationMethod: PrayerCalculationMethod
+    @Published var dailyPrayers: [PrayerEntry] = []
+    @Published var sunriseDate: Date?
 
     var nextPrayerName: String?  { nextPrayer?.name }
     var nextPrayerDate: Date?    { nextPrayer?.date }
@@ -253,9 +255,15 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
 
         imsakTime = resolve("Imsak").map { shortTime($0) }
         sunriseTime = resolve("Sunrise").map { shortTime($0) }
+        sunriseDate = resolve("Sunrise")
 
         let prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         todaySchedule = prayerKeys.compactMap { key in
+            resolve(key).map { PrayerEntry(name: key, date: $0) }
+        }.sorted { $0.date < $1.date }
+
+        let timelineKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
+        dailyPrayers = timelineKeys.compactMap { key in
             resolve(key).map { PrayerEntry(name: key, date: $0) }
         }.sorted { $0.date < $1.date }
 

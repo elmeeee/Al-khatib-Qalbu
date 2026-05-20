@@ -1,0 +1,147 @@
+//
+//  PrayerDashboardCard.swift
+//  Al-Khatib
+//
+//  Created by Antigravity on 20/05/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
+//
+
+import SwiftUI
+
+struct PrayerDashboardCard: View {
+    @ObservedObject var viewModel: PrayerDashboardViewModel
+    
+    init(viewModel: PrayerDashboardViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            if !viewModel.mappedPrayers.isEmpty && !viewModel.isLoading {
+                MascotPopOutView(theme: viewModel.activeTheme)
+                    .frame(width: 100, height: 100)
+                    .offset(x: -10, y: 0)
+                    .transition(.scale.combined(with: .opacity))
+            }
+            
+            VStack(alignment: .leading, spacing: 0) {
+                if viewModel.mappedPrayers.isEmpty || viewModel.isLoading {
+                    skeletonLayout
+                } else {
+                    activeCardLayout
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: viewModel.activeTheme.cardGradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: viewModel.activeTheme.borderGradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(color: viewModel.activeTheme == .daylight ? Color(hex: "#064E3B").opacity(0.08) : Color.black.opacity(0.3), radius: 15, x: 0, y: 8)
+            .padding(.top, 78)
+        }
+        .padding(.horizontal, 20)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0), value: viewModel.activeTheme)
+    }
+    
+    @ViewBuilder
+    private var activeCardLayout: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(viewModel.countdownString)
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundColor(.white)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                
+                Text("Time remaining before prayer \(viewModel.nextPrayerDisplayName)")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.white.opacity(0.8))
+                    .lineLimit(2)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 24)
+            
+            HStack(spacing: 0) {
+                ForEach(viewModel.mappedPrayers) { item in
+                    PrayerTimeColumn(
+                        name: item.displayName,
+                        time: item.timeString,
+                        isActive: item.isActive,
+                        theme: viewModel.activeTheme
+                    )
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.black.opacity(0.15))
+            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+    }
+    
+    @ViewBuilder
+    private var skeletonLayout: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 10) {
+                // Skeleton header bars
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.Theme.softGrey.opacity(0.6))
+                    .frame(width: 140, height: 28)
+                
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.Theme.softGrey.opacity(0.4))
+                    .frame(width: 80, height: 14)
+                
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(Color.Theme.softGrey.opacity(0.4))
+                    .frame(width: 180, height: 32)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 28)
+            
+            Divider()
+                .background(Color.Theme.softGrey.opacity(0.4))
+            
+            // Skeleton timeline rows
+            HStack(spacing: 8) {
+                ForEach(0..<6, id: \.self) { _ in
+                    VStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.Theme.softGrey.opacity(0.5))
+                            .frame(width: 38, height: 12)
+                        
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.Theme.softGrey.opacity(0.3))
+                            .frame(width: 44, height: 44)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 20)
+        }
+    }
+}
+
