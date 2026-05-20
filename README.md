@@ -362,23 +362,6 @@ Al-Khatib/
 4. **Today** — tap Reflect / publish (optional Groq draft).
 5. **Reflect** — scroll feed; tap **like**.
 6. **Quran** — open a surah; scroll; show continue reading if a prior session exists.
-
----
-
-## Demo video script (2–3 minutes)
-
-| Time | Action | What to say |
-|------|--------|-------------|
-| 0:00–0:20 | App icon → onboarding → Today | “Al-Khatib helps Muslims read, understand, and reflect on the Quran every day.” |
-| 0:20–0:50 | Today: tajweed ayah, translation, play audio, open tafsir | “Verse of the day comes from Quran Foundation Content API — tajweed, translation, audio, and Ibn Kathir tafsir.” |
-| 0:50–1:10 | Prayer card (optional) | “Prayer times use location; the Quran flow is powered by QF.” |
-| 1:10–1:40 | Sign in → publish or show Reflect draft | “OAuth connects to Quran Reflect so reflections are real community posts.” |
-| 1:40–2:10 | Reflect tab: scroll reel, like a post | “The Reflect feed and likes use Quran Reflect APIs.” |
-| 2:10–2:40 | Quran tab: surah list → reader → audio | “Full surah reading with pagination, hadith, tafsir, and play-all audio from Content API.” |
-| 2:40–3:00 | Continue reading (if visible) | “Auth v1 reading sessions remember where you stopped.” |
-
-End with: “Built for the Quran Foundation hackathon — official Content, Reflect, OAuth, and reading session APIs.”
-
 ---
 
 ## Judging criteria alignment
