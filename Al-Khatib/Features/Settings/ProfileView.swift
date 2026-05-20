@@ -19,7 +19,7 @@ struct ProfileView: View {
     @AppStorage("imsakNotificationsEnabled") private var imsakEnabled = true
     @AppStorage("tahajudNotificationsEnabled") private var tahajudEnabled = true
     @AppStorage("chapterReaderTranslationId") private var selectedTranslationId = 131
-    @AppStorage("chapterReaderTranslationName") private var selectedTranslationName = "Dr. Mustafa Khattab"
+    @AppStorage("chapterReaderTranslationName") private var selectedTranslationName = ""
 
     @State private var vm: ProfileViewModel?
     @State private var isOAuthPresenting = false
@@ -31,20 +31,16 @@ struct ProfileView: View {
 
     var body: some View {
         ZStack {
-            // Screen Background
             Color(hex: "#F8FAFC").ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header Section
                     headerSection
 
-                    // General Section
                     VStack(alignment: .leading, spacing: 14) {
                         sectionHeader("General")
                         
                         VStack(spacing: 0) {
-                            // Font Size Row
                             Button {
                                 showingFontScaleSheet = true
                             } label: {
@@ -73,7 +69,6 @@ struct ProfileView: View {
                         .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
                     }
 
-                    // Prayer Setting Section
                     VStack(alignment: .leading, spacing: 14) {
                         sectionHeader("Prayer Setting")
 
@@ -103,7 +98,6 @@ struct ProfileView: View {
 
                             Divider().padding(.leading, 64)
 
-                            // Adzan Notification Row
                             ProfileRow(
                                 icon: "bell",
                                 title: "Adzan Notification",
@@ -114,7 +108,6 @@ struct ProfileView: View {
 
                             Divider().padding(.leading, 64)
 
-                            // Imsak Notification Row
                             ProfileRow(
                                 icon: "bell.badge",
                                 title: "Imsak Notification",
@@ -125,7 +118,6 @@ struct ProfileView: View {
 
                             Divider().padding(.leading, 64)
 
-                            // Tahajud Notification Row
                             ProfileRow(
                                 icon: "sparkles",
                                 title: "Tahajud Notification",
@@ -141,8 +133,6 @@ struct ProfileView: View {
 
                     if vm?.profile != nil {
                         logOutButton
-                    } else {
-                        signInCard
                     }
                 }
                 .padding(.horizontal, 20)
@@ -183,42 +173,99 @@ struct ProfileView: View {
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
                 guard container?.oauth.isWebAuthInProgress != true else { return }
-                if await container?.userSession.hasUserAccessToken() == true {
+                guard let container else { return }
+                if await container.userSession.hasUserAccessToken() {
                     await vm?.fetchProfile(force: true)
                 } else {
                     vm?.profile = nil
+                    vm?.isLoading = false
                 }
             }
         }
     }
 
     private var headerSection: some View {
-        HStack(spacing: 16) {
-            profileAvatar
+        Group {
+            if let profile = vm?.profile {
+                HStack(spacing: 16) {
+                    profileAvatar
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(vm?.profile?.displayTitle ?? "")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(hex: "#1E293B"))
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(profile.displayTitle)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(hex: "#1E293B"))
 
-                HStack(spacing: 4) {
-                    Image(systemName: "mappin.and.ellipse")
-                        .font(.system(size: 11, weight: .semibold))
-                    Text(vm?.profile?.country ?? "Sumedang, West Java")
-                        .font(.system(size: 12, weight: .medium))
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 8, weight: .bold))
+                        let country = profile.country ?? ""
+                        if !country.isEmpty {
+                            HStack(spacing: 4) {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .font(.system(size: 11, weight: .semibold))
+                                Text(country)
+                                    .font(.system(size: 12, weight: .medium))
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 8, weight: .bold))
+                            }
+                            .foregroundColor(tealThemeColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(tealThemeColor.opacity(0.12))
+                            .clipShape(Capsule())
+                        }
+                    }
+
+                    Spacer()
                 }
+                .padding(.vertical, 8)
+            } else {
+                headerSignInCard
+            }
+        }
+    }
+
+    private var headerSignInCard: some View {
+        HStack(spacing: 16) {
+            Image(systemName: "person.crop.circle.fill.badge.plus")
+                .font(.system(size: 40))
                 .foregroundColor(tealThemeColor)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(tealThemeColor.opacity(0.12))
-                .clipShape(Capsule())
+                .frame(width: 52, height: 52)
+                .background(tealThemeColor.opacity(0.1))
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Sync Reflections")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(Color(hex: "#1E293B"))
+                Text("Sign in to back up progress.")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.secondary)
             }
 
             Spacer()
+
+            Button {
+                Task { await vm?.signIn() }
+            } label: {
+                HStack(spacing: 6) {
+                    if isOAuthPresenting {
+                        ProgressView().tint(.white)
+                    }
+                    Text("Sign In")
+                        .font(.system(size: 13, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(tealThemeColor)
+                .clipShape(Capsule())
+                .shadow(color: tealThemeColor.opacity(0.2), radius: 4, y: 2)
+            }
+            .buttonStyle(PillPressStyle())
+            .disabled(isOAuthPresenting)
         }
-        .padding(.vertical, 8)
+        .padding(16)
+        .background(Color.Theme.pureWhite)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
     }
 
     private var profileAvatar: some View {
@@ -273,42 +320,7 @@ struct ProfileView: View {
         .opacity(isOAuthPresenting ? 0.5 : 1)
     }
 
-    private var signInCard: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 6) {
-                Text("Sync Reflections & Journey")
-                    .font(.headline)
-                    .foregroundColor(Color(hex: "#1E293B"))
-                Text("Connect with Quran Reflect to back up reading stats, sync your profile, and share daily reflections.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 16)
-            }
 
-            Button {
-                Task { await vm?.signIn() }
-            } label: {
-                HStack(spacing: 8) {
-                    if isOAuthPresenting {
-                        ProgressView().tint(.white)
-                    }
-                    Text(isOAuthPresenting ? "Signing in…" : "Continue with Quran Reflect")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(tealThemeColor)
-                .clipShape(Capsule())
-            }
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity)
-        .background(Color.Theme.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
-    }
 
     private var fontScaleLabel: String {
         switch fontScale {
@@ -319,8 +331,6 @@ struct ProfileView: View {
         }
     }
 }
-
-// MARK: - Premium Settings Row
 
 private struct ProfileRow: View {
     let icon: String
@@ -333,7 +343,6 @@ private struct ProfileRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Icon Rounded Container
             ZStack {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color.Theme.softGrey.opacity(0.7), lineWidth: 1)
@@ -345,7 +354,6 @@ private struct ProfileRow: View {
                     .foregroundColor(tealThemeColor)
             }
 
-            // Title & Subtitle
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.system(size: 15, weight: .bold))
@@ -357,7 +365,6 @@ private struct ProfileRow: View {
 
             Spacer()
 
-            // Optional Switch or Chevron
             if hasToggle {
                 Toggle("", isOn: $isOn)
                     .labelsHidden()
@@ -373,8 +380,6 @@ private struct ProfileRow: View {
         .contentShape(Rectangle())
     }
 }
-
-// MARK: - Premium Font Scale Picker Sheet
 
 private struct FontScaleSheet: View {
     @Binding var fontScale: Double

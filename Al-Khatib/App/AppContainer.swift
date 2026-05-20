@@ -22,6 +22,8 @@ extension EnvironmentValues {
 
 @MainActor
 final class AppContainer {
+    private var isClearingUserSession = false
+
     let environment: AppEnvironment
     let configuration: QFConfiguration
     let auth: QFAuthManager
@@ -58,9 +60,19 @@ final class AppContainer {
 
     /// Logout or expired session — clears Keychain tokens, caches, and local Reflect data.
     func clearUserSession() async {
+        if isClearingUserSession { return }
+        isClearingUserSession = true
+        defer { isClearingUserSession = false }
         await oauth.signOut()
         await APICache.clearAll()
         reflectionStore.removeAll()
+    }
+
+    /// Fire-and-forget sign-out after 401/403. Callers must not `await` this (e.g. Profile `.task`).
+    func invalidateUserSession() {
+        Task { @MainActor in
+            await clearUserSession()
+        }
     }
 
     func signOut() async {

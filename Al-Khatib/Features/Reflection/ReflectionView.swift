@@ -175,7 +175,7 @@ struct ReflectionView: View {
         if vm == nil, let container {
             let m = ReflectionViewModel(reflect: container.reflect)
             m.onSessionInvalidated = { @MainActor in
-                await container.clearUserSession()
+                container.invalidateUserSession()
             }
             vm = m
         }
@@ -200,7 +200,7 @@ struct ReflectionView: View {
         if let c = container, vm == nil {
             let m = ReflectionViewModel(reflect: c.reflect)
             m.onSessionInvalidated = { @MainActor in
-                await c.clearUserSession()
+                c.invalidateUserSession()
             }
             vm = m
         }

@@ -544,11 +544,7 @@ extension TodayDiscoveryView {
             Spacer()
 
             Button {
-                if verseState.isLoggedIn {
-                    verseState.requestAccount()
-                } else {
-                    Task { await verseState.signIn(container: container) }
-                }
+                verseState.requestAccount()
             } label: {
                 profileAvatarIcon
             }

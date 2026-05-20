@@ -276,17 +276,18 @@ private struct UserRefreshTokenResponse: Decodable, Sendable {
 }
 
 private extension URLSession {
+    nonisolated static func decodePayload<T: Decodable & Sendable>(_ type: T.Type, from data: Data) throws -> T {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(T.self, from: data)
+    }
+
     func decodeResponse<T: Decodable & Sendable>(_ type: T.Type, request: URLRequest) async throws -> T {
         do {
             let (data, response) = try await self.data(for: request)
             try validateHTTP(response, data: data, expectedMinStatus: 200, expectedMaxStatus: 299)
-            let payload = data
             do {
-                return try await Task.detached(priority: .userInitiated) {
-                    let d = JSONDecoder()
-                    d.keyDecodingStrategy = .convertFromSnakeCase
-                    return try d.decode(T.self, from: payload)
-                }.value
+                return try Self.decodePayload(T.self, from: data)
             } catch {
                 throw QFError.parsingError("decode \(T.self): \(error.localizedDescription)")
             }

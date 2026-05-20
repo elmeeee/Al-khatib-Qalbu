@@ -195,7 +195,7 @@ final class TodayVerseState {
             isLoggedIn = true
         } catch {
             if Self.isAuthenticationFailure(error) {
-                await container.clearUserSession()
+                container.invalidateUserSession()
                 applySignedOutProfile()
             } else if userId == nil {
                 isLoggedIn = false

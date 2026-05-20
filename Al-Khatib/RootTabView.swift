@@ -13,14 +13,14 @@ struct RootTabView: View {
         case today, reflect, journey
     }
 
-    private enum TodayNavigation: Hashable {
+    enum TodayNavigation: Hashable {
         case account
     }
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.appContainer) private var container
     @State private var selectedTab: Tab = .today
-    @State private var todayNavigationPath = NavigationPath()
+    @State private var todayNavigationPath: [TodayNavigation] = []
     @State private var vm = RootTabViewModel()
     let verseState: TodayVerseState
 
@@ -50,6 +50,7 @@ struct RootTabView: View {
                         switch destination {
                         case .account:
                             ProfileView(preferSystemNavigationTitle: true)
+                                .environment(\.appContainer, container)
                                 .navigationTitle("Account")
                                 .navigationBarTitleDisplayMode(.large)
                                 .toolbar(.visible, for: .navigationBar)
@@ -68,22 +69,22 @@ struct RootTabView: View {
                 .tag(Tab.journey)
                 .tabItem { Label("Quran", systemImage: "book.fill") }
         }
-        .onChange(of: verseState.shouldNavigateToReflect) { _, shouldNavigate in
+        .onChangeWithFallback(of: verseState.shouldNavigateToReflect) { shouldNavigate in
             if shouldNavigate {
                 if selectedTab != .reflect {
                     withAnimation { selectedTab = .reflect }
                 }
             }
         }
-        .onChange(of: verseState.shouldNavigateToAccount) { _, shouldNavigate in
+        .onChangeWithFallback(of: verseState.shouldNavigateToAccount) { shouldNavigate in
             if shouldNavigate {
                 if todayNavigationPath.isEmpty {
-                    todayNavigationPath.append(TodayNavigation.account)
+                    todayNavigationPath.append(.account)
                 }
                 verseState.didNavigateToAccount()
             }
         }
-        .onChange(of: verseState.shouldSelectTodayTab) { _, shouldSelect in
+        .onChangeWithFallback(of: verseState.shouldSelectTodayTab) { shouldSelect in
             if shouldSelect {
                 if selectedTab != .today {
                     withAnimation { selectedTab = .today }
@@ -94,7 +95,7 @@ struct RootTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             verseState.syncOAuthUIState(container: container)
         }
-        .onChange(of: scenePhase) { _, p in
+        .onChangeWithFallback(of: scenePhase) { p in
             if p == .active {
                 Task {
                     guard container?.oauth.isWebAuthInProgress == false else { return }
@@ -111,7 +112,9 @@ struct RootTabView: View {
                     selectedTab = .today
                 }
                 if todayNavigationPath.isEmpty == false {
-                    todayNavigationPath = NavigationPath()
+                    // Let Profile / `.task` finish suspending before tearing down NavigationStack (Today → Account).
+                    await Task.yield()
+                    todayNavigationPath = []
                 }
             }
         }

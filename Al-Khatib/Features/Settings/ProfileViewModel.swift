@@ -24,6 +24,11 @@ final class ProfileViewModel {
     }
 
     func fetchProfile(force: Bool = false) async {
+        guard await container.userSession.hasUserAccessToken() else {
+            profile = nil
+            isLoading = false
+            return
+        }
         if profile == nil {
             isLoading = true
         }
@@ -33,7 +38,7 @@ final class ProfileViewModel {
         } catch {
             profile = nil
             if TodayVerseState.isAuthenticationFailure(error) {
-                await container.clearUserSession()
+                container.invalidateUserSession()
                 errorMessage = nil
             } else {
                 errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription

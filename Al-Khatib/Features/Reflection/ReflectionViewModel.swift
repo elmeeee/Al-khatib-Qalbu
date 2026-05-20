@@ -44,7 +44,7 @@ final class ReflectionViewModel {
     /// Cap in-memory post payloads (bodies + metadata) when users page deep in the reel.
     private let maxPostsKept = 72
     /// Clears Reflect session (Keychain + caches) so UI returns to sign-in when API returns 401/403.
-    var onSessionInvalidated: (@MainActor () async -> Void)?
+    var onSessionInvalidated: (@MainActor () -> Void)?
     private var loadTask: Task<Void, Never>?
     private var loadGeneration: UInt = 0
     private var togglingLikePostIDs: Set<String> = []
@@ -141,7 +141,7 @@ final class ReflectionViewModel {
         errorMessage = nil
         currentPage = 1
         totalPages = 1
-        await onSessionInvalidated?()
+        onSessionInvalidated?()
     }
 
     func showMyPostsAfterPublish() {

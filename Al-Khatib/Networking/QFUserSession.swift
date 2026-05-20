@@ -44,10 +44,9 @@ actor QFUserSession {
         if let refreshToken, refreshToken.isEmpty == false {
             persistToken(refreshToken, kind: .refresh)
         }
-        await notifySessionDidChange()
+        notifySessionDidChange()
     }
 
-    /// Wipes user OAuth tokens from memory, UserDefaults, and Keychain.
     func clear() async {
         inMemory = nil
         inMemoryRefresh = nil
@@ -57,11 +56,11 @@ actor QFUserSession {
             defaults.removeObject(forKey: "qf.userRefreshToken.\(suffix)")
         }
         keychain.clearUserOAuthTokens()
-        await notifySessionDidChange()
+        notifySessionDidChange()
     }
 
-    private func notifySessionDidChange() async {
-        await MainActor.run {
+    private nonisolated func notifySessionDidChange() {
+        DispatchQueue.main.async {
             NotificationCenter.default.post(name: .qfUserSessionDidChange, object: nil)
         }
     }
