@@ -15,6 +15,7 @@ struct ProfileView: View {
     @AppStorage(PrayerCalculationMethod.storageKey)
     private var prayerMethodRaw = PrayerCalculationMethod.defaultMethod.rawValue
     @State private var vm: ProfileViewModel?
+    @State private var isOAuthPresenting = false
 
     private var selectedPrayerMethod: PrayerCalculationMethod {
         PrayerCalculationMethod(rawValue: prayerMethodRaw) ?? .muhammadiyah
@@ -50,15 +51,19 @@ struct ProfileView: View {
             if vm == nil { vm = ProfileViewModel(container: container) }
             await vm?.fetchProfile()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
+            isOAuthPresenting = container?.oauth.isWebAuthInProgress == true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
+                guard container?.oauth.isWebAuthInProgress != true else { return }
                 await vm?.fetchProfile()
             }
         }
         .toolbar {
             if preferSystemNavigationTitle {
                 ToolbarItem(placement: .topBarTrailing) {
-                    if vm?.isLoading == true || vm?.authBusy == true {
+                    if vm?.isLoading == true || isOAuthPresenting {
                         ProgressView()
                             .tint(Color.Theme.deepEmerald)
                     }
@@ -75,7 +80,7 @@ struct ProfileView: View {
                 .font(.largeTitle.bold())
                 .foregroundStyle(Color.Theme.deepEmerald)
             Spacer()
-            if vm?.isLoading == true || vm?.authBusy == true {
+            if vm?.isLoading == true || isOAuthPresenting {
                 ProgressView()
                     .tint(Color.Theme.deepEmerald)
             }
@@ -88,7 +93,7 @@ struct ProfileView: View {
         VStack(spacing: 0) {
             if let profile = vm?.profile {
                 signedInHeader(profile)
-            } else if vm == nil || vm?.isLoading == true || vm?.authBusy == true {
+            } else if vm == nil || (vm?.isLoading == true && isOAuthPresenting == false) {
                 loadingHeader
             } else {
                 signedOutHeader
@@ -158,8 +163,8 @@ struct ProfileView: View {
                 }
             }
             .buttonStyle(.plain)
-            .disabled(vm?.authBusy == true)
-            .opacity(vm?.authBusy == true ? 0.5 : 1)
+            .disabled(isOAuthPresenting)
+            .opacity(isOAuthPresenting ? 0.5 : 1)
         }
     }
 
@@ -355,14 +360,14 @@ struct ProfileView: View {
                 Task { await vm?.signIn() }
             } label: {
                 HStack(spacing: 8) {
-                    if vm?.authBusy == true {
+                    if isOAuthPresenting {
                         ProgressView().tint(.white)
                     }
-                    Text(vm?.authBusy == true ? "Signing in…" : "Continue with Quran Reflect")
+                    Text(isOAuthPresenting ? "Signing in…" : "Continue with Quran Reflect")
                 }
             }
             .buttonStyle(.primaryFlat)
-            .disabled(vm?.authBusy == true)
+            .disabled(isOAuthPresenting)
             .padding(.horizontal, 4)
             .padding(.bottom, 24)
         }

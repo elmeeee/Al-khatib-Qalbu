@@ -91,9 +91,13 @@ struct RootTabView: View {
                 verseState.didSelectTodayTab()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
+            verseState.syncOAuthUIState(container: container)
+        }
         .onChange(of: scenePhase) { _, p in
             if p == .active {
                 Task {
+                    guard container?.oauth.isWebAuthInProgress == false else { return }
                     await verseState.ensureProfileLoaded(container: container)
                     await vm.runSync(container: container)
                 }
@@ -101,6 +105,7 @@ struct RootTabView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
+                guard container?.oauth.isWebAuthInProgress == false else { return }
                 await verseState.ensureProfileLoaded(container: container)
                 guard await vm.shouldResetToDiscover(container: container) else { return }
                 if selectedTab != .today {

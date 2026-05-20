@@ -203,6 +203,15 @@ enum StreakWidgetKeys {
     static let streakUpdatedAt = "widget.streak.updatedAt"
 }
 
+extension UserHabitRepository {
+    /// Removes user-specific cached data from the shared app group (widgets, etc.).
+    static func clearCachedUserData(appGroup: String) {
+        let defaults = UserDefaults(suiteName: appGroup) ?? .standard
+        defaults.removeObject(forKey: StreakWidgetKeys.streak)
+        defaults.removeObject(forKey: StreakWidgetKeys.streakUpdatedAt)
+    }
+}
+
 private struct EditProfileInput: Encodable, Sendable {
     let postAs: Bool
 }

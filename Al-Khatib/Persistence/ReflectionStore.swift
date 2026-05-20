@@ -62,6 +62,12 @@ final class ReflectionStore: @unchecked Sendable {
         loadAll().contains { $0.syncState == .pending }
     }
 
+    func removeAll() {
+        lock.lock()
+        defer { lock.unlock() }
+        defaults.removeObject(forKey: storageKey)
+    }
+
     private func loadAllUnlocked() -> [Reflection] {
         guard let data = defaults.data(forKey: storageKey) else { return [] }
         return (try? decoder.decode([Reflection].self, from: data)) ?? []

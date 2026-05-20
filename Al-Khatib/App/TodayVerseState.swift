@@ -30,7 +30,6 @@ final class TodayVerseState {
     var hasResolvedSession = false
 
     private var profileRefreshTask: Task<Void, Never>?
-    private var signInTask: Task<Void, Never>?
 
     // Today's Reflect button — holds the AI-enhanced reflection text
     // so it can be passed through to ShareReflectionSheet.
@@ -78,14 +77,24 @@ final class TodayVerseState {
         shouldSelectTodayTab = false
     }
 
+    func syncOAuthUIState(container: AppContainer?) {
+        isLoggingIn = container?.oauth.isWebAuthInProgress ?? false
+    }
+
     private func applySignedOutProfile() {
-        signInTask?.cancel()
-        signInTask = nil
+        guard isLoggingIn == false else { return }
+        profileRefreshTask?.cancel()
+        profileRefreshTask = nil
         isLoggingIn = false
+        isRefreshingProfile = false
         isLoggedIn = false
         userAvatarURL = nil
         userDisplayName = nil
         userId = nil
+        preparedShareText = nil
+        shouldNavigateToReflect = false
+        shouldNavigateToAccount = false
+        feedNeedsRefresh = false
     }
 
     /// Loads profile once; concurrent callers await the same in-flight request.
@@ -104,6 +113,9 @@ final class TodayVerseState {
 
     func refreshProfile(container: AppContainer?) async {
         guard let container else { return }
+        if isLoggingIn || container.oauth.isWebAuthInProgress {
+            return
+        }
         isRefreshingProfile = true
         defer {
             isRefreshingProfile = false
@@ -137,22 +149,14 @@ final class TodayVerseState {
     /// Triggers OAuth sign-in flow and refreshes profile on success.
     func signIn(container: AppContainer?) async {
         guard let container else { return }
-        if let signInTask {
-            await signInTask.value
+        if container.oauth.isWebAuthInProgress {
             return
         }
-        let task = Task { @MainActor in
-            isLoggingIn = true
-            defer { isLoggingIn = false }
-            do {
-                try await container.oauth.signIn()
-                await ensureProfileLoaded(container: container)
-            } catch {
-                // Sign-in cancelled or failed — stay on current state
-            }
+        do {
+            try await container.oauth.signIn()
+        } catch {
+            return
         }
-        signInTask = task
-        await task.value
-        signInTask = nil
+        await ensureProfileLoaded(container: container)
     }
 }

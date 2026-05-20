@@ -414,6 +414,7 @@ extension TodayDiscoveryView {
         .padding(.top, 16)
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
+                guard container?.oauth.isWebAuthInProgress != true else { return }
                 await verseState.ensureProfileLoaded(container: container)
             }
         }

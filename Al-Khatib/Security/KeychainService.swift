@@ -70,4 +70,13 @@ struct KeychainService: Sendable {
     func getString(for key: Key, environment: AppEnvironment? = nil) throws -> String? {
         try get(for: key, environment: environment).flatMap { String(data: $0, encoding: .utf8) }
     }
+
+    func delete(for key: Key, environment: AppEnvironment? = nil) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: accountName(for: key, environment: environment)
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
 }

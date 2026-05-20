@@ -39,12 +39,13 @@ final class ProfileViewModel {
     }
 
     func signIn() async {
-        authBusy = true
+        guard container.oauth.isWebAuthInProgress == false else { return }
         errorMessage = nil
-        defer { authBusy = false }
         do {
             try await container.oauth.signIn()
+            await fetchProfile()
         } catch {
+            if error is CancellationError { return }
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
@@ -53,7 +54,7 @@ final class ProfileViewModel {
         authBusy = true
         errorMessage = nil
         defer { authBusy = false }
-        await container.oauth.signOut()
+        await container.signOut()
         profile = nil
     }
 }

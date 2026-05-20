@@ -358,7 +358,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
             let reps = items.first?.addressRepresentations
             return ReverseGeocodeResult(
                 cityName: reps?.cityName,
-                countryCode: reps?.regionCode
+                countryCode: reps?.__regionCode
             )
         } catch {
             return ReverseGeocodeResult(cityName: nil, countryCode: nil)

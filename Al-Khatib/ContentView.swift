@@ -39,8 +39,12 @@ struct ContentView: View {
             guard hasCompletedOnboarding else { return }
             await verseState.ensureProfileLoaded(container: container)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
+            verseState.syncOAuthUIState(container: container)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
+                guard container?.oauth.isWebAuthInProgress != true else { return }
                 await verseState.ensureProfileLoaded(container: container)
             }
         }

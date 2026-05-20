@@ -52,8 +52,8 @@ actor QFUserSession {
         inMemoryRefresh = nil
         defaults.removeObject(forKey: defaultsKey)
         defaults.removeObject(forKey: refreshDefaultsKey)
-        try? keychain.setString("", for: .userAccessToken, environment: environment)
-        try? keychain.setString("", for: .userRefreshToken, environment: environment)
+        keychain.delete(for: .userAccessToken, environment: environment)
+        keychain.delete(for: .userRefreshToken, environment: environment)
         await notifySessionDidChange()
     }
 
@@ -165,4 +165,5 @@ actor QFUserSession {
 
 extension Notification.Name {
     static let qfUserSessionDidChange = Notification.Name("qfUserSessionDidChange")
+    static let qfOAuthWebAuthStateDidChange = Notification.Name("qfOAuthWebAuthStateDidChange")
 }

@@ -73,6 +73,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
     private var isHandlingCallback = false
     private var lastHandledCode: String?
     private var activeSignInTask: Task<Void, Error>?
+    private(set) var isWebAuthInProgress = false
 
     init(configuration: QFConfiguration, userSession: QFUserSession) {
         self.configuration = configuration
@@ -91,11 +92,22 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
         }
         activeSignInTask = task
         defer { activeSignInTask = nil }
-        try await task.value
+        do {
+            try await task.value
+        } catch {
+            oauthConsole("signIn ended: \(error.localizedDescription)")
+            throw error
+        }
     }
 
     private func performSignIn() async throws {
-        cancelActiveWebAuthSession()
+        if await userSession.hasUserAccessToken() {
+            clearPendingAuth()
+            return
+        }
+        if authSession != nil {
+            cancelActiveWebAuthSession()
+        }
         let verifier = Self.randomURLSafe(length: 64)
         let challenge = Self.codeChallenge(from: verifier)
         let state = Self.randomURLSafe(length: 32)
@@ -123,6 +135,8 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
 
         pendingAuth = PendingAuth(verifier: verifier, state: state, nonce: nonce)
         Self.savePendingAuth(pendingAuth, defaults: defaults, key: pendingAuthKey)
+        setWebAuthInProgress(true)
+        defer { setWebAuthInProgress(false) }
         let callbackURL = try await startWebAuth(
             authorizeURL: authorizeURL,
             callbackScheme: callbackScheme
@@ -153,9 +167,15 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
         await userSession.clear()
     }
 
+    private func setWebAuthInProgress(_ inProgress: Bool) {
+        isWebAuthInProgress = inProgress
+        NotificationCenter.default.post(name: .qfOAuthWebAuthStateDidChange, object: nil)
+    }
+
     private func cancelActiveWebAuthSession() {
         authSession?.cancel()
         authSession = nil
+        OAuthPresentationHost.deactivate()
     }
 
     private func clearPendingAuth() {
@@ -181,6 +201,10 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
     }
 
     func handleIncomingCallback(_ url: URL) async {
+        // Let ASWebAuthenticationSession deliver the redirect when its sheet is open.
+        if authSession != nil || isWebAuthInProgress {
+            return
+        }
         guard isHandlingCallback == false else {
             return
         }
@@ -211,7 +235,10 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
     }
 
     private func startWebAuth(authorizeURL: URL, callbackScheme: String) async throws -> URL {
-        try await withCheckedThrowingContinuation { continuation in
+        OAuthPresentationHost.activate()
+        defer { OAuthPresentationHost.deactivate() }
+
+        return try await withCheckedThrowingContinuation { continuation in
             var didResume = false
             let session = ASWebAuthenticationSession(
                 url: authorizeURL,
@@ -220,6 +247,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
                 defer {
                     Task { @MainActor in
                         self?.authSession = nil
+                        OAuthPresentationHost.deactivate()
                     }
                 }
                 if didResume {
@@ -227,26 +255,33 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
                 }
                 if let url {
                     didResume = true
+                    oauthConsole("web auth callback received")
                     continuation.resume(returning: url)
                     return
                 }
                 if let err = error as? ASWebAuthenticationSessionError,
                    err.code == .canceledLogin {
                     didResume = true
+                    oauthConsole("web auth canceledLogin")
                     continuation.resume(throwing: QFOAuthError.userCancelled)
                     return
                 }
+                let message = error?.localizedDescription ?? "unknown"
                 didResume = true
+                oauthConsole("web auth failed: \(message)")
                 continuation.resume(throwing: error ?? QFOAuthError.userCancelled)
             }
             session.presentationContextProvider = self
-            session.prefersEphemeralWebBrowserSession = true
+            session.prefersEphemeralWebBrowserSession = false
             self.authSession = session
             guard session.start() else {
                 self.authSession = nil
+                OAuthPresentationHost.deactivate()
+                oauthConsole("web auth session.start() returned false")
                 continuation.resume(throwing: QFOAuthError.tokenExchangeFailed("Could not start sign-in."))
                 return
             }
+            oauthConsole("web auth session started")
         }
     }
 
@@ -409,14 +444,36 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
     }
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        if let keyWindow = scenes.flatMap({ $0.windows }).first(where: { $0.isKeyWindow }) {
-            return keyWindow
+        if let anchor = OAuthPresentationHost.anchor {
+            return anchor
         }
-        guard let scene = scenes.first else {
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .sorted { lhs, rhs in
+                let rank: (UIWindowScene) -> Int = { scene in
+                    switch scene.activationState {
+                    case .foregroundActive: return 0
+                    case .foregroundInactive: return 1
+                    default: return 2
+                    }
+                }
+                return rank(lhs) < rank(rhs)
+            }
+        for scene in scenes {
+            if let keyWindow = scene.windows.first(where: { $0.isKeyWindow }) {
+                return keyWindow
+            }
+        }
+        for scene in scenes {
+            if let window = scene.windows.first(where: { $0.windowLevel == .normal }) {
+                return window
+            }
+        }
+        guard let scene = scenes.first,
+              let window = scene.windows.first else {
             preconditionFailure("No UIWindowScene available for OAuth presentation.")
         }
-        return ASPresentationAnchor(windowScene: scene)
+        return window
     }
 
     private static func authorizationCode(from callbackURL: URL, expectedState: String) throws -> String {
