@@ -25,6 +25,13 @@ struct ReflectRepository: Sendable {
         try await client.send(ReflectMyPostsEndpoint(page: page, limit: limit))
     }
 
+    func toggleLike(postId: String) async throws -> Bool {
+        let response: ReflectToggleLikeResponse = try await client.send(
+            ReflectToggleLikeEndpoint(postId: postId)
+        )
+        return response.liked
+    }
+
     @discardableResult
     func createReflectionPost(
         body: String,
@@ -74,7 +81,6 @@ struct ReflectRepository: Sendable {
 
         if refs.isEmpty == false {
             do { try await habits.logQuranActivityForToday(verses: refs.count) } catch { }
-            do { _ = try await habits.fetchQuranStreak() } catch { }
         }
 
         guard let created = envelope.createdPost else {

@@ -54,45 +54,6 @@ struct UserPost: Decodable, Sendable {
     let body: String
 }
 
-struct StreaksPage: Decodable, Sendable {
-    let data: [StreakRecord]?
-    let pageInfo: PageInfo?
-}
-
-struct PageInfo: Decodable, Sendable {
-    let hasNextPage: Bool?
-    let endCursor: String?
-}
-
-struct StreakRecord: Decodable, Sendable, Identifiable {
-    var id: String { String(rawId) }
-    let rawId: String
-    let startDate: String?
-    let endDate: String?
-    let days: Int?
-    let status: String?
-
-    enum CodingKeys: String, CodingKey {
-        case rawId = "id"
-        case startDate, endDate, days, status
-    }
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        if let s = try? c.decode(String.self, forKey: .rawId) {
-            rawId = s
-        } else if let i = try? c.decode(Int.self, forKey: .rawId) {
-            rawId = String(i)
-        } else {
-            rawId = ""
-        }
-        startDate = try? c.decodeIfPresent(String.self, forKey: .startDate)
-        endDate = try? c.decodeIfPresent(String.self, forKey: .endDate)
-        days = try? c.decodeIfPresent(Int.self, forKey: .days)
-        status = try? c.decodeIfPresent(String.self, forKey: .status)
-    }
-}
-
 struct ActivityDayInput: Encodable, Sendable {
     var type: String
     var day: String
@@ -102,6 +63,10 @@ struct ActivityDayInput: Encodable, Sendable {
 
 struct ActivityDayEnvelope: Decodable, Sendable {
     let success: Bool?
+}
+
+struct ReflectToggleLikeResponse: Decodable, Sendable {
+    let liked: Bool
 }
 
 struct ReflectFeedEnvelope: Decodable, Sendable {
@@ -138,10 +103,10 @@ struct ReflectFeedPost: Decodable, Sendable, Identifiable {
     let references: [ReflectFeedReference]?
     let tags: [ReflectFeedTag]?
     let recentComment: ReflectFeedComment?
-    let isLiked: Bool?
+    var isLiked: Bool?
     let createdAt: String?
     let draft: Bool?
-    let likesCount: Int?
+    var likesCount: Int?
     let commentsCount: Int?
     let postTypeName: String?
 

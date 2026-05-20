@@ -42,6 +42,7 @@ final class ReflectionViewModel {
     private let reflect: ReflectRepository
     private let pageSize = 20
     private var loadTask: Task<Void, Never>?
+    private var togglingLikePostIDs: Set<String> = []
 
     init(reflect: ReflectRepository) {
         self.reflect = reflect
@@ -115,6 +116,38 @@ final class ReflectionViewModel {
 
     func showMyPostsAfterPublish() {
         onSegmentChanged(to: .myPosts)
+    }
+
+    func isTogglingLike(postId: String) -> Bool {
+        togglingLikePostIDs.contains(postId)
+    }
+
+    func toggleLike(for post: ReflectFeedPost) async {
+        guard togglingLikePostIDs.contains(post.id) == false else { return }
+        guard let index = posts.firstIndex(where: { $0.id == post.id }) else { return }
+
+        togglingLikePostIDs.insert(post.id)
+        defer { togglingLikePostIDs.remove(post.id) }
+
+        let wasLiked = posts[index].isLiked == true
+        let previousCount = posts[index].likesCount ?? 0
+
+        posts[index].isLiked = !wasLiked
+        posts[index].likesCount = max(0, previousCount + (wasLiked ? -1 : 1))
+
+        do {
+            let liked = try await reflect.toggleLike(postId: post.id)
+            posts[index].isLiked = liked
+            if liked != !wasLiked {
+                posts[index].likesCount = max(0, previousCount + (liked ? 1 : -1))
+            }
+        } catch QFError.missingUserSession {
+            posts[index].isLiked = wasLiked
+            posts[index].likesCount = previousCount
+        } catch {
+            posts[index].isLiked = wasLiked
+            posts[index].likesCount = previousCount
+        }
     }
 
     func loadMoreIfNeeded(currentPost: ReflectFeedPost) {

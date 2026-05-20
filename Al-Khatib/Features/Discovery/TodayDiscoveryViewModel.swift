@@ -26,7 +26,6 @@ final class TodayDiscoveryViewModel {
     private var audioPlayer: AVPlayer?
     var isPlayingAudio = false
 
-    private let semantic: SemanticSearchService
     private let content: QuranContentRepository
     private let defaults = UserDefaults.standard
     private let randomAyahLastFetchKey = "discover.randomAyah.lastFetchAt"
@@ -34,8 +33,7 @@ final class TodayDiscoveryViewModel {
     private var shareTextCache: [String: String] = [:]
     private var shareTafsirCache: [String: String] = [:]
 
-    init(semantic: SemanticSearchService, content: QuranContentRepository) {
-        self.semantic = semantic
+    init(content: QuranContentRepository) {
         self.content = content
     }
 

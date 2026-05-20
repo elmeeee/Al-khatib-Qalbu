@@ -14,7 +14,6 @@ struct VerseAudioBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Waveform icon with pulse animation when playing
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.Theme.deepEmerald.opacity(0.12))
                 .frame(width: 44, height: 44)
@@ -48,7 +47,6 @@ struct VerseAudioBar: View {
 
             Spacer(minLength: 4)
 
-            // Play/Pause with emerald gradient background
             Button { audio.toggle() } label: {
                 Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 18, weight: .semibold))

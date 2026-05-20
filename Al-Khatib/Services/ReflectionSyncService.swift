@@ -27,7 +27,7 @@ actor ReflectionSyncService {
             } catch QFError.missingUserSession {
                 var updated = r
                 updated.syncState = .pending
-                updated.lastSyncError = "Waiting for sign-in token. Add user JWT in Settings to sync reflections and streaks."
+                updated.lastSyncError = "Waiting for sign-in token. Sign in to sync reflections."
                 store.update(updated)
                 break
             } catch {

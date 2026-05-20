@@ -94,13 +94,13 @@ enum AppEndpoints {
         static let posts = "posts"
         static let postsFeed = "posts/feed"
         static let postsMyPosts = "posts/my-posts"
+        static func postToggleLike(_ postId: String) -> String {
+            "posts/\(postId)/toggle-like"
+        }
         static let userProfile = "users/profile"
     }
 
     enum AuthV1 {
-        static let streaks = "streaks"
-        static let currentStreakDays = "streaks/current-streak-days"
-        static let activityDays = "activity-days"
         static let readingSessions = "reading-sessions"
     }
 

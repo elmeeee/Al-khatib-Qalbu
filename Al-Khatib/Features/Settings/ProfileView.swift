@@ -466,7 +466,6 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 12) {
                 signInBenefit(icon: "book.closed.fill", text: "Track where you left off in each surah")
                 signInBenefit(icon: "bubble.left.and.text.bubble.right.fill", text: "Post reflections to the community")
-                signInBenefit(icon: "flame.fill", text: "Keep your reading streak alive")
             }
             .padding(.horizontal, 4)
 

@@ -81,10 +81,7 @@ struct TodayDiscoveryView: View {
                 dashboardViewModel = PrayerDashboardViewModel(controller: prayer)
             }
             guard let c = container, viewModel == nil else { return }
-            let vm = TodayDiscoveryViewModel(
-                semantic: c.semantic,
-                content: c.content
-            )
+            let vm = TodayDiscoveryViewModel(content: c.content)
             viewModel = vm
             if tafsirPresenter == nil {
                 tafsirPresenter = TafsirPresenter(content: c.content)

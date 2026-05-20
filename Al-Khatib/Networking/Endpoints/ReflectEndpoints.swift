@@ -100,3 +100,12 @@ struct ReflectMyPostsEndpoint: QFEndpoint {
 
     var bodyData: Data? { nil }
 }
+
+struct ReflectToggleLikeEndpoint: QFEndpoint {
+    let postId: String
+
+    var route: QFApiClient.RequestRoute { .user }
+    var method: QFHTTPMethod { .post }
+    var path: String { AppEndpoints.Reflect.postToggleLike(postId) }
+    var bodyData: Data? { nil }
+}

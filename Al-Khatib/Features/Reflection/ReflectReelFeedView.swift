@@ -85,12 +85,19 @@ struct ReflectReelFeedView: View {
         ScrollView(.vertical) {
             LazyVStack(spacing: 0) {
                 ForEach(viewModel.posts) { post in
-                    ReflectReelPage(post: post, pageHeight: pageHeight)
-                        .frame(width: pageWidth, height: pageHeight)
-                        .id(post.id)
-                        .onAppear {
-                            viewModel.loadMoreIfNeeded(currentPost: post)
+                    ReflectReelPage(
+                        post: post,
+                        pageHeight: pageHeight,
+                        isTogglingLike: viewModel.isTogglingLike(postId: post.id),
+                        onToggleLike: {
+                            Task { await viewModel.toggleLike(for: post) }
                         }
+                    )
+                    .frame(width: pageWidth, height: pageHeight)
+                    .id(post.id)
+                    .onAppear {
+                        viewModel.loadMoreIfNeeded(currentPost: post)
+                    }
                 }
             }
             .scrollTargetLayout()
@@ -249,6 +256,8 @@ private struct ReflectFeedTabBar: View {
 private struct ReflectReelPage: View {
     let post: ReflectFeedPost
     let pageHeight: CGFloat
+    var isTogglingLike: Bool = false
+    var onToggleLike: () -> Void = {}
 
     private var verseKey: String? {
         post.references?.first?.verseKey
@@ -408,22 +417,9 @@ private struct ReflectReelPage: View {
             reelActionButton(
                 icon: post.isLiked == true ? "heart.fill" : "heart",
                 label: formatCount(post.likesCount),
-                isHighlighted: post.isLiked == true
-            )
-            reelActionButton(
-                icon: "bubble.right.fill",
-                label: formatCount(post.commentsCount),
-                isHighlighted: false
-            )
-            reelActionButton(
-                icon: "bookmark",
-                label: "",
-                isHighlighted: false
-            )
-            reelActionButton(
-                icon: "arrowshape.turn.up.right.fill",
-                label: "",
-                isHighlighted: false
+                isHighlighted: post.isLiked == true,
+                isLoading: isTogglingLike,
+                action: onToggleLike
             )
         }
     }
@@ -433,39 +429,60 @@ private struct ReflectReelPage: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func reelActionButton(icon: String, label: String, isHighlighted: Bool) -> some View {
-        VStack(spacing: 5) {
-            ZStack {
-                Circle()
-                    .fill(.ultraThinMaterial.opacity(0.6))
-                    .frame(width: 46, height: 46)
-                    .overlay(
-                        Circle()
-                            .stroke(.white.opacity(0.15), lineWidth: 0.5)
-                    )
+    private func reelActionButton(
+        icon: String,
+        label: String,
+        isHighlighted: Bool,
+        isLoading: Bool = false,
+        action: (() -> Void)? = nil
+    ) -> some View {
+        Button {
+            action?()
+        } label: {
+            VStack(spacing: 5) {
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial.opacity(0.6))
+                        .frame(width: 46, height: 46)
+                        .overlay(
+                            Circle()
+                                .stroke(.white.opacity(0.15), lineWidth: 0.5)
+                        )
 
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(
-                        isHighlighted
-                            ? AnyShapeStyle(
-                                LinearGradient(
-                                    colors: [Color(red: 1, green: 0.35, blue: 0.45), Color(red: 1, green: 0.2, blue: 0.4)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                              )
-                            : AnyShapeStyle(.white)
-                    )
-            }
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.85)
+                    } else {
+                        Image(systemName: icon)
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(
+                                isHighlighted
+                                    ? AnyShapeStyle(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 1, green: 0.35, blue: 0.45),
+                                                Color(red: 1, green: 0.2, blue: 0.4)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    : AnyShapeStyle(.white)
+                            )
+                    }
+                }
 
-            if label.isEmpty == false {
-                Text(label)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
+                if label.isEmpty == false {
+                    Text(label)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                }
             }
+            .frame(width: 52)
         }
-        .frame(width: 52)
+        .buttonStyle(.plain)
+        .disabled(action == nil || isLoading)
     }
 
     @ViewBuilder

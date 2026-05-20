@@ -28,7 +28,6 @@ final class AppContainer {
     let userSession: QFUserSession
     let oauth: QFOAuthService
     let api: QFApiClient
-    let semantic: SemanticSearchService
     let content: QuranContentRepository
     let habits: UserHabitRepository
     let readingSessions: ReadingSessionRepository
@@ -46,12 +45,8 @@ final class AppContainer {
             auth: auth,
             userSession: userSession
         )
-        self.semantic = SemanticSearchService(client: api, configuration: configuration)
         self.content = QuranContentRepository(client: api)
-        self.habits = UserHabitRepository(
-            client: api,
-            appGroup: configuration.appGroupIdentifier
-        )
+        self.habits = UserHabitRepository(client: api)
         self.readingSessions = ReadingSessionRepository(client: api)
         self.reflect = ReflectRepository(client: api, habits: habits)
         self.reflectionStore = ReflectionStore(appGroupIdentifier: configuration.appGroupIdentifier)
@@ -64,6 +59,5 @@ final class AppContainer {
     func signOut() async {
         await oauth.signOut()
         reflectionStore.removeAll()
-        UserHabitRepository.clearCachedUserData(appGroup: configuration.appGroupIdentifier)
     }
 }
