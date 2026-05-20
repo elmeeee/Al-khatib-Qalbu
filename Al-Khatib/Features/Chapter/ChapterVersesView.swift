@@ -16,6 +16,7 @@ struct ChapterVersesView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.dismiss) private var dismiss
     let chapter: QuranChapter
+    var initialVerseNumber: Int? = nil
 
     @AppStorage("chapterReaderFontScale") private var fontScale = 1.0
     @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
@@ -26,6 +27,7 @@ struct ChapterVersesView: View {
     @StateObject private var audio = AudioPlayerController()
     @State private var scrollPosition: String? = ScrollID.intro
     @State private var showReadingSettings = false
+    @State private var readingTracker: ReadingSessionTracker?
 
     private var isOnIntroPage: Bool {
         scrollPosition == ScrollID.intro || scrollPosition == nil
@@ -126,7 +128,14 @@ struct ChapterVersesView: View {
             if hadithPresenter == nil {
                 hadithPresenter = HadithPresenter(content: c.content)
             }
+            if readingTracker == nil {
+                readingTracker = ReadingSessionTracker(
+                    repository: c.readingSessions,
+                    userSession: c.userSession
+                )
+            }
             await model.loadInitial()
+            applyInitialScrollIfNeeded(vm: model)
         }
         .sheet(isPresented: $showReadingSettings) {
             if let vm {
@@ -172,6 +181,7 @@ struct ChapterVersesView: View {
         .onChange(of: scrollPosition) { _, newID in
             guard let vm, let newID, newID != ScrollID.intro else { return }
             guard let verse = vm.verses.first(where: { $0.listIdentity == newID }) else { return }
+            trackReadingSession(for: verse)
             Task {
                 if let key = verse.verseKey {
                     await withTaskGroup(of: Void.self) { group in
@@ -191,8 +201,22 @@ struct ChapterVersesView: View {
             }
         }
         .onDisappear {
+            Task { await readingTracker?.flush() }
             audio.stop()
         }
+    }
+
+    private func trackReadingSession(for verse: RandomAyahPayload) {
+        guard let verseNumber = verse.resolvedVerseNumber else { return }
+        readingTracker?.updateVisibleAyah(chapterNumber: chapter.id, verseNumber: verseNumber)
+    }
+
+    private func applyInitialScrollIfNeeded(vm: ChapterVersesViewModel) {
+        guard let target = initialVerseNumber, target >= 1 else { return }
+        guard let verse = vm.verses.first(where: { $0.resolvedVerseNumber == target }) else {
+            return
+        }
+        scrollPosition = verse.listIdentity
     }
 
     private var floatingNowPlayingBar: some View {

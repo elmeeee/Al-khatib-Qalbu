@@ -24,16 +24,22 @@ struct ChaptersView: View {
                     LoadingSkeleton()
                 }
             }
-            .navigationDestination(for: QuranChapter.self) { chapter in
-                ChapterVersesView(chapter: chapter)
-                    .toolbarBackground(.hidden, for: .navigationBar)
+            .navigationDestination(for: ChapterReaderRoute.self) { route in
+                ChapterVersesView(
+                    chapter: route.chapter,
+                    initialVerseNumber: route.initialVerseNumber
+                )
+                .toolbarBackground(.hidden, for: .navigationBar)
             }
         }
         .task {
             guard let c = container, vm == nil else { return }
-            let model = QuranChaptersViewModel(content: c.content)
+            let model = QuranChaptersViewModel(
+                content: c.content,
+                readingSessions: c.readingSessions
+            )
             vm = model
-            await model.loadChapters()
+            await model.refreshAll()
         }
     }
 
@@ -48,7 +54,7 @@ struct ChaptersView: View {
                 chaptersLoadingBody
             } else if let error = bindable.errorMessage, bindable.chapters.isEmpty {
                 chaptersErrorBody(error) {
-                    Task { await bindable.loadChapters(force: true) }
+                    Task { await bindable.refreshAll(force: true) }
                 }
             } else if bindable.chapters.isEmpty {
                 chaptersEmptyBody
@@ -67,7 +73,7 @@ struct ChaptersView: View {
             Spacer()
             if let vm, vm.isLoading == false {
                 Button {
-                    Task { await vm.loadChapters(force: true) }
+                    Task { await vm.refreshAll(force: true) }
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 16, weight: .semibold))
@@ -130,8 +136,18 @@ struct ChaptersView: View {
     private func chaptersList(_ vm: QuranChaptersViewModel) -> some View {
         ScrollView {
             LazyVStack(spacing: 10) {
+                if let route = vm.continueReadingRoute() {
+                    NavigationLink(value: route) {
+                        ContinueReadingCard(
+                            chapter: route.chapter,
+                            verseNumber: route.initialVerseNumber ?? 1
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 ForEach(vm.chapters) { chapter in
-                    NavigationLink(value: chapter) {
+                    NavigationLink(value: ChapterReaderRoute(chapter: chapter)) {
                         QuranChapterRow(chapter: chapter)
                     }
                     .buttonStyle(.plain)
@@ -141,7 +157,53 @@ struct ChaptersView: View {
             .padding(.bottom, 40)
         }
         .refreshable {
-            await vm.loadChapters(force: true)
+            await vm.refreshAll(force: true)
+        }
+    }
+}
+
+private struct ContinueReadingCard: View {
+    let chapter: QuranChapter
+    let verseNumber: Int
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "book.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(Color.Theme.pureWhite)
+                .frame(width: 44, height: 44)
+                .background(Color.Theme.gold)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Continue reading")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.Theme.gold)
+
+                Text(chapter.displayComplexName)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                Text("Ayah \(verseNumber)")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 8)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.Theme.softGrey)
+        }
+        .padding(14)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.Theme.pureWhite)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.Theme.gold.opacity(0.35), lineWidth: 1)
+                }
         }
     }
 }

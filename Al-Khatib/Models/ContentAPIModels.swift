@@ -94,10 +94,14 @@ struct RandomAyahPayload: Decodable, Sendable {
         return "<div dir=\"rtl\" lang=\"ar\">\(inner)</div>"
     }
 
-    private var effectiveAyahNumber: Int? {
+    var resolvedVerseNumber: Int? {
         if let n = verseNumber, n > 0 { return n }
         guard let vk = verseKey?.split(separator: ":").last else { return nil }
         return Int(String(vk)).flatMap { $0 > 0 ? $0 : nil }
+    }
+
+    private var effectiveAyahNumber: Int? {
+        resolvedVerseNumber
     }
 
     var listIdentity: String {

@@ -31,6 +31,7 @@ final class AppContainer {
     let semantic: SemanticSearchService
     let content: QuranContentRepository
     let habits: UserHabitRepository
+    let readingSessions: ReadingSessionRepository
     let reflect: ReflectRepository
     let reflectionStore: ReflectionStore
 
@@ -51,6 +52,7 @@ final class AppContainer {
             client: api,
             appGroup: configuration.appGroupIdentifier
         )
+        self.readingSessions = ReadingSessionRepository(client: api)
         self.reflect = ReflectRepository(client: api, habits: habits)
         self.reflectionStore = ReflectionStore(appGroupIdentifier: configuration.appGroupIdentifier)
     }

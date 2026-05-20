@@ -101,6 +101,7 @@ enum AppEndpoints {
         static let streaks = "streaks"
         static let currentStreakDays = "streaks/current-streak-days"
         static let activityDays = "activity-days"
+        static let readingSessions = "reading-sessions"
     }
 
     enum URLBuilder {
