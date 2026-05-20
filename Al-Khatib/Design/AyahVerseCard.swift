@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-/// Verse card styled like Today tab `ayahCard` (Arabic, translation, optional actions).
 struct AyahVerseCard: View {
     let verse: RandomAyahPayload
     var showsVerseLabel = true

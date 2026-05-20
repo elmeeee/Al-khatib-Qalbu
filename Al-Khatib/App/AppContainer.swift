@@ -61,7 +61,6 @@ final class AppContainer {
         ReflectionSyncService(store: reflectionStore, reflect: reflect, habits: habits)
     }
 
-    /// Signs out and wipes all locally stored user session data (tokens, pending reflections, widget cache).
     func signOut() async {
         await oauth.signOut()
         reflectionStore.removeAll()

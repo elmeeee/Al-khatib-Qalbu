@@ -161,13 +161,8 @@ struct TodayDiscoveryView: View {
                     VStack(spacing: 0) {
                         prayerCard
                         VStack(alignment: .leading, spacing: 14) {
-                            HStack {
-                                Text("Verse of the Day")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(Color.Theme.deepEmerald)
-                                Spacer()
-                            }
-                            .padding(.top, 2)
+                            verseOfTheDaySectionHeader(verse: vm?.detail)
+                                .padding(.top, 2)
 
                             if vm == nil || vm?.isDetailLoading == true {
                                 LoadingSkeleton()
@@ -198,97 +193,257 @@ struct TodayDiscoveryView: View {
             }
         }
     }
-
+    
+    @ViewBuilder
+    private func verseOfTheDaySectionHeader(verse: RandomAyahPayload?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Text("✦")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(Color.Theme.gold)
+                
+                Text("Verse of the Day")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(Color.Theme.deepEmerald)
+                
+                Spacer()
+            }
+            
+            if let key = verse?.verseKey {
+                Text(ShareVerseCard.humanLabel(for: key))
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color.Theme.deepEmerald.opacity(0.6))
+                    .padding(.leading, 22)
+            }
+            
+            HStack(spacing: 0) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.Theme.gold, Color.Theme.gold.opacity(0.2)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 80, height: 3)
+                Spacer()
+            }
+            .padding(.top, 2)
+        }
+    }
+    
     @ViewBuilder
     private func ayahCard(for d: RandomAyahPayload) -> some View {
         VStack(spacing: 0) {
-            VStack(spacing: 0) {
-                if let key = d.verseKey {
-                    HStack {
-                        Text(ShareVerseCard.humanLabel(for: key))
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Color.Theme.deepEmerald)
-                        Spacer()
-                    }
-                    .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
-                    .padding(.top, 14)
-                }
-
-                VStack(alignment: .trailing, spacing: 0) {
-                    AyahArabicWebBlock(payload: d)
-                        .padding(.top, 8)
-                        .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
-                        .padding(.bottom, 14)
-                }
-                .frame(maxWidth: .infinity, alignment: .topTrailing)
-
-                if let translation = d.translations?.first {
-                    Text(translation.text ?? "")
-                        .font(.system(size: 16))
-                        .lineSpacing(3)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
-                        .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
-                        .padding(.bottom, 14)
-                }
-            }
-            .background(Color.Theme.pureWhite)
-
-            Rectangle()
-                .fill(Color.Theme.deepEmerald)
-                .frame(height: 4)
-
-            HStack(spacing: 0) {
-                actionButton(icon: "speaker.wave.2.fill", text: "Audio") {
-                    if let u = d.audio?.url {
-                        let reciterLabel = viewModel?.recitations
-                            .first(where: { $0.id == viewModel?.selectedRecitationId })?.displayName ?? ""
-                        let verseLabel = d.verseKey
-                            .flatMap { ShareVerseCard.humanLabel(for: $0) } ?? "Quran"
-                        audio.playVerse(
-                            url: u,
-                            surahTitle: verseLabel,
-                            ayahLabel: reciterLabel,
-                            reciterName: reciterLabel
+            if let key = d.verseKey {
+                HStack {
+                    Text(ShareVerseCard.humanLabel(for: key))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(Color.Theme.deepEmerald)
                         )
-                    }
+                    Spacer()
                 }
-                actionButton(icon: "square.and.arrow.up", text: "Share") {
-                    guard !isGeneratingShare else { return }
-                    isGeneratingShare = true
-                    Task {
-                        await presentShare(for: d)
-                        await MainActor.run { isGeneratingShare = false }
-                    }
-                }
-                actionButton(icon: "lightbulb.fill", text: "Reflect") {
-                    guard !isPostingReflection, !isGeneratingShare else { return }
-                    Task { await publishReflection(for: d) }
-                }
-                actionButton(icon: "book.closed.fill", text: "Tafsir") {
-                    openTafsir(for: d)
-                }
+                .padding(.horizontal, 20)
+                .padding(.top, 18)
             }
-            .padding(.vertical, 14)
+            
+            ornamentalDivider
+                .padding(.horizontal, 24)
+                .padding(.top, 14)
+            
+            VStack(alignment: .trailing, spacing: 0) {
+                AyahArabicWebBlock(payload: d)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
+            }
+            .frame(maxWidth: .infinity, alignment: .topTrailing)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.Theme.deepEmerald.opacity(0.03))
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+            )
+            
+            if let translation = d.translations?.first {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\u{201C}")
+                        .font(.system(size: 32, weight: .light))
+                        .foregroundStyle(Color.Theme.gold.opacity(0.5))
+                        .padding(.leading, 16)
+                        .offset(y: 8)
+                    
+                    Text(translation.text ?? "")
+                        .font(.system(size: 17, weight: .regular))
+                        .lineSpacing(6)
+                        .foregroundStyle(Color(hex: "#1E293B"))
+                        .multilineTextAlignment(.leading)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 4)
+                    
+                    HStack {
+                        Spacer()
+                        Text("\u{201D}")
+                            .font(.system(size: 32, weight: .light))
+                            .foregroundStyle(Color.Theme.gold.opacity(0.5))
+                            .padding(.trailing, 16)
+                            .offset(y: -8)
+                    }
+                }
+                .padding(.bottom, 8)
+            }
+            
+            ornamentalDivider
+                .padding(.horizontal, 24)
+                .padding(.bottom, 14)
+            
+            actionButtonRow(for: d)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 18)
         }
         .transaction { txn in txn.animation = nil }
-        .background(Color.Theme.pureWhite.opacity(0.96))
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.Theme.softGrey, lineWidth: 1))
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white,
+                            Color(hex: "#F0FDF4")
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald.opacity(0.15), Color.Theme.softGrey.opacity(0.5)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: Color.Theme.deepEmerald.opacity(0.06), radius: 12, x: 0, y: 6)
     }
-
-    @ViewBuilder
-    private func actionButton(icon: String, text: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.title2)
-                Text(text)
-                    .font(.caption)
-            }
-            .foregroundColor(Color.Theme.deepEmerald)
-            .frame(maxWidth: .infinity)
+    
+    private var ornamentalDivider: some View {
+        HStack(spacing: 10) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.Theme.softGrey.opacity(0.1), Color.Theme.gold.opacity(0.3)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
+            
+            Text("◆")
+                .font(.system(size: 6))
+                .foregroundColor(Color.Theme.gold.opacity(0.6))
+            
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.Theme.gold.opacity(0.3), Color.Theme.softGrey.opacity(0.1)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
         }
+    }
+    
+    
+    @ViewBuilder
+    private func actionButtonRow(for d: RandomAyahPayload) -> some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 8),
+            GridItem(.flexible(), spacing: 8)
+        ]
+        
+        LazyVGrid(columns: columns, spacing: 8) {
+            actionPill(
+                icon: "speaker.wave.2.fill",
+                text: "Audio",
+                tint: Color.Theme.deepEmerald
+            ) {
+                if let u = d.audio?.url {
+                    let reciterLabel = viewModel?.recitations
+                        .first(where: { $0.id == viewModel?.selectedRecitationId })?.displayName ?? ""
+                    let verseLabel = d.verseKey
+                        .flatMap { ShareVerseCard.humanLabel(for: $0) } ?? "Quran"
+                    audio.playVerse(
+                        url: u,
+                        surahTitle: verseLabel,
+                        ayahLabel: reciterLabel,
+                        reciterName: reciterLabel
+                    )
+                }
+            }
+            
+            actionPill(
+                icon: "square.and.arrow.up",
+                text: "Share",
+                tint: Color(hex: "#2563EB")
+            ) {
+                guard !isGeneratingShare else { return }
+                isGeneratingShare = true
+                Task {
+                    await presentShare(for: d)
+                    await MainActor.run { isGeneratingShare = false }
+                }
+            }
+            
+            actionPill(
+                icon: "lightbulb.fill",
+                text: "Reflect",
+                tint: Color.Theme.gold
+            ) {
+                guard !isPostingReflection, !isGeneratingShare else { return }
+                Task { await publishReflection(for: d) }
+            }
+            
+            actionPill(
+                icon: "book.closed.fill",
+                text: "Tafsir",
+                tint: Color(hex: "#4F46E5")
+            ) {
+                openTafsir(for: d)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func actionPill(icon: String, text: String, tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                Text(text)
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundColor(tint)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(tint.opacity(0.08))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(tint.opacity(0.15), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PillPressStyle())
     }
 
     @MainActor
@@ -322,7 +477,6 @@ struct TodayDiscoveryView: View {
             return
         }
 
-        // Reuse cached AI text — do not call Groq again on publish.
         let body = vm.cachedShareText(for: verse) ?? vm.quickReflectionText(for: verse)
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count >= 6 else {
@@ -348,7 +502,6 @@ struct TodayDiscoveryView: View {
             )
             verseState.notifyFeedDidUpdate()
             await showReflectStatus("Reflection published!", isError: false)
-            // Already posted — open Reflect feed only, not the compose sheet.
             verseState.requestReflect()
         } catch {
             let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription

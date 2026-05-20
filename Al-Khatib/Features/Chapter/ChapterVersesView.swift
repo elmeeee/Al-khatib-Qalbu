@@ -28,6 +28,7 @@ struct ChapterVersesView: View {
     @State private var scrollPosition: String? = ScrollID.intro
     @State private var showReadingSettings = false
     @State private var readingTracker: ReadingSessionTracker?
+    @State private var reservesReaderChromeForAudio = false
 
     private var isOnIntroPage: Bool {
         scrollPosition == ScrollID.intro || scrollPosition == nil
@@ -41,13 +42,17 @@ struct ChapterVersesView: View {
         audio.currentURL != nil
     }
 
+    private var readerChromeShowsNowPlaying: Bool {
+        showsNowPlaying || reservesReaderChromeForAudio
+    }
+
     private var floatingPlayerBottomPadding: CGFloat {
         TabBarLayout.spacingAboveTabBar + TabBarLayout.nowPlayingBottomPadding
     }
 
     private var floatingActionsBottomPadding: CGFloat {
         let base: CGFloat = 72
-        if showsNowPlaying {
+        if readerChromeShowsNowPlaying {
             return base + TabBarLayout.nowPlayingChromeHeight + 12
         }
         return base
@@ -57,7 +62,7 @@ struct ChapterVersesView: View {
         GeometryReader { rootGeo in
             let chromeInsets = ChapterReaderChromeInsets.resolved(
                 safeArea: rootGeo.safeAreaInsets,
-                showsNowPlaying: showsNowPlaying
+                showsNowPlaying: readerChromeShowsNowPlaying
             )
 
             ZStack {
@@ -83,7 +88,6 @@ struct ChapterVersesView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.easeInOut(duration: 0.25), value: showsNowPlaying)
             .safeAreaPadding(.horizontal)
             .safeAreaPadding(.bottom, floatingPlayerBottomPadding)
 
@@ -209,15 +213,26 @@ struct ChapterVersesView: View {
                 await vm.loadMoreIfNeeded(currentVerse: verse)
             }
         }
+        .onChange(of: audio.activeSequenceIndex) { _, _ in
+            guard let vm, audio.isPlayingSequence else { return }
+            Task { @MainActor in
+                await Task.yield()
+                syncScrollToPlayingVerse(vm: vm)
+            }
+        }
         .onChange(of: audio.currentURL) { _, url in
-            guard url != nil, let vm else { return }
-            guard let verse = vm.verses.first(where: { audio.isPlayingURL($0.audio?.url) }) else { return }
-            guard scrollPosition != verse.listIdentity else { return }
-            withAnimation(.easeInOut(duration: 0.32)) {
-                scrollPosition = verse.listIdentity
+            if url == nil {
+                reservesReaderChromeForAudio = false
+                return
+            }
+            guard let vm, audio.isPlayingSequence == false else { return }
+            Task { @MainActor in
+                await Task.yield()
+                syncScrollToPlayingVerse(vm: vm)
             }
         }
         .onDisappear {
+            reservesReaderChromeForAudio = false
             Task { await readingTracker?.flush() }
             audio.stop()
         }
@@ -233,7 +248,43 @@ struct ChapterVersesView: View {
         guard let verse = vm.verses.first(where: { $0.resolvedVerseNumber == target }) else {
             return
         }
-        scrollPosition = verse.listIdentity
+        scrollToVerse(identity: verse.listIdentity)
+    }
+
+    @MainActor
+    private func syncScrollToPlayingVerse(vm: ChapterVersesViewModel) {
+        guard let verse = verseMatchingPlayback(in: vm) else { return }
+        scrollToVerse(identity: verse.listIdentity)
+    }
+
+    private func verseMatchingPlayback(in vm: ChapterVersesViewModel) -> RandomAyahPayload? {
+        if let index = audio.activeSequenceIndex,
+           let item = audio.queueItem(at: index) {
+            let target = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: item.url)
+            return vm.verses.first { verse in
+                guard let url = verse.audio?.url else { return false }
+                return AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: url) == target
+            }
+        }
+        return vm.verses.first { audio.isPlayingURL($0.audio?.url) }
+    }
+    
+    private func scrollToVerse(identity: String) {
+        guard scrollPosition != identity else { return }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            scrollPosition = identity
+        }
+        Task { @MainActor in
+            await Task.yield()
+            guard scrollPosition != identity else { return }
+            var retry = Transaction()
+            retry.disablesAnimations = true
+            withTransaction(retry) {
+                scrollPosition = identity
+            }
+        }
     }
 
     private var floatingNowPlayingBar: some View {
@@ -360,7 +411,7 @@ struct ChapterVersesView: View {
                 let pageHeight = pagerGeo.size.height
 
                 ScrollView(.vertical) {
-                    LazyVStack(spacing: 0) {
+                    VStack(spacing: 0) {
                         ChapterIntroPage(
                             chapter: chapter,
                             isPreparingPlayAll: bindable.isPreparingPlayAll,
@@ -387,7 +438,8 @@ struct ChapterVersesView: View {
                     .scrollTargetLayout()
                 }
                 .scrollTargetBehavior(.paging)
-                .scrollPosition(id: $scrollPosition)
+                .scrollBounceBehavior(.basedOnSize, axes: .vertical)
+                .scrollPosition(id: $scrollPosition, anchor: .top)
                 .scrollIndicators(.hidden)
                 .scrollContentBackground(.hidden)
             }
@@ -420,11 +472,7 @@ struct ChapterVersesView: View {
             return
         }
 
-        if scrollPosition != verse.listIdentity {
-            withAnimation(.easeInOut(duration: 0.28)) {
-                scrollPosition = verse.listIdentity
-            }
-        }
+        scrollToVerse(identity: verse.listIdentity)
 
         audio.playVerse(
             url: url,
@@ -443,6 +491,20 @@ struct ChapterVersesView: View {
         let items = vm.audioQueueItems()
         guard items.isEmpty == false else { return }
 
+        reservesReaderChromeForAudio = true
+
+        if let firstItem = items.first {
+            let targetURL = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: firstItem.url)
+            if let first = vm.verses.first(where: { verse in
+                guard let url = verse.audio?.url else { return false }
+                return AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: url) == targetURL
+            }) {
+                scrollToVerse(identity: first.listIdentity)
+                await Task.yield()
+                try? await Task.sleep(nanoseconds: 80_000_000)
+            }
+        }
+
         let reciter = vm.reciterDisplayName
         audio.playSequence(
             items: items,
@@ -450,11 +512,5 @@ struct ChapterVersesView: View {
             reciterName: reciter,
             startIndex: 0
         )
-
-        if let first = vm.verses.first {
-            withAnimation(.easeInOut(duration: 0.32)) {
-                scrollPosition = first.listIdentity
-            }
-        }
     }
 }

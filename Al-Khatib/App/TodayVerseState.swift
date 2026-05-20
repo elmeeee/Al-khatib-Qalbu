@@ -24,15 +24,10 @@ final class TodayVerseState {
     var userDisplayName: String?
     var userId: String?
     var isLoggingIn = false
-    /// True while the first (or in-flight) profile request is running.
     var isRefreshingProfile = false
-    /// False until at least one profile refresh attempt has finished.
     var hasResolvedSession = false
 
     private var profileRefreshTask: Task<Void, Never>?
-
-    // Today's Reflect button — holds the AI-enhanced reflection text
-    // so it can be passed through to ShareReflectionSheet.
     var preparedShareText: String?
 
     func setVerse(key: String?, label: String?, arabic: String?) {
@@ -41,9 +36,6 @@ final class TodayVerseState {
         activeArabicSnippet = arabic
     }
 
-    /// Triggers navigation to Reflect tab.
-    /// `shareText` is the AI-enhanced reflection body from TodayDiscoveryViewModel.
-    /// If nil, the user will type manually.
     func requestReflect(shareText: String? = nil) {
         preparedShareText = shareText
         shouldNavigateToReflect = true
@@ -97,7 +89,6 @@ final class TodayVerseState {
         feedNeedsRefresh = false
     }
 
-    /// Loads profile once; concurrent callers await the same in-flight request.
     func ensureProfileLoaded(container: AppContainer?) async {
         if let profileRefreshTask {
             await profileRefreshTask.value
@@ -134,7 +125,6 @@ final class TodayVerseState {
             userId = profile.id
             isLoggedIn = true
         } catch QFError.networkError {
-            // Keep the session on transient failures so we do not prompt sign-in incorrectly.
             if await container.userSession.hasUserAccessToken() {
                 isLoggedIn = true
             } else {
@@ -146,7 +136,6 @@ final class TodayVerseState {
         }
     }
 
-    /// Triggers OAuth sign-in flow and refreshes profile on success.
     func signIn(container: AppContainer?) async {
         guard let container else { return }
         if container.oauth.isWebAuthInProgress {

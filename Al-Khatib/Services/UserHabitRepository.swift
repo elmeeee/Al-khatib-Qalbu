@@ -21,7 +21,6 @@ struct UserHabitRepository: Sendable {
         UserDefaults(suiteName: appGroup) ?? .standard
     }
 
-    /// Current “active” streak length (best-effort: first active streak in the page, else max days).
     func fetchQuranStreak() async throws -> Int {
         if let currentDays = try? await fetchAuthV1CurrentStreakDays(), currentDays > 0 {
             persistWidgetStreak(currentDays)
@@ -54,11 +53,10 @@ struct UserHabitRepository: Sendable {
             guard Self.isScopeOr403(error) else { throw error }
             throw QFError.missingUserSession
         }
-        // Note: Removed client token fallback as /auth/v1/streaks now requires user authentication
+        
         throw QFError.missingUserSession
     }
 
-    /// GET .../streaks/current-streak-days?type=QURAN
     func fetchAuthV1CurrentStreakDays() async throws -> Int {
         let q = [URLQueryItem(name: "type", value: "QURAN")]
         let timezone = TimeZone.current.identifier
@@ -76,7 +74,6 @@ struct UserHabitRepository: Sendable {
         }
     }
 
-    /// GET .../auth/v1/activity-days (calendar/history)
     func fetchAuthV1ActivityDays(
         from: String? = nil,
         to: String? = nil,
@@ -157,7 +154,6 @@ struct UserHabitRepository: Sendable {
         userDefaults.set(Date().timeIntervalSince1970, forKey: StreakWidgetKeys.streakUpdatedAt)
     }
 
-    /// Log a reflection day; adjust `type` if your org maps reflections to a custom activity.
     func logQuranActivityForToday(verses: Int) async throws {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
@@ -184,7 +180,6 @@ struct UserHabitRepository: Sendable {
         try await client.send(ReflectEndpoint.profile)
     }
 
-    /// Safe edit-profile diagnostics: PATCH with same `postAs` value, expecting `{ success: true }`.
     func patchMyProfileNoop(postAs: Bool) async throws -> Bool {
         let body = EditProfileInput(postAs: postAs)
         let encoder = JSONEncoder()
@@ -204,7 +199,7 @@ enum StreakWidgetKeys {
 }
 
 extension UserHabitRepository {
-    /// Removes user-specific cached data from the shared app group (widgets, etc.).
+
     static func clearCachedUserData(appGroup: String) {
         let defaults = UserDefaults(suiteName: appGroup) ?? .standard
         defaults.removeObject(forKey: StreakWidgetKeys.streak)

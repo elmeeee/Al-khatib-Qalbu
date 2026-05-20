@@ -111,7 +111,6 @@ enum AppEndpoints {
             return "\(External.versesWebBase)/\(raw)"
         }
 
-        /// Builds an Aladhan `/v1/timings/{timestamp}` URL for the selected calculation method.
         static func alAdhanTimings(
             timestamp: Int,
             latitude: Double,

@@ -8,7 +8,6 @@
 
 import Foundation
 
-/// POST /quran-reflect/v1/posts — body uses a `post` object (not `data`).
 struct PostCreateRequest: Encodable, Sendable {
     var post: PostCreatePayload
 }
@@ -18,7 +17,6 @@ struct PostCreatePayload: Encodable, Sendable {
     var draft: Bool
     var references: [PostCreateReference]
     var mentions: [PostCreateMention]
-    /// `1` = public (per Quran Reflect API).
     var roomPostStatus: Int
     var roomId: Int
     var postAsAuthorId: String
@@ -291,7 +289,6 @@ struct ReflectFeedReference: Decodable, Sendable {
 }
 
 enum VerseKeyFormat {
-    /// Normalizes API ids like `surah-2-52:52` to `2:52`.
     static func canonical(from raw: String) -> String {
         if raw.hasPrefix("surah-") {
             let rest = String(raw.dropFirst("surah-".count))
@@ -311,10 +308,39 @@ enum VerseKeyFormat {
         let key = canonical(from: verseKey)
         let parts = key.split(separator: ":")
         guard parts.count == 2,
-              Int(parts[0]) != nil,
-              Int(parts[1]) != nil else {
+              let chapter = Int(parts[0]),
+              let ayah = Int(parts[1]) else {
             return verseKey
         }
-        return "Surah \(parts[0]), Ayah \(parts[1])"
+        let index = chapter - 1
+        let surahName = surahNames.indices.contains(index) ? surahNames[index] : "Surah \(chapter)"
+        return "\(surahName) - Ayah \(ayah)"
     }
+    
+    // All 114 surah names (transliterated, standard Quran ordering)
+    private static let surahNames: [String] = [
+        "Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa", "Al-Ma'idah",
+        "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus",
+        "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr",
+        "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Taha",
+        "Al-Anbya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan",
+        "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum",
+        "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir",
+        "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir",
+        "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah",
+        "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf",
+        "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman",
+        "Al-Waqi'ah", "Al-Hadid", "Al-Mujadila", "Al-Hashr", "Al-Mumtahanah",
+        "As-Saf", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq",
+        "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij",
+        "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah",
+        "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "'Abasa",
+        "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj",
+        "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad",
+        "Ash-Shams", "Al-Layl", "Ad-Duhaa", "Ash-Sharh", "At-Tin",
+        "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat",
+        "Al-Qari'ah", "At-Takathur", "Al-'Asr", "Al-Humazah", "Al-Fil",
+        "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr",
+        "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"
+    ]
 }

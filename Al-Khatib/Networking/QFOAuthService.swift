@@ -490,7 +490,6 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
         return code
     }
 
-    /// Matches either `oauthRedirectURI` or `oauthAppRedirectURI` (scheme/host/path).
     private static func matchesRegisteredRedirect(_ url: URL, configuration: QFConfiguration) -> Bool {
         for expected in [configuration.oauthRedirectURI, configuration.oauthAppRedirectURI] {
             guard let e = URLComponents(url: expected, resolvingAgainstBaseURL: false),

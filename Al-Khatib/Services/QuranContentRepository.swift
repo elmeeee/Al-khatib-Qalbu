@@ -8,7 +8,6 @@
 
 import Foundation
 
-/// Shared Content API query params for verse payloads (random ayah, by chapter, etc.).
 private enum QuranVerseContentQuery {
     static let language = "en"
     static let translations = "85"
@@ -46,11 +45,16 @@ struct QuranContentRepository: Sendable {
     }
 
     func getChapters(language: String = "en") async throws -> [QuranChapter] {
+        if let cached = await ChaptersCache.shared.get(language: language) {
+            return cached
+        }
         let query = [URLQueryItem(name: "language", value: language)]
         let response: ChaptersResponse = try await client.send(
             QuranContentEndpoint.chapters(query: query)
         )
-        return response.chapters.sorted { $0.id < $1.id }
+        let sorted = response.chapters.sorted { $0.id < $1.id }
+        await ChaptersCache.shared.set(sorted, language: language)
+        return sorted
     }
 
     func getVersesByChapter(
@@ -128,5 +132,25 @@ struct QuranContentRepository: Sendable {
         return try await client.send(
             QuranContentEndpoint.resourcesRecitations(query: query)
         )
+    }
+}
+
+private actor ChaptersCache {
+    static let shared = ChaptersCache()
+
+    private var store: [String: (chapters: [QuranChapter], fetchedAt: Date)] = [:]
+    private let ttl: TimeInterval = 3600
+
+    func get(language: String) -> [QuranChapter]? {
+        guard let entry = store[language] else { return nil }
+        if Date().timeIntervalSince(entry.fetchedAt) > ttl {
+            store.removeValue(forKey: language)
+            return nil
+        }
+        return entry.chapters
+    }
+
+    func set(_ chapters: [QuranChapter], language: String) {
+        store[language] = (chapters, Date())
     }
 }

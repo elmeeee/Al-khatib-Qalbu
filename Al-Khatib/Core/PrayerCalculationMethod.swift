@@ -167,7 +167,6 @@ enum PrayerCalculationMethod: String, CaseIterable, Sendable, Identifiable, Coda
         }
     }
 
-    /// Default method from ISO 3166-1 alpha-2 country code (reverse geocode).
     static func forCountryCode(_ code: String) -> PrayerCalculationMethod {
         switch code.uppercased() {
         case "ID": return .muhammadiyah
@@ -223,7 +222,6 @@ enum PrayerCalculationMethod: String, CaseIterable, Sendable, Identifiable, Coda
         }
     }
 
-    /// Only used for custom method 99 (Muhammadiyah).
     var aladhanMethodSettings: String? {
         switch self {
         case .muhammadiyah: "18,null,18"

@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-/// Renders Uthmani tajweed Arabic via `WKWebView` (colored HTML from Content API).
 struct AyahArabicWebBlock: View {
     let payload: RandomAyahPayload
     var style: HTMLContentStyle = .verseCard

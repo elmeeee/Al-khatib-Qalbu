@@ -70,17 +70,26 @@ struct ReflectionView: View {
         }
         .overlay(alignment: .top) {
             if showShareToast {
-                Text(shareToast)
-                    .font(.subheadline.bold())
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(shareToastIsError ? Color.red : Color.Theme.deepEmerald)
-                    .foregroundColor(.white)
-                    .clipShape(Capsule())
-                    .shadow(color: Color.black.opacity(0.25), radius: 6, y: 2)
-                    .padding(.top, 56)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .zIndex(1)
+                HStack(spacing: 8) {
+                    Image(systemName: shareToastIsError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(shareToast)
+                        .font(.subheadline.bold())
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 11)
+                .background(.ultraThinMaterial)
+                .background(shareToastIsError ? Color.red.opacity(0.3) : Color.Theme.deepEmerald.opacity(0.3))
+                .foregroundColor(.white)
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(.white.opacity(0.15), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.25), radius: 6, y: 2)
+                .padding(.top, 56)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .zIndex(1)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
@@ -214,9 +223,23 @@ struct ShareReflectionSheet: View {
                                 Text("Post Reflection")
                                     .font(.headline)
                             }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                            )
+                            .foregroundColor(.white)
                         }
-                        .buttonStyle(.primaryFlat)
+                        .buttonStyle(PillPressStyle())
                         .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).count < 6 || isPosting)
+                        .opacity(text.trimmingCharacters(in: .whitespacesAndNewlines).count < 6 ? 0.5 : 1.0)
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 32)
@@ -250,18 +273,32 @@ struct ShareReflectionSheet: View {
     private var verseBanner: some View {
         Group {
             if verseLabel.isEmpty == false {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
                         Image(systemName: "book.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(Color.Theme.gold)
                         Text("Reflecting on")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
+
                     Text(verseLabel)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .bold))
                         .foregroundColor(Color.Theme.deepEmerald)
+
+                    HStack(spacing: 8) {
+                        Rectangle()
+                            .fill(Color.Theme.deepEmerald.opacity(0.15))
+                            .frame(height: 1)
+                        Text("\u{2726}")
+                            .font(.system(size: 8))
+                            .foregroundColor(Color.Theme.gold.opacity(0.5))
+                        Rectangle()
+                            .fill(Color.Theme.deepEmerald.opacity(0.15))
+                            .frame(height: 1)
+                    }
+
                     if let arabic = verseState.activeArabicSnippet, arabic.isEmpty == false {
                         Text(arabic)
                             .font(AlKhatibTypography.quranArabic(size: 19))
@@ -275,11 +312,19 @@ struct ShareReflectionSheet: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.Theme.deepEmerald.opacity(0.05))
-                .cornerRadius(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.Theme.deepEmerald.opacity(0.04), Color.Theme.deepEmerald.opacity(0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.Theme.deepEmerald.opacity(0.15), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.Theme.deepEmerald.opacity(0.12), lineWidth: 1)
                 )
             }
         }
@@ -288,7 +333,7 @@ struct ShareReflectionSheet: View {
     private var editorCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Your Reflection")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 13, weight: .bold))
                 .foregroundColor(Color.Theme.deepEmerald)
                 .padding(.horizontal, 16)
                 .padding(.top, 14)
@@ -310,9 +355,15 @@ struct ShareReflectionSheet: View {
                     .frame(minHeight: 160)
             }
         }
-        .background(Color.white)
-        .cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.Theme.softGrey, lineWidth: 1))
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.Theme.deepEmerald.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
     }
 
     @MainActor

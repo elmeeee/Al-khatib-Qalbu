@@ -67,13 +67,11 @@ struct SkeletonCircleDot: View {
 }
 
 extension View {
-    /// Static placeholder — no shimmer animation by design (skeletons stay still).
     func skeletonShimmer(tone _: SkeletonTone = .light) -> some View {
         self
     }
 }
 
-/// Generic shimmer placeholder used as a screen-level loading state.
 struct LoadingSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

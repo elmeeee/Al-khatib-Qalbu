@@ -35,8 +35,21 @@ struct ChapterNowPlayingBar: View {
                     Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(.white)
-                        .frame(width: 40, height: 40)
-                        .contentShape(Rectangle())
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.Theme.deepEmerald,
+                                            Color(hex: "#0F766E")
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
 
@@ -73,7 +86,7 @@ struct ChapterNowPlayingBar: View {
         if surah.isEmpty, ayah.isEmpty { return "" }
         if ayah.isEmpty { return surah }
         if surah.isEmpty { return ayah }
-        return "\(surah)・\(ayah)"
+        return "\(surah)\u{30FB}\(ayah)"
     }
 
     private var artwork: some View {
@@ -82,12 +95,16 @@ struct ChapterNowPlayingBar: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.Theme.gold.opacity(0.35),
-                            Color.Theme.gold.opacity(0.12)
+                            Color.Theme.gold.opacity(0.45),
+                            Color.Theme.gold.opacity(0.15)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
+                )
+                .overlay(
+                    Circle()
+                        .stroke(Color.Theme.gold.opacity(0.25), lineWidth: 0.5)
                 )
             Image(systemName: audio.isPlaying ? "waveform" : "play.fill")
                 .font(.system(size: audio.isPlaying ? 14 : 12, weight: .semibold))

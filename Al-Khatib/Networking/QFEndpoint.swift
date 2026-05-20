@@ -29,6 +29,5 @@ protocol QFEndpoint {
 extension QFEndpoint {
     var query: [URLQueryItem] { [] }
     var headers: [String: String] { [:] }
-    /// Do not add a default `bodyData` here — it overrides POST payloads when using `QFEndpoint` existentials.
     var idempotencyKey: String? { nil }
 }

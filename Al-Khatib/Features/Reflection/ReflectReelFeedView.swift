@@ -60,7 +60,7 @@ struct ReflectReelFeedView: View {
                             ProgressView()
                                 .tint(.white)
                                 .padding(10)
-                                .background(.black.opacity(0.45))
+                                .background(.ultraThinMaterial)
                                 .clipShape(Capsule())
                             Spacer()
                         }
@@ -121,11 +121,16 @@ struct ReflectReelFeedView: View {
         retry: @escaping () -> Void
     ) -> some View {
         VStack(spacing: 20) {
-            Image(systemName: "wifi.exclamationmark")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(.white.opacity(0.7))
+            ZStack {
+                Circle()
+                    .fill(.white.opacity(0.06))
+                    .frame(width: 88, height: 88)
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundStyle(.white.opacity(0.7))
+            }
 
-            Text(segment == .myPosts ? "Couldn't load your reflections" : "Couldn't load the feed")
+            Text(segment == .myPosts ? "Couldn\u{2019}t load your reflections" : "Couldn\u{2019}t load the feed")
                 .font(.title3.bold())
                 .foregroundStyle(.white)
 
@@ -151,9 +156,17 @@ struct ReflectReelFeedView: View {
     @ViewBuilder
     private func reelEmptyState(segment: ReflectPostsSegment) -> some View {
         VStack(spacing: 16) {
-            Image(systemName: segment == .myPosts ? "person.crop.rectangle.stack" : "sparkles")
-                .font(.system(size: 48, weight: .light))
-                .foregroundStyle(.white.opacity(0.5))
+            ZStack {
+                Circle()
+                    .fill(.white.opacity(0.06))
+                    .frame(width: 96, height: 96)
+                Circle()
+                    .fill(.white.opacity(0.04))
+                    .frame(width: 72, height: 72)
+                Image(systemName: segment == .myPosts ? "person.crop.rectangle.stack" : "sparkles")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundStyle(.white.opacity(0.6))
+            }
 
             Text(segment == .myPosts ? "No reflections yet" : "Nothing here yet")
                 .font(.title3.bold())
@@ -162,12 +175,23 @@ struct ReflectReelFeedView: View {
             Text(
                 segment == .myPosts
                     ? "Publish a reflection from Today to see it here."
-                    : "Be the first — share what this ayah means to you."
+                    : "Be the first \u{2014} share what this ayah means to you."
             )
             .font(.subheadline)
             .foregroundStyle(.white.opacity(0.65))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 40)
+
+            if segment == .myPosts {
+                Text("Start Reflecting")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                    .background(.white)
+                    .clipShape(Capsule())
+                    .padding(.top, 4)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -178,7 +202,7 @@ private struct ReflectFeedTabBar: View {
     @Namespace private var tabNamespace
 
     var body: some View {
-        HStack(spacing: 32) {
+        HStack(spacing: 8) {
             ForEach(ReflectPostsSegment.allCases) { segment in
                 let isSelected = selection == segment
                 Button {
@@ -186,31 +210,39 @@ private struct ReflectFeedTabBar: View {
                         selection = segment
                     }
                 } label: {
-                    VStack(spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: segment == .feed ? "sparkles" : "person.fill")
+                            .font(.system(size: 12, weight: .semibold))
                         Text(segment.title)
-                            .font(.system(size: 16, weight: isSelected ? .bold : .medium))
-                            .foregroundStyle(isSelected ? .white : .white.opacity(0.45))
-
+                            .font(.system(size: 15, weight: isSelected ? .bold : .medium))
+                    }
+                    .foregroundStyle(isSelected ? .white : .white.opacity(0.45))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background {
                         if isSelected {
                             Capsule()
-                                .fill(Color.white)
-                                .frame(width: 24, height: 2.5)
+                                .fill(.white.opacity(0.15))
                                 .matchedGeometryEffect(id: "reflectTab", in: tabNamespace)
-                        } else {
-                            Capsule()
-                                .fill(.clear)
-                                .frame(width: 24, height: 2.5)
                         }
                     }
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(4)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial.opacity(0.3))
+                .overlay(
+                    Capsule()
+                        .stroke(.white.opacity(0.08), lineWidth: 0.5)
+                )
+        )
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 20)
         .padding(.top, 4)
         .padding(.bottom, 10)
-        .background(.clear)
     }
 }
 
@@ -243,16 +275,28 @@ private struct ReflectReelPage: View {
             ZStack {
                 reelBackground
 
-                LinearGradient(
-                    colors: [
-                        Color(hex: "#0B3D34").opacity(0.5),
-                        .clear,
-                        .clear,
-                        Color(hex: "#051F1A").opacity(0.35)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                // Depth gradient overlay
+                VStack(spacing: 0) {
+                    LinearGradient(
+                        colors: [
+                            Color(hex: "#0B3D34").opacity(0.55),
+                            .clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 100)
+                    Spacer()
+                    LinearGradient(
+                        colors: [
+                            .clear,
+                            Color(hex: "#051F1A").opacity(0.5)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 120)
+                }
                 .allowsHitTesting(false)
 
                 VStack(alignment: .leading, spacing: 0) {
@@ -269,7 +313,7 @@ private struct ReflectReelPage: View {
                 .padding(.trailing, 60)
                 .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
 
-                // Floating actions — lower right (white)
+                // Floating actions — lower right
                 VStack {
                     Spacer()
                     actionRail
@@ -283,8 +327,6 @@ private struct ReflectReelPage: View {
         .clipped()
     }
 
-    // MARK: Red zone — profile at top
-
     private var profileSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             authorRow
@@ -294,29 +336,37 @@ private struct ReflectReelPage: View {
                     Image(systemName: "book.closed.fill")
                         .font(.system(size: 12, weight: .semibold))
                     Text(VerseKeyFormat.humanLabel(for: key))
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13, weight: .bold))
                 }
                 .foregroundStyle(Color.Theme.gold)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(.white.opacity(0.14))
-                .clipShape(Capsule())
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(
+                    Capsule().fill(
+                        LinearGradient(
+                            colors: [
+                                Color.Theme.gold.opacity(0.2),
+                                Color.Theme.gold.opacity(0.1)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(Color.Theme.gold.opacity(0.25), lineWidth: 0.5)
+                )
             }
         }
     }
-
-    // MARK: Blue zone — post body + tags only
 
     private var postContentSection: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 12) {
                 if let body = post.body, body.isEmpty == false {
-                    ReflectPostText(text: body, foreground: .white, fontSize: 14)
+                    ReflectPostText(text: body, foreground: .white, fontSize: 16)
                         .fixedSize(horizontal: false, vertical: true)
-                }
-
-                if let tags = post.tags, tags.isEmpty == false {
-                    FlowLayoutTags(tags: tags)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -345,7 +395,7 @@ private struct ReflectReelPage: View {
                 if formattedDate.isEmpty == false {
                     Text(formattedDate)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.white.opacity(0.6))
                 }
             }
 
@@ -354,7 +404,7 @@ private struct ReflectReelPage: View {
     }
 
     private var actionRail: some View {
-        VStack(spacing: 22) {
+        VStack(spacing: 20) {
             reelActionButton(
                 icon: post.isLiked == true ? "heart.fill" : "heart",
                 label: formatCount(post.likesCount),
@@ -363,6 +413,11 @@ private struct ReflectReelPage: View {
             reelActionButton(
                 icon: "bubble.right.fill",
                 label: formatCount(post.commentsCount),
+                isHighlighted: false
+            )
+            reelActionButton(
+                icon: "bookmark",
+                label: "",
                 isHighlighted: false
             )
             reelActionButton(
@@ -380,10 +435,29 @@ private struct ReflectReelPage: View {
 
     private func reelActionButton(icon: String, label: String, isHighlighted: Bool) -> some View {
         VStack(spacing: 5) {
-            Image(systemName: icon)
-                .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(isHighlighted ? Color(red: 1, green: 0.35, blue: 0.45) : .white)
-                .shadow(color: .black.opacity(0.45), radius: 6, y: 2)
+            ZStack {
+                Circle()
+                    .fill(.ultraThinMaterial.opacity(0.6))
+                    .frame(width: 46, height: 46)
+                    .overlay(
+                        Circle()
+                            .stroke(.white.opacity(0.15), lineWidth: 0.5)
+                    )
+
+                Image(systemName: icon)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(
+                        isHighlighted
+                            ? AnyShapeStyle(
+                                LinearGradient(
+                                    colors: [Color(red: 1, green: 0.35, blue: 0.45), Color(red: 1, green: 0.2, blue: 0.4)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                              )
+                            : AnyShapeStyle(.white)
+                    )
+            }
 
             if label.isEmpty == false {
                 Text(label)
@@ -405,7 +479,16 @@ private struct ReflectReelPage: View {
                         .scaledToFill()
                         .frame(width: size, height: size)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(.white.opacity(0.4), lineWidth: 2))
+                        .overlay(
+                            Circle().stroke(
+                                LinearGradient(
+                                    colors: [Color.Theme.deepEmerald, Color.Theme.gold.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2.5
+                            )
+                        )
                 default:
                     avatarPlaceholder(size: size)
                 }
@@ -417,14 +500,23 @@ private struct ReflectReelPage: View {
 
     private func avatarPlaceholder(size: CGFloat) -> some View {
         Circle()
-            .fill(.white.opacity(0.18))
+            .fill(.white.opacity(0.12))
             .frame(width: size, height: size)
             .overlay(
                 Image(systemName: "person.fill")
                     .font(.system(size: size * 0.42))
                     .foregroundStyle(.white.opacity(0.85))
             )
-            .overlay(Circle().stroke(.white.opacity(0.35), lineWidth: 2))
+            .overlay(
+                Circle().stroke(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald.opacity(0.5), Color.Theme.gold.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
+            )
     }
 
     private func formatCount(_ value: Int?) -> String {
@@ -439,46 +531,10 @@ private struct ReflectReelPage: View {
     }
 }
 
-// MARK: - Tags
-
-private struct FlowLayoutTags: View {
-    let tags: [ReflectFeedTag]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(chunkedTagNames(), id: \.self) { row in
-                HStack(spacing: 8) {
-                    ForEach(row, id: \.self) { name in
-                        Text("#\(name)")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.88))
-                    }
-                }
-            }
-        }
-    }
-
-    private func chunkedTagNames() -> [[String]] {
-        let names = tags.compactMap(\.name).filter { $0.isEmpty == false }
-        guard names.isEmpty == false else { return [] }
-        var rows: [[String]] = []
-        var current: [String] = []
-        for name in names {
-            current.append(name)
-            if current.count >= 3 {
-                rows.append(current)
-                current = []
-            }
-        }
-        if current.isEmpty == false {
-            rows.append(current)
-        }
-        return rows
-    }
-}
-
 private struct ReflectReelSkeletonPage: View {
     let pageHeight: CGFloat
+
+    @State private var shimmerOffset: CGFloat = -200
 
     var body: some View {
         ZStack {
@@ -486,10 +542,10 @@ private struct ReflectReelSkeletonPage: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 12) {
-                    Circle().fill(.white.opacity(0.12)).frame(width: 48, height: 48)
+                    Circle().fill(.white.opacity(0.08)).frame(width: 48, height: 48)
                     VStack(alignment: .leading, spacing: 6) {
-                        RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.12)).frame(width: 130, height: 14)
-                        RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.08)).frame(width: 80, height: 11)
+                        skeletonBar(width: 130, height: 14)
+                        skeletonBar(width: 80, height: 11)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -497,9 +553,7 @@ private struct ReflectReelSkeletonPage: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(0..<4, id: \.self) { i in
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(.white.opacity(0.1))
-                            .frame(width: i == 3 ? 200 : nil, height: 15)
+                        skeletonBar(width: i == 3 ? 200 : nil, height: 15)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -512,7 +566,7 @@ private struct ReflectReelSkeletonPage: View {
                 Spacer()
                 VStack(spacing: 22) {
                     ForEach(0..<3, id: \.self) { _ in
-                        Circle().fill(.white.opacity(0.12)).frame(width: 36, height: 36)
+                        Circle().fill(.white.opacity(0.08)).frame(width: 46, height: 46)
                     }
                 }
             }
@@ -522,5 +576,28 @@ private struct ReflectReelSkeletonPage: View {
         }
         .frame(height: pageHeight)
         .clipped()
+        .onAppear {
+            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                shimmerOffset = 400
+            }
+        }
+    }
+
+    private func skeletonBar(width: CGFloat? = nil, height: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(.white.opacity(0.06))
+            .frame(width: width, height: height)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.05), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .offset(x: shimmerOffset)
+            )
+            .clipped()
     }
 }

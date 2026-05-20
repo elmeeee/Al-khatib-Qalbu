@@ -13,12 +13,9 @@ struct Reflection: Codable, Identifiable, Equatable, Sendable {
     var body: String
     var createdAt: Date
     var updatedAt: Date
-    /// Surah:ayah e.g. `2:255`
     var verseKey: String?
     var syncState: SyncState
-    /// Server post id (when known).
     var serverPostId: Int?
-    /// Same value sent as `Idempotency-Key` for creates.
     var idempotencyKey: String
     var lastSyncError: String?
 

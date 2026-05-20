@@ -46,7 +46,6 @@ actor QFAuthManager {
         throw QFError.configurationMissing("QF_CLIENT_SECRET. Set it in Settings > Authentication > Advanced or edit QFCompiledCredentials in Configuration.swift.")
     }
 
-    /// Returns a **content-scoped** access token suitable for `x-auth-token` on Content APIs and MCP, if the platform allows the same token.
     func accessToken() async throws -> String {
         let now = Date()
         if let c = cache, c.isValid(now: now) { return c.value }
@@ -67,7 +66,6 @@ actor QFAuthManager {
         return t
     }
 
-    /// Called after 401: force next `accessToken()` to re-request a token (then caller retries once).
     func clearCache() {
         cache = nil
         try? keychain.setString("", for: .contentAccessToken, environment: environment)

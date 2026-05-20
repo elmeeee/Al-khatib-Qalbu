@@ -38,6 +38,8 @@ struct ProfileView: View {
                     }
 
                     footerActions
+
+                    appVersionLabel
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, preferSystemNavigationTitle ? 8 : 0)
@@ -72,17 +74,35 @@ struct ProfileView: View {
         }
     }
 
-    // MARK: - Layout
-
     private var pageTitle: some View {
-        HStack {
-            Text("Profile")
-                .font(.largeTitle.bold())
-                .foregroundStyle(Color.Theme.deepEmerald)
-            Spacer()
-            if vm?.isLoading == true || isOAuthPresenting {
-                ProgressView()
-                    .tint(Color.Theme.deepEmerald)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                HStack(spacing: 8) {
+                    Text("\u{2726}")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(Color.Theme.gold)
+                    Text("Profile")
+                        .font(.largeTitle.bold())
+                        .foregroundStyle(Color.Theme.deepEmerald)
+                }
+                Spacer()
+                if vm?.isLoading == true || isOAuthPresenting {
+                    ProgressView()
+                        .tint(Color.Theme.deepEmerald)
+                }
+            }
+
+            HStack(spacing: 0) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.Theme.gold, Color.Theme.gold.opacity(0.15)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 50, height: 3)
+                Spacer()
             }
         }
         .padding(.top, 8)
@@ -101,20 +121,32 @@ struct ProfileView: View {
         }
         .frame(maxWidth: .infinity)
         .background(Color.Theme.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.Theme.softGrey.opacity(0.85), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald.opacity(0.1), Color.Theme.softGrey.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         }
         .shadow(color: Color.black.opacity(0.04), radius: 12, y: 4)
     }
 
     private var settingsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Settings")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.leading, 4)
+            HStack(spacing: 8) {
+                Text("\u{2726}")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color.Theme.gold)
+                Text("Settings")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.leading, 4)
 
             VStack(spacing: 0) {
                 NavigationLink {
@@ -133,8 +165,16 @@ struct ProfileView: View {
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.Theme.softGrey.opacity(0.85), lineWidth: 1)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.Theme.deepEmerald.opacity(0.08), Color.Theme.softGrey.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
             }
+            .shadow(color: Color.black.opacity(0.02), radius: 4, y: 2)
         }
     }
 
@@ -149,39 +189,52 @@ struct ProfileView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
                     Text("Sign out")
+                        .font(.subheadline.weight(.semibold))
                 }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.red.opacity(0.9))
+                .foregroundStyle(Color.red.opacity(0.85))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.Theme.pureWhite)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.red.opacity(0.04))
+                )
                 .overlay {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.Theme.softGrey.opacity(0.85), lineWidth: 1)
+                        .stroke(Color.red.opacity(0.15), lineWidth: 1)
                 }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PillPressStyle())
             .disabled(isOAuthPresenting)
             .opacity(isOAuthPresenting ? 0.5 : 1)
         }
     }
 
-    // MARK: - Signed in
+    private var appVersionLabel: some View {
+        Group {
+            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+               let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                Text("Al-Khatib v\(version) (\(build))")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.quaternary)
+            }
+        }
+        .padding(.top, 4)
+    }
 
     private func signedInHeader(_ profile: UserProfilePayload) -> some View {
         VStack(spacing: 0) {
             profileBanner
 
-            VStack(spacing: 18) {
+            VStack(spacing: 16) {
                 profileAvatar(profile)
                     .overlay(alignment: .bottomTrailing) {
                         verifiedBadge(isVerified: profile.verified == true)
                             .offset(x: 6, y: 6)
                     }
-                    .offset(y: -44)
-                    .padding(.bottom, -44)
+                    .offset(y: -48)
+                    .padding(.bottom, -48)
 
                 VStack(spacing: 6) {
                     Text(profile.displayTitle)
@@ -191,8 +244,14 @@ struct ProfileView: View {
 
                     if let username = profile.username, username.isEmpty == false {
                         Text("@\(username)")
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(Color.Theme.deepEmerald.opacity(0.55))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(Color.Theme.deepEmerald.opacity(0.5))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule()
+                                    .fill(Color.Theme.deepEmerald.opacity(0.06))
+                            )
                     }
 
                     if let bio = profile.bio, bio.isEmpty == false {
@@ -224,58 +283,110 @@ struct ProfileView: View {
     }
 
     private var profileBanner: some View {
-        LinearGradient(
-            colors: [
-                Color.Theme.deepEmerald,
-                Color.Theme.deepEmerald.opacity(0.82)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .frame(height: 100)
-        .overlay(alignment: .topTrailing) {
-            Image(systemName: "sparkles")
-                .font(.title3)
-                .foregroundStyle(Color.white.opacity(0.2))
-                .padding(16)
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color.Theme.deepEmerald,
+                    Color(hex: "#0F766E"),
+                    Color(hex: "#0A3D2E")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            GeometryReader { geo in
+                HStack(spacing: 12) {
+                    ForEach(0..<6, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(Color.white.opacity(0.03))
+                            .frame(width: 28, height: 28)
+                            .rotationEffect(.degrees(45))
+                            .offset(y: i.isMultiple(of: 2) ? -8 : 8)
+                    }
+                }
+                .position(x: geo.size.width * 0.7, y: geo.size.height * 0.5)
+            }
+
+            HStack {
+                Spacer()
+                VStack {
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.Theme.gold.opacity(0.3))
+                        .padding(.trailing, 50)
+                        .padding(.top, 16)
+                    Spacer()
+                }
+            }
         }
+        .frame(height: 110)
+        .clipShape(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 22,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 22,
+                style: .continuous
+            )
+        )
     }
 
     private func statsRow(_ profile: UserProfilePayload) -> some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 10) {
             if let posts = profile.postsCount {
-                statCell(value: posts, label: "Posts")
+                statCell(icon: "text.bubble.fill", value: posts, label: "Posts")
             }
             if let followers = profile.followersCount {
-                statCell(value: followers, label: "Followers")
+                statCell(icon: "person.2.fill", value: followers, label: "Followers")
             }
             if let likes = profile.likesCount {
-                statCell(value: likes, label: "Likes")
+                statCell(icon: "heart.fill", value: likes, label: "Likes")
             }
         }
-        .padding(.vertical, 14)
-        .background(Color.Theme.lightGrey.opacity(0.65))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
-    private func statCell(value: Int, label: String) -> some View {
-        VStack(spacing: 4) {
+    private func statCell(icon: String, value: Int, label: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.Theme.deepEmerald.opacity(0.5))
+
             Text(formattedCount(value))
-                .font(.headline.weight(.bold))
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
             Text(label)
-                .font(.caption)
+                .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.Theme.deepEmerald.opacity(0.04))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.Theme.deepEmerald.opacity(0.06), lineWidth: 1)
+        )
     }
 
     @ViewBuilder
     private func memberSinceLabel(_ profile: UserProfilePayload) -> some View {
         if let year = profile.joiningYear {
-            Text("Member since \(year)")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Member since \(year)")
+                    .font(.caption)
+            }
+            .foregroundStyle(.tertiary)
         }
     }
 
@@ -293,26 +404,30 @@ struct ProfileView: View {
         return "\(value)"
     }
 
-    // MARK: - Loading
-
     private var loadingHeader: some View {
         VStack(spacing: 20) {
             RoundedRectangle(cornerRadius: 0, style: .continuous)
-                .fill(Color.Theme.lightGrey)
-                .frame(height: 100)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald.opacity(0.15), Color.Theme.lightGrey],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(height: 110)
 
             VStack(spacing: 12) {
-                SkeletonCircleDot(size: 96)
+                ShimmerCircle(size: 96)
                     .offset(y: -48)
                     .padding(.bottom, -48)
 
-                SkeletonBar(width: 160, height: 22, cornerRadius: 6)
-                SkeletonBar(width: 100, height: 14, cornerRadius: 6)
+                ShimmerBar(width: 160, height: 22)
+                ShimmerBar(width: 100, height: 14)
 
-                HStack(spacing: 12) {
-                    SkeletonBar(width: nil, height: 52, cornerRadius: 12)
-                    SkeletonBar(width: nil, height: 52, cornerRadius: 12)
-                    SkeletonBar(width: nil, height: 52, cornerRadius: 12)
+                HStack(spacing: 10) {
+                    ShimmerBar(width: nil, height: 72)
+                    ShimmerBar(width: nil, height: 72)
+                    ShimmerBar(width: nil, height: 72)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -321,15 +436,21 @@ struct ProfileView: View {
         }
     }
 
-    // MARK: - Signed out
-
     private var signedOutHeader: some View {
         VStack(spacing: 24) {
             VStack(spacing: 8) {
-                Image(systemName: "person.crop.circle.badge.plus")
-                    .font(.system(size: 52, weight: .light))
-                    .foregroundStyle(Color.Theme.deepEmerald.opacity(0.45))
-                    .padding(.top, 28)
+                ZStack {
+                    Circle()
+                        .fill(Color.Theme.deepEmerald.opacity(0.04))
+                        .frame(width: 100, height: 100)
+                    Circle()
+                        .fill(Color.Theme.deepEmerald.opacity(0.06))
+                        .frame(width: 72, height: 72)
+                    Image(systemName: "person.crop.circle.badge.plus")
+                        .font(.system(size: 36, weight: .light))
+                        .foregroundStyle(Color.Theme.deepEmerald.opacity(0.55))
+                }
+                .padding(.top, 28)
 
                 Text("Sign in to Al-Khatib")
                     .font(.title3.bold())
@@ -363,10 +484,24 @@ struct ProfileView: View {
                     if isOAuthPresenting {
                         ProgressView().tint(.white)
                     }
-                    Text(isOAuthPresenting ? "Signing in…" : "Continue with Quran Reflect")
+                    Text(isOAuthPresenting ? "Signing in\u{2026}" : "Continue with Quran Reflect")
+                        .font(.headline)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                )
+                .foregroundColor(.white)
             }
-            .buttonStyle(.primaryFlat)
+            .buttonStyle(PillPressStyle())
             .disabled(isOAuthPresenting)
             .padding(.horizontal, 4)
             .padding(.bottom, 24)
@@ -379,9 +514,17 @@ struct ProfileView: View {
             Image(systemName: icon)
                 .font(.body.weight(.semibold))
                 .foregroundStyle(Color.Theme.deepEmerald)
-                .frame(width: 32, height: 32)
-                .background(Color.Theme.deepEmerald.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .frame(width: 36, height: 36)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.Theme.deepEmerald.opacity(0.1), Color.Theme.deepEmerald.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
 
             Text(text)
                 .font(.subheadline)
@@ -391,8 +534,6 @@ struct ProfileView: View {
             Spacer(minLength: 0)
         }
     }
-
-    // MARK: - Avatar
 
     @ViewBuilder
     private func profileAvatar(_ profile: UserProfilePayload) -> some View {
@@ -418,9 +559,21 @@ struct ProfileView: View {
         .clipShape(Circle())
         .overlay {
             Circle()
-                .stroke(Color.Theme.pureWhite, lineWidth: 4)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald, Color.Theme.gold.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 3.5
+                )
         }
-        .shadow(color: Color.black.opacity(0.08), radius: 8, y: 2)
+        .overlay {
+            Circle()
+                .stroke(Color.Theme.pureWhite, lineWidth: 3)
+                .padding(3.5)
+        }
+        .shadow(color: Color.black.opacity(0.1), radius: 10, y: 4)
     }
 
     private var profilePlaceholderIcon: some View {
@@ -437,7 +590,7 @@ struct ProfileView: View {
             .symbolRenderingMode(.palette)
             .foregroundStyle(
                 isVerified ? Color.Theme.pureWhite : Color.Theme.softGrey,
-                isVerified ? Color.Theme.deepEmerald : Color.Theme.softGrey.opacity(0.85)
+                isVerified ? Color.Theme.gold : Color.Theme.softGrey.opacity(0.85)
             )
             .background {
                 Circle()
@@ -447,8 +600,6 @@ struct ProfileView: View {
             .accessibilityLabel(isVerified ? "Verified account" : "Not verified")
     }
 }
-
-// MARK: - Settings row
 
 private struct ProfileSettingsRow: View {
     let icon: String
@@ -460,10 +611,18 @@ private struct ProfileSettingsRow: View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .foregroundStyle(.white)
                 .frame(width: 40, height: 40)
-                .background(Color.Theme.deepEmerald.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
@@ -481,10 +640,67 @@ private struct ProfileSettingsRow: View {
             if showsChevron {
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.Theme.softGrey)
+                    .foregroundStyle(Color.Theme.gold.opacity(0.7))
             }
         }
         .padding(16)
         .contentShape(Rectangle())
+    }
+}
+
+private struct ShimmerBar: View {
+    let width: CGFloat?
+    let height: CGFloat
+    @State private var shimmerOffset: CGFloat = -200
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .fill(Color.Theme.softGrey.opacity(0.2))
+            .frame(width: width, height: height)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, Color.white.opacity(0.3), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .offset(x: shimmerOffset)
+            )
+            .clipped()
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    shimmerOffset = 400
+                }
+            }
+    }
+}
+
+private struct ShimmerCircle: View {
+    let size: CGFloat
+    @State private var shimmerOffset: CGFloat = -200
+
+    var body: some View {
+        Circle()
+            .fill(Color.Theme.softGrey.opacity(0.2))
+            .frame(width: size, height: size)
+            .overlay(
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, Color.white.opacity(0.3), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .offset(x: shimmerOffset)
+            )
+            .clipped()
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    shimmerOffset = 400
+                }
+            }
     }
 }

@@ -37,8 +37,18 @@ actor QFApiClient {
         self.configuration = configuration
         self.auth = auth
         self.userSession = userSession
-        self.session = URLSession.shared
+        self.session = Self.makeOptimizedSession()
         self.refreshManager = QFRefreshTokenManager()
+    }
+
+    private static func makeOptimizedSession() -> URLSession {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 45
+        config.httpMaximumConnectionsPerHost = 6
+        config.waitsForConnectivity = true
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return URLSession(configuration: config)
     }
 
     func send<T: Decodable & Sendable, E: QFEndpoint>(_ endpoint: E) async throws -> T {
@@ -148,7 +158,6 @@ actor QFApiClient {
         return p
     }
 
-    /// 401: clear M2M cache, retry **once** (Quran Foundation token guidance).
     private func with401Retry<T: Sendable>(
         _ work: () async throws -> T
     ) async throws -> T {

@@ -65,8 +65,6 @@ struct RandomAyahPayload: Decodable, Sendable {
         return "<div dir=\"rtl\" lang=\"ar\">\(body)\(spacer)\(markerHtml)</div>"
     }
 
-
-    /// Verse number for UI markers (public for chapter/Today layout).
     var resolvedVerseNumber: Int? {
         if let n = verseNumber, n > 0 { return n }
         guard let vk = verseKey?.split(separator: ":").last else { return nil }
@@ -126,7 +124,6 @@ private extension String {
         return regex.stringByReplacingMatches(in: self, options: [], range: range, withTemplate: "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// True when the API payload looks like HTML (tajweed tags, spans, etc.), not plain Arabic.
     var containsHTMLMarkup: Bool {
         range(of: #"<[a-zA-Z][^>]*>"#, options: .regularExpression) != nil
     }
@@ -137,7 +134,6 @@ private extension String {
         return range(of: #"class\s*=\s*['"]?\s*end\b"#, options: [.regularExpression, .caseInsensitive]) != nil
     }
 
-    /// Escape only characters that break HTML body text (leave Arabic Unicode intact).
     var htmlEscapedForWebBody: String {
         var out = ""
         out.reserveCapacity(count)
@@ -299,14 +295,12 @@ struct QuranChapter: Decodable, Sendable, Identifiable, Hashable {
     let versesCount: Int?
     let translatedName: ChapterTranslatedName?
 
-    /// Latin transliteration, e.g. "Al-Fātiĥah".
     var displayComplexName: String {
         if let nameComplex, nameComplex.isEmpty == false { return nameComplex }
         if let nameSimple, nameSimple.isEmpty == false { return nameSimple }
         return "Chapter \(id)"
     }
 
-    /// Localized title from `translated_name.name`, e.g. "The Opener".
     var displayTranslatedName: String {
         translatedName?.name ?? ""
     }

@@ -17,7 +17,7 @@ enum ReflectPostsSegment: String, CaseIterable, Identifiable, Equatable {
 
     var title: String {
         switch self {
-        case .feed: return "Reflect"
+        case .feed: return "All Reflect"
         case .myPosts: return "My Reflect"
         }
     }
@@ -47,7 +47,6 @@ final class ReflectionViewModel {
         self.reflect = reflect
     }
 
-    /// Called when user taps a segment — always fetches from the matching API.
     func onSegmentChanged(to segment: ReflectPostsSegment) {
         loadTask?.cancel()
         selectedSegment = segment

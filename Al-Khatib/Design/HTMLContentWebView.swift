@@ -119,7 +119,6 @@ struct HTMLContentWebView: UIViewRepresentable {
         }
     }
 
-    /// Verse cards sit inside tappable SwiftUI parents; WKWebView must not steal touches or extend past its frame.
     private func applyVerseCardInteractionPolicy(_ webView: WKWebView, style: HTMLContentStyle) {
         guard style.isVerseCard else { return }
         webView.isUserInteractionEnabled = false
@@ -160,7 +159,7 @@ struct HTMLContentWebView: UIViewRepresentable {
                 } else {
                     raw = 120
                 }
-                let clamped = min(max(raw + 12, 100), 520)
+                let clamped = min(max(raw + 12, 100), 1200)
                 DispatchQueue.main.async {
                     var txn = Transaction()
                     txn.animation = nil

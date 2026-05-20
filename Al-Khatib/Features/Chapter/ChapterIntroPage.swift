@@ -17,57 +17,105 @@ struct ChapterIntroPage: View {
     let onTapScreen: () -> Void
 
     @State private var showTapFeedback = false
+    @State private var bounceChevron = false
 
     var body: some View {
         ZStack {
             ChapterReaderBackground()
 
+            // Radial glow behind surah name
             GeometryReader { geo in
-                Circle()
-                    .fill(Color.Theme.gold.opacity(0.12))
-                    .frame(width: geo.size.width * 0.9)
-                    .offset(x: geo.size.width * 0.2, y: -geo.size.height * 0.1)
+                RadialGradient(
+                    colors: [
+                        Color.Theme.gold.opacity(0.08),
+                        Color.clear
+                    ],
+                    center: .center,
+                    startRadius: 40,
+                    endRadius: geo.size.width * 0.5
+                )
+                .frame(width: geo.size.width, height: geo.size.width)
+                .position(x: geo.size.width / 2, y: geo.size.height * 0.35)
             }
 
-            VStack(spacing: 20) {
-                if let arabic = chapter.nameArabic, arabic.isEmpty == false {
-                    Text(arabic)
-                        .font(.system(size: 48, weight: .medium))
+            VStack(spacing: 0) {
+                Spacer(minLength: 20)
+
+                // Bismillah
+                Text("\u{FDFD}")
+                    .font(.system(size: 32))
+                    .foregroundColor(Color.Theme.gold.opacity(0.75))
+                    .padding(.bottom, 24)
+
+                // Ornamental frame corners
+                VStack(spacing: 16) {
+                    // Top ornament line
+                    HStack(spacing: 12) {
+                        ornamentLine
+                        Text("\u{2726}")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color.Theme.gold.opacity(0.6))
+                        ornamentLine
+                    }
+                    .frame(width: 160)
+
+                    if let arabic = chapter.nameArabic, arabic.isEmpty == false {
+                        Text(arabic)
+                            .font(.system(size: 48, weight: .medium))
+                            .foregroundColor(.white)
+                            .environment(\.layoutDirection, .rightToLeft)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Text(chapter.displayComplexName)
+                        .font(.largeTitle.bold())
                         .foregroundColor(.white)
-                        .environment(\.layoutDirection, .rightToLeft)
-                        .multilineTextAlignment(.center)
-                }
 
-                Text(chapter.displayComplexName)
-                    .font(.largeTitle.bold())
-                    .foregroundColor(.white)
+                    if chapter.displayTranslatedName.isEmpty == false {
+                        Text(chapter.displayTranslatedName)
+                            .font(.title3.weight(.medium))
+                            .foregroundColor(Color.Theme.gold.opacity(0.95))
+                    }
 
-                if chapter.displayTranslatedName.isEmpty == false {
-                    Text(chapter.displayTranslatedName)
-                        .font(.title3.weight(.medium))
-                        .foregroundColor(Color.Theme.gold.opacity(0.95))
+                    // Bottom ornament line
+                    HStack(spacing: 12) {
+                        ornamentLine
+                        Text("\u{25C6}")
+                            .font(.system(size: 6))
+                            .foregroundColor(Color.Theme.gold.opacity(0.6))
+                        ornamentLine
+                    }
+                    .frame(width: 160)
                 }
 
                 if let countLabel = chapter.versesCountLabel {
                     Text(countLabel)
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.75))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(.white.opacity(0.65))
+                        .padding(.top, 12)
                 }
 
-                Text("Tap to play · Swipe up")
-                    .font(.caption.weight(.medium))
-                    .foregroundColor(.white.opacity(0.55))
-                    .padding(.top, 8)
+                Text("Tap to begin recitation")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.45))
+                    .padding(.top, 12)
 
                 Spacer()
 
+                // Swipe up hint with bounce animation
                 VStack(spacing: 6) {
                     Image(systemName: "chevron.up")
                         .font(.title2.weight(.semibold))
+                        .offset(y: bounceChevron ? -4 : 4)
                     Text("Swipe up")
                         .font(.caption.weight(.semibold))
                 }
-                .foregroundColor(.white.opacity(0.5))
+                .foregroundColor(.white.opacity(0.4))
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                        bounceChevron = true
+                    }
+                }
 
                 Spacer(minLength: 0)
             }
@@ -85,11 +133,43 @@ struct ChapterIntroPage: View {
                 }
             }
 
-            Image(systemName: "play.circle.fill")
-                .font(.system(size: 72))
-                .foregroundColor(.white.opacity(showTapFeedback ? 0.9 : 0.35))
-                .allowsHitTesting(false)
+            // Gradient play button
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.Theme.deepEmerald.opacity(0.6),
+                                Color.Theme.gold.opacity(0.4)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .blur(radius: showTapFeedback ? 0 : 8)
+                    .opacity(showTapFeedback ? 1.0 : 0.3)
+
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 72))
+                    .foregroundColor(.white.opacity(showTapFeedback ? 0.95 : 0.3))
+                    .scaleEffect(showTapFeedback ? 1.05 : 1.0)
+                    .animation(.easeOut(duration: 0.2), value: showTapFeedback)
+            }
+            .allowsHitTesting(false)
         }
         .clipped()
+    }
+
+    private var ornamentLine: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [Color.Theme.gold.opacity(0.1), Color.Theme.gold.opacity(0.35), Color.Theme.gold.opacity(0.1)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .frame(height: 1)
     }
 }

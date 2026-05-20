@@ -66,34 +66,68 @@ struct ChaptersView: View {
     }
 
     private var header: some View {
-        HStack {
-            Text("Quran")
-                .font(.largeTitle.bold())
-                .foregroundColor(Color.Theme.deepEmerald)
-            Spacer()
-            if let vm, vm.isLoading == false {
-                Button {
-                    Task { await vm.refreshAll(force: true) }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 16, weight: .semibold))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                HStack(spacing: 8) {
+                    Text("\u{2726}")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(Color.Theme.gold)
+                    Text("Quran")
+                        .font(.largeTitle.bold())
                         .foregroundColor(Color.Theme.deepEmerald)
                 }
-                .accessibilityLabel("Refresh chapters")
+
+                Spacer()
+
+                if let vm, vm.isLoading == false {
+                    Button {
+                        Task { await vm.refreshAll(force: true) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Color.Theme.deepEmerald)
+                            .frame(width: 36, height: 36)
+                            .background(
+                                Circle()
+                                    .fill(Color.Theme.deepEmerald.opacity(0.08))
+                            )
+                    }
+                    .accessibilityLabel("Refresh chapters")
+                }
             }
+
+            Text("114 Surahs \u{2022} The Noble Quran")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Color.Theme.deepEmerald.opacity(0.55))
+                .padding(.leading, 22)
+
+            // Golden accent underline
+            HStack(spacing: 0) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.Theme.gold, Color.Theme.gold.opacity(0.15)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 60, height: 3)
+                Spacer()
+            }
+            .padding(.top, 2)
         }
         .padding(.horizontal)
         .padding(.top, 24)
-        .padding(.bottom, 12)
+        .padding(.bottom, 14)
     }
 
     private var chaptersLoadingBody: some View {
         ScrollView {
             VStack(spacing: 10) {
                 ForEach(0..<8, id: \.self) { _ in
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.Theme.softGrey.opacity(0.35))
-                        .frame(height: 72)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.Theme.softGrey.opacity(0.25))
+                        .frame(height: 80)
                 }
             }
             .padding(.horizontal)
@@ -168,43 +202,67 @@ private struct ContinueReadingCard: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: "book.fill")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(Color.Theme.pureWhite)
-                .frame(width: 44, height: 44)
-                .background(Color.Theme.gold)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            Image(systemName: "bookmark.fill")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.Theme.gold, Color(hex: "#D97706")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: 48, height: 48)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.Theme.gold.opacity(0.12))
+                )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Continue reading")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(Color.Theme.gold)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
 
                 Text(chapter.displayComplexName)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
                 Text("Ayah \(verseNumber)")
-                    .font(.system(size: 14))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 8)
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color.Theme.softGrey)
+            Image(systemName: "arrow.right.circle.fill")
+                .font(.system(size: 24))
+                .foregroundStyle(Color.Theme.gold)
         }
-        .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.Theme.pureWhite)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.Theme.gold.opacity(0.35), lineWidth: 1)
-                }
-        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white, Color(hex: "#FFFBEB")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Theme.gold.opacity(0.4), Color.Theme.gold.opacity(0.15)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
+        )
+        .shadow(color: Color.Theme.gold.opacity(0.08), radius: 8, y: 4)
     }
 }
 
@@ -213,48 +271,102 @@ private struct QuranChapterRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Text("\(chapter.id)")
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-                .foregroundColor(Color.Theme.pureWhite)
-                .frame(width: 36, height: 36)
-                .background(Color.Theme.deepEmerald)
-                .clipShape(Circle())
+            ZStack {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 30, height: 30)
+                    .rotationEffect(.degrees(45))
+
+                Text("\(chapter.id)")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 40, height: 40)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(chapter.displayComplexName)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.primary)
-                    .lineLimit(2)
+                    .lineLimit(1)
 
-                if chapter.displayTranslatedName.isEmpty == false {
-                    Text(chapter.displayTranslatedName)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color.Theme.deepEmerald)
-                        .lineLimit(2)
+                HStack(spacing: 6) {
+                    if chapter.displayTranslatedName.isEmpty == false {
+                        Text(chapter.displayTranslatedName)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color.Theme.deepEmerald.opacity(0.75))
+                            .lineLimit(1)
+                    }
+
+                    if let countLabel = chapter.versesCountLabel {
+                        Text("\u{2022}")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary.opacity(0.5))
+                        Text(countLabel)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
                 }
 
-                if let countLabel = chapter.versesCountLabel {
-                    Text(countLabel)
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                // Revelation type pill
+                if chapter.revelationLabel.isEmpty == false {
+                    Text(chapter.revelationLabel)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(revelationColor(for: chapter))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule().fill(revelationColor(for: chapter).opacity(0.1))
+                        )
                 }
             }
 
             Spacer(minLength: 8)
 
+            // Arabic name with subtle background
             if let arabic = chapter.nameArabic, arabic.isEmpty == false {
                 Text(arabic)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(Color.Theme.deepEmerald)
                     .multilineTextAlignment(.trailing)
                     .environment(\.layoutDirection, .rightToLeft)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.Theme.deepEmerald.opacity(0.05))
+                    )
             }
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color.Theme.softGrey)
         }
         .padding(14)
-        .flatCard()
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Theme.deepEmerald.opacity(0.1), Color.Theme.softGrey.opacity(0.4)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
+    }
+
+    private func revelationColor(for chapter: QuranChapter) -> Color {
+        let place = chapter.revelationPlace?.lowercased() ?? ""
+        if place == "makkah" || place == "mecca" {
+            return Color.Theme.gold
+        }
+        return Color(hex: "#2563EB")
     }
 }

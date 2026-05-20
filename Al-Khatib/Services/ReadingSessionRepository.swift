@@ -12,7 +12,6 @@ struct ReadingSessionRepository: Sendable {
         self.client = client
     }
 
-    /// GET /auth/v1/reading-sessions — most recent first.
     func fetchReadingSessions(
         first: Int? = nil,
         after: String? = nil,
@@ -35,13 +34,11 @@ struct ReadingSessionRepository: Sendable {
         return try await client.send(ReadingSessionGetEndpoint(queryItems: query))
     }
 
-    /// Latest session for "Continue reading" (first page item).
     func fetchMostRecent() async throws -> ReadingSession? {
         let page = try await fetchReadingSessions(first: 1)
         return page.data?.first
     }
 
-    /// POST /auth/v1/reading-sessions — resume / recently-read location only.
     func upsertReadingSession(chapterNumber: Int, verseNumber: Int) async throws {
         let body = ReadingSessionRequestBody(
             chapterNumber: chapterNumber,

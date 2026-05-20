@@ -23,12 +23,17 @@ final class AudioPlayerController: ObservableObject {
     @Published var trackTitle: String = ""
     @Published var trackSubtitle: String = ""
     @Published var currentURL: String?
+    @Published private(set) var activeSequenceIndex: Int?
 
     private var player: AVPlayer?
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
     private var queue: [AudioQueueItem] = []
     private var queueIndex = 0
+
+    var isPlayingSequence: Bool {
+        activeSequenceIndex != nil
+    }
 
     func play(from urlString: String, reciterName: String) {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -58,6 +63,7 @@ final class AudioPlayerController: ObservableObject {
     ) {
         queue = []
         queueIndex = 0
+        activeSequenceIndex = nil
         trackTitle = surahTitle
         trackSubtitle = ayahLabel
         play(from: url, reciterName: reciterName)
@@ -72,6 +78,7 @@ final class AudioPlayerController: ObservableObject {
         guard items.isEmpty == false else { return }
         queue = items
         queueIndex = min(max(startIndex, 0), items.count - 1)
+        activeSequenceIndex = queueIndex
         trackTitle = surahTitle
         self.reciterName = reciterName
         playCurrentQueueItem()
@@ -107,6 +114,7 @@ final class AudioPlayerController: ObservableObject {
         currentURL = nil
         queue = []
         queueIndex = 0
+        activeSequenceIndex = nil
         trackTitle = ""
         trackSubtitle = ""
         removeObserver()
@@ -124,6 +132,7 @@ final class AudioPlayerController: ObservableObject {
     private func playCurrentQueueItem() {
         guard queue.indices.contains(queueIndex) else { return }
         let item = queue[queueIndex]
+        activeSequenceIndex = queueIndex
         trackSubtitle = item.subtitle
         play(from: item.url, reciterName: reciterName)
     }
@@ -133,10 +142,13 @@ final class AudioPlayerController: ObservableObject {
             queueIndex += 1
             playCurrentQueueItem()
         } else {
-            queue = []
-            queueIndex = 0
             stop()
         }
+    }
+
+    func queueItem(at index: Int) -> AudioQueueItem? {
+        guard queue.indices.contains(index) else { return nil }
+        return queue[index]
     }
 
     private func addObserver() {

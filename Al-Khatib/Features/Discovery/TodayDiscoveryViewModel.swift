@@ -61,7 +61,12 @@ final class TodayDiscoveryViewModel {
         errorMessage = nil
         Task {
             do {
-                let response = try await content.getRandomAyah()
+                async let ayahTask = content.getRandomAyah()
+                async let recitationsTask: [RecitationPayload]? = recitations.isEmpty
+                    ? (try? content.getRecitations().recitations)
+                    : nil
+
+                let response = try await ayahTask
                 guard let verse = response.verse else {
                     throw QFError.parsingError("daily verse payload")
                 }
@@ -69,14 +74,8 @@ final class TodayDiscoveryViewModel {
                 self.detail = .init(verse)
                 self.defaults.set(Date().timeIntervalSince1970, forKey: self.randomAyahLastFetchKey)
 
-                if self.recitations.isEmpty {
-                    Task {
-                        if let fetchedRecitations = try? await self.content.getRecitations().recitations {
-                            await MainActor.run {
-                                self.recitations = fetchedRecitations
-                            }
-                        }
-                    }
+                if let fetched = await recitationsTask, fetched.isEmpty == false {
+                    self.recitations = fetched
                 }
             } catch {
                 self.errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -144,7 +143,6 @@ final class TodayDiscoveryViewModel {
         shareTextCache[cacheKey] = text
     }
 
-    /// Cached AI share text (no network). Use for Reflect publish to avoid re-calling Groq.
     func cachedShareText(for verse: RandomAyahPayload) -> String? {
         guard let cacheKey = shareCacheKey(for: verse),
               let cached = shareTextCache[cacheKey] else {
@@ -154,7 +152,6 @@ final class TodayDiscoveryViewModel {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    /// Fast fallback when cache is cold — template only, no Groq.
     func quickReflectionText(for verse: RandomAyahPayload) -> String {
         let verseKey = resolvedAyahKey(for: verse) ?? verse.verseKey
         let arabic = verse.displayText ?? ""
