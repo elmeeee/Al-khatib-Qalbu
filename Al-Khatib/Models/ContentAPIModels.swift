@@ -286,6 +286,9 @@ struct ChaptersResponse: Decodable, Sendable {
 struct QuranChapter: Decodable, Sendable, Identifiable, Hashable {
     let id: Int
     let revelationPlace: String?
+    let revelationOrder: Int?
+    let bismillahPre: Bool?
+    let pages: [Int]?
     let nameSimple: String?
     let nameComplex: String?
     let nameArabic: String?
@@ -314,10 +317,24 @@ struct QuranChapter: Decodable, Sendable, Identifiable, Hashable {
     }
 
     var revelationLabel: String {
+        guard let raw = revelationPlace?.trimmingCharacters(in: .whitespacesAndNewlines),
+              raw.isEmpty == false else {
+            return ""
+        }
+        switch raw.lowercased() {
+        case "makkah", "mecca":
+            return "Makkah"
+        case "madinah", "medina":
+            return "Madinah"
+        default:
+            return raw.capitalized
+        }
+    }
+
+    var isMeccan: Bool {
         switch revelationPlace?.lowercased() {
-        case "makkah", "mecca": "Meccan"
-        case "madinah", "medina": "Medinan"
-        default: revelationPlace?.capitalized ?? ""
+        case "makkah", "mecca": true
+        default: false
         }
     }
 }
@@ -360,13 +377,29 @@ struct QFTranslation: Decodable, Identifiable, Hashable, Sendable {
     let id: Int
     let name: String
     let authorName: String
-    let slug: String
+    let slug: String?
     let languageName: String
     let translatedName: TranslatedName?
 
     struct TranslatedName: Decodable, Hashable, Sendable {
         let name: String
         let languageName: String
+    }
+
+    init(
+        id: Int,
+        name: String,
+        authorName: String,
+        slug: String?,
+        languageName: String,
+        translatedName: TranslatedName?
+    ) {
+        self.id = id
+        self.name = name
+        self.authorName = authorName
+        self.slug = slug
+        self.languageName = languageName
+        self.translatedName = translatedName
     }
 }
 

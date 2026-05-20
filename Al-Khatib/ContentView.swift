@@ -34,10 +34,12 @@ struct ContentView: View {
                 RootTabView(verseState: verseState)
             }
         }
+        .preferredColorScheme(.light)
         .tint(Color.Theme.deepEmerald)
         .task(id: hasCompletedOnboarding) {
             guard hasCompletedOnboarding else { return }
             await verseState.ensureProfileLoaded(container: container)
+            container?.warmChapterCatalog()
             container?.warmUserProfileIfSignedIn()
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in

@@ -20,8 +20,10 @@ struct ChapterVersesView: View {
 
     @AppStorage("chapterReaderFontScale") private var fontScale = 1.0
     @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
+    @AppStorage(ChapterReaderPreferences.translationIdKey) private var chapterTranslationId = ChapterReaderPreferences.defaultTranslationId
 
     @State private var vm: ChapterVersesViewModel?
+    @State private var lastAppliedTranslationId = ChapterReaderPreferences.defaultTranslationId
     @State private var tafsirPresenter: TafsirPresenter?
     @State private var hadithPresenter: HadithPresenter?
     @StateObject private var audio = AudioPlayerController()
@@ -136,7 +138,6 @@ struct ChapterVersesView: View {
             }
         }
         .chapterReaderScreenBackground()
-        .preferredColorScheme(.dark)
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task {
@@ -157,6 +158,22 @@ struct ChapterVersesView: View {
             }
             await model.loadInitial()
             applyInitialScrollIfNeeded(vm: model)
+            lastAppliedTranslationId = chapterTranslationId
+        }
+        .onChange(of: chapterTranslationId) { _, newId in
+            guard lastAppliedTranslationId != newId else { return }
+            lastAppliedTranslationId = newId
+            guard let vm else { return }
+            audio.stop()
+            Task { await vm.applyContentPreferencesChange() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ChapterReaderPreferences.translationDidChangeNotification)) { _ in
+            let selected = ChapterReaderPreferences.selectedTranslationId()
+            guard lastAppliedTranslationId != selected else { return }
+            lastAppliedTranslationId = selected
+            guard let vm else { return }
+            audio.stop()
+            Task { await vm.applyContentPreferencesChange() }
         }
         .sheet(isPresented: $showReadingSettings) {
             if let vm {

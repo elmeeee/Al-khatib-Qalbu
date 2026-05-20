@@ -269,6 +269,7 @@ enum VerseKeyFormat {
         return raw
     }
 
+    @MainActor
     static func humanLabel(for verseKey: String) -> String {
         let key = canonical(from: verseKey)
         let parts = key.split(separator: ":")
@@ -277,35 +278,7 @@ enum VerseKeyFormat {
               let ayah = Int(parts[1]) else {
             return verseKey
         }
-        let index = chapter - 1
-        let surahName = surahNames.indices.contains(index) ? surahNames[index] : "Surah \(chapter)"
-        return "\(surahName) - Ayah \(ayah)"
+        let surahName = ChapterCatalog.displayName(forChapterId: chapter) ?? "Surah \(chapter)"
+        return "\(surahName)・\(ayah)"
     }
-    
-    // All 114 surah names (transliterated, standard Quran ordering)
-    private static let surahNames: [String] = [
-        "Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa", "Al-Ma'idah",
-        "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus",
-        "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr",
-        "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Taha",
-        "Al-Anbya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan",
-        "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum",
-        "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir",
-        "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir",
-        "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah",
-        "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf",
-        "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman",
-        "Al-Waqi'ah", "Al-Hadid", "Al-Mujadila", "Al-Hashr", "Al-Mumtahanah",
-        "As-Saf", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq",
-        "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij",
-        "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah",
-        "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "'Abasa",
-        "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj",
-        "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad",
-        "Ash-Shams", "Al-Layl", "Ad-Duhaa", "Ash-Sharh", "At-Tin",
-        "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat",
-        "Al-Qari'ah", "At-Takathur", "Al-'Asr", "Al-Humazah", "Al-Fil",
-        "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr",
-        "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"
-    ]
 }

@@ -33,6 +33,7 @@ struct AyahVerseCard: View {
                 }
 
                 AyahArabicWebBlock(payload: verse)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, showsVerseLabel ? 8 : 14)
                     .padding(.horizontal, 12)
                     .padding(.bottom, 14)

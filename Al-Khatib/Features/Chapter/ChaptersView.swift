@@ -303,6 +303,8 @@ private struct QuranChapterRow: View {
                             .lineLimit(1)
                     }
 
+                    ChapterRevelationBadge(chapter: chapter)
+
                     if let countLabel = chapter.versesCountLabel {
                         Text("\u{2022}")
                             .font(.system(size: 10))
@@ -311,18 +313,6 @@ private struct QuranChapterRow: View {
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }
-                }
-
-                // Revelation type pill
-                if chapter.revelationLabel.isEmpty == false {
-                    Text(chapter.revelationLabel)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(revelationColor(for: chapter))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(
-                            Capsule().fill(revelationColor(for: chapter).opacity(0.1))
-                        )
                 }
             }
 
@@ -360,13 +350,5 @@ private struct QuranChapterRow: View {
                 )
         )
         .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
-    }
-
-    private func revelationColor(for chapter: QuranChapter) -> Color {
-        let place = chapter.revelationPlace?.lowercased() ?? ""
-        if place == "makkah" || place == "mecca" {
-            return Color.Theme.gold
-        }
-        return Color(hex: "#2563EB")
     }
 }

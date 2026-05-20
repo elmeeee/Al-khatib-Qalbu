@@ -30,6 +30,7 @@ final class TodayDiscoveryViewModel {
     private let defaults = UserDefaults.standard
     private let randomAyahLastFetchKey = "discover.randomAyah.lastFetchAt"
     private let randomAyahRefreshInterval: TimeInterval = 60 * 60
+    private var loadedTranslationId: Int?
     private var shareTextCache: [String: String] = [:]
     private var shareTafsirCache: [String: String] = [:]
     private let maxShareCacheEntries = 24
@@ -71,6 +72,7 @@ final class TodayDiscoveryViewModel {
                 }
 
                 self.detail = .init(verse)
+                self.loadedTranslationId = ChapterReaderPreferences.selectedTranslationId(defaults: self.defaults)
                 self.defaults.set(Date().timeIntervalSince1970, forKey: self.randomAyahLastFetchKey)
 
                 if let fetched = await recitationsTask, fetched.isEmpty == false {
@@ -85,9 +87,23 @@ final class TodayDiscoveryViewModel {
 
     func autoRefreshDailyAyahIfNeeded(forceIfNoData: Bool = true) {
         guard isDetailLoading == false else { return }
+        let selected = ChapterReaderPreferences.selectedTranslationId(defaults: defaults)
+        if let loaded = loadedTranslationId, loaded != selected {
+            reloadForTranslationChange()
+            return
+        }
         if shouldRefreshRandomAyah(forceIfNoData: forceIfNoData) {
             loadDailyAyahWithHadith()
         }
+    }
+
+    func reloadForTranslationChange() {
+        guard isDetailLoading == false else { return }
+        loadedTranslationId = nil
+        defaults.removeObject(forKey: randomAyahLastFetchKey)
+        shareTextCache.removeAll()
+        shareTafsirCache.removeAll()
+        loadDailyAyahWithHadith()
     }
 
     private func shouldRefreshRandomAyah(forceIfNoData: Bool) -> Bool {

@@ -107,9 +107,7 @@ final class PrayerNotificationScheduler {
         prayers: [PrayerEntry],
         imsakEntry: PrayerEntry?,
         nightDivisions: [NightDivisionEntry],
-        adzanEnabled: Bool,
-        imsakEnabled: Bool,
-        tahajudEnabled: Bool
+        options: PrayerNotificationPreferences.ScheduleOptions
     ) async {
         guard await requestAuthorizationIfNeeded() else {
             prayerNotifLog.debug("Skipping notifications — authorization not granted")
@@ -128,7 +126,7 @@ final class PrayerNotificationScheduler {
         let calendar = Calendar.current
         var scheduledCount = 0
 
-        if adzanEnabled {
+        if options.adzanEnabled {
             for prayer in prayers {
                 for fireDate in Self.upcomingOccurrences(of: prayer.date, from: now, calendar: calendar) {
                     let id = "\(prayerPrefix).\(prayer.name).\(Int(fireDate.timeIntervalSince1970))"
@@ -143,7 +141,7 @@ final class PrayerNotificationScheduler {
             }
         }
 
-        if imsakEnabled, let imsak = imsakEntry {
+        if options.imsakEnabled, let imsak = imsakEntry {
             for fireDate in Self.upcomingOccurrences(of: imsak.date, from: now, calendar: calendar) {
                 let id = "\(prayerPrefix).Imsak.\(Int(fireDate.timeIntervalSince1970))"
                 await addNotification(
@@ -157,9 +155,13 @@ final class PrayerNotificationScheduler {
         }
 
         for division in nightDivisions {
-            if division.kind == .lastThird && !tahajudEnabled {
-                continue
+            let enabled: Bool = switch division.kind {
+            case .midnight: options.midnightEnabled
+            case .firstThird: options.firstThirdEnabled
+            case .lastThird: options.lastThirdEnabled
             }
+            guard enabled else { continue }
+
             for fireDate in Self.upcomingOccurrences(of: division.date, from: now, calendar: calendar) {
                 let id = "\(nightPrefix).\(division.kind.rawValue).\(Int(fireDate.timeIntervalSince1970))"
                 await addNotification(

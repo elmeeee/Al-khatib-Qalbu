@@ -11,8 +11,7 @@ import Foundation
 private enum QuranVerseContentQuery {
     static let language = "en"
     static var translations: String {
-        let savedId = UserDefaults.standard.integer(forKey: "chapterReaderTranslationId")
-        return savedId > 0 ? String(savedId) : "131"
+        ChapterReaderPreferences.selectedTranslationIdQueryValue()
     }
     static let defaultRecitationId = 6
     static let translationFields = "resource_name"
@@ -49,6 +48,7 @@ struct QuranContentRepository: Sendable {
 
     func getChapters(language: String = "en") async throws -> [QuranChapter] {
         if let cached = await ChaptersCache.shared.get(language: language) {
+            await MainActor.run { ChapterCatalog.register(cached) }
             return cached
         }
         let query = [URLQueryItem(name: "language", value: language)]
@@ -57,6 +57,7 @@ struct QuranContentRepository: Sendable {
         )
         let sorted = response.chapters.sorted { $0.id < $1.id }
         await ChaptersCache.shared.set(sorted, language: language)
+        await MainActor.run { ChapterCatalog.register(sorted) }
         return sorted
     }
 

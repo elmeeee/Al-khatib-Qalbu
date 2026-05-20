@@ -86,16 +86,8 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     private var cachedNightDivisions: [NightDivisionEntry] = []
     private var cachedImsakEntry: PrayerEntry? = nil
 
-    private var isAdzanEnabled: Bool {
-        UserDefaults.standard.object(forKey: "adzanNotificationsEnabled") as? Bool ?? true
-    }
-    
-    private var isImsakEnabled: Bool {
-        UserDefaults.standard.object(forKey: "imsakNotificationsEnabled") as? Bool ?? true
-    }
-    
-    private var isTahajudEnabled: Bool {
-        UserDefaults.standard.object(forKey: "tahajudNotificationsEnabled") as? Bool ?? true
+    private var notificationOptions: PrayerNotificationPreferences.ScheduleOptions {
+        PrayerNotificationPreferences.scheduleOptions()
     }
 
     override init() {
@@ -118,28 +110,28 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
 
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleUserDefaultsChange),
-            name: UserDefaults.didChangeNotification,
+            selector: #selector(handleNotificationPreferencesChange),
+            name: PrayerNotificationPreferences.didChangeNotification,
             object: nil
         )
     }
 
-    @objc private func handleUserDefaultsChange() {
+    @objc private func handleNotificationPreferencesChange() {
+        rescheduleNotificationsFromCache()
+    }
+
+    private func rescheduleNotificationsFromCache() {
         guard !todaySchedule.isEmpty else { return }
         let prayers = todaySchedule
         let imsak = cachedImsakEntry
         let night = cachedNightDivisions
-        let adzan = isAdzanEnabled
-        let imsakOn = isImsakEnabled
-        let tahajud = isTahajudEnabled
+        let options = notificationOptions
         Task {
             await notificationScheduler.schedule(
                 prayers: prayers,
                 imsakEntry: imsak,
                 nightDivisions: night,
-                adzanEnabled: adzan,
-                imsakEnabled: imsakOn,
-                tahajudEnabled: tahajud
+                options: options
             )
         }
     }
@@ -353,18 +345,14 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         let prayerSnapshot = todaySchedule
         let imsakSnapshot = cachedImsakEntry
         let nightSnapshot = cachedNightDivisions
-        let adzan = isAdzanEnabled
-        let imsakOn = isImsakEnabled
-        let tahajud = isTahajudEnabled
+        let options = notificationOptions
 
         Task {
             await notificationScheduler.schedule(
                 prayers: prayerSnapshot,
                 imsakEntry: imsakSnapshot,
                 nightDivisions: nightSnapshot,
-                adzanEnabled: adzan,
-                imsakEnabled: imsakOn,
-                tahajudEnabled: tahajud
+                options: options
             )
         }
         return true

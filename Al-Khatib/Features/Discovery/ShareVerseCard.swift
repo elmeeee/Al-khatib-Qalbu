@@ -27,6 +27,7 @@ struct ShareVerseCard {
         root.present(activityVC, animated: true)
     }
 
+    @MainActor
     static func humanLabel(for verseKey: String) -> String {
         VerseKeyFormat.humanLabel(for: verseKey)
     }

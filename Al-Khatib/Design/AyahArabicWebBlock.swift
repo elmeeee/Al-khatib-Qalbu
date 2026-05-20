@@ -9,12 +9,14 @@
 import SwiftUI
 
 struct AyahArabicWebBlock: View {
+    static let placeholderHeight: CGFloat = 72
+
     let payload: RandomAyahPayload
     var style: HTMLContentStyle = .verseCard
     var fontScale: Double = 1.0
     var measuredHeight: Binding<CGFloat>?
 
-    @State private var webHeight: CGFloat = 160
+    @State private var webHeight: CGFloat = placeholderHeight
 
     var body: some View {
         HTMLContentWebView(
@@ -24,15 +26,14 @@ struct AyahArabicWebBlock: View {
             fontScale: fontScale,
             contentHeight: $webHeight
         )
+        .frame(maxWidth: .infinity, alignment: .top)
         .frame(height: webHeight)
-        .frame(maxWidth: .infinity)
-        .clipped()
         .allowsHitTesting(false)
         .animation(nil, value: webHeight)
         .id(stableId)
         .onChangeWithFallback(of: reloadKey) { _ in
-            webHeight = 160
-            measuredHeight?.wrappedValue = 160
+            webHeight = Self.placeholderHeight
+            measuredHeight?.wrappedValue = Self.placeholderHeight
         }
         .onChangeWithFallback(of: webHeight) { height in
             measuredHeight?.wrappedValue = height

@@ -12,6 +12,14 @@ import Testing
 
 struct Al_KhatibTests {
 
+    @Test func chapterReaderPreferencesUsesSavedTranslationId() {
+        let defaults = UserDefaults(suiteName: "ChapterReaderPreferencesTests")!
+        defaults.removePersistentDomain(forName: "ChapterReaderPreferencesTests")
+        defaults.set(86, forKey: ChapterReaderPreferences.translationIdKey)
+        #expect(ChapterReaderPreferences.selectedTranslationId(defaults: defaults) == 86)
+        #expect(ChapterReaderPreferences.selectedTranslationIdQueryValue(defaults: defaults) == "86")
+    }
+
     @Test func randomAyahPayloadDecodesTajweedField() throws {
         let json = """
         {
@@ -57,6 +65,108 @@ struct Al_KhatibTests {
         #expect(first.languageName == "english")
         #expect(first.translatedName?.name == "Dr. Mustafa Khattab")
         #expect(first.translatedName?.languageName == "english")
+    }
+
+    @Test func translationsResponseDecodesNullSlugFromAPI() throws {
+        let json = """
+        {
+          "translations": [
+            {
+              "author_name": "Montada Islamic Foundation",
+              "id": 136,
+              "language_name": "french",
+              "name": "Montada Islamic Foundation",
+              "slug": null,
+              "translated_name": {
+                "language_name": "english",
+                "name": "Montada Islamic Foundation"
+              }
+            },
+            {
+              "author_name": "Abdul Haleem",
+              "id": 85,
+              "language_name": "english",
+              "name": "M.A.S. Abdel Haleem",
+              "slug": "en-haleem",
+              "translated_name": {
+                "language_name": "english",
+                "name": "M.A.S. Abdel Haleem"
+              }
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let response = try decoder.decode(TranslationsResponse.self, from: json)
+        #expect(response.translations.count == 2)
+        #expect(response.translations[0].slug == nil)
+        #expect(response.translations[1].slug == "en-haleem")
+    }
+
+    @Test func chaptersResponseDecodesRevelationPlace() throws {
+        let json = """
+        {
+          "chapters": [
+            {
+              "bismillah_pre": false,
+              "id": 1,
+              "name_arabic": "الفاتحة",
+              "name_complex": "Al-Fātiĥah",
+              "name_simple": "Al-Fatihah",
+              "pages": [1, 1],
+              "revelation_order": 5,
+              "revelation_place": "makkah",
+              "translated_name": { "language_name": "english", "name": "The Opener" },
+              "verses_count": 7
+            },
+            {
+              "bismillah_pre": true,
+              "id": 2,
+              "name_arabic": "البقرة",
+              "name_complex": "Al-Baqarah",
+              "name_simple": "Al-Baqarah",
+              "pages": [2, 49],
+              "revelation_order": 87,
+              "revelation_place": "madinah",
+              "translated_name": { "language_name": "english", "name": "The Cow" },
+              "verses_count": 286
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let response = try decoder.decode(ChaptersResponse.self, from: json)
+        #expect(response.chapters.count == 2)
+        #expect(response.chapters[0].revelationPlace == "makkah")
+        #expect(response.chapters[1].revelationPlace == "madinah")
+        #expect(response.chapters[0].revelationOrder == 5)
+        #expect(response.chapters[1].bismillahPre == true)
+        #expect(response.chapters[0].revelationLabel == "Makkah")
+        #expect(response.chapters[1].revelationLabel == "Madinah")
+        #expect(response.chapters[0].isMeccan == true)
+        #expect(response.chapters[1].isMeccan == false)
+    }
+
+    @Test @MainActor func humanLabelUsesChapterCatalogFromAPI() throws {
+        let json = """
+        {
+          "chapters": [{
+            "id": 2,
+            "name_complex": "Al-Baqarah",
+            "name_simple": "Al-Baqarah",
+            "revelation_place": "madinah",
+            "verses_count": 286
+          }]
+        }
+        """.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let response = try decoder.decode(ChaptersResponse.self, from: json)
+        ChapterCatalog.register(response.chapters)
+        #expect(VerseKeyFormat.humanLabel(for: "2:255") == "Al-Baqarah・255")
+        ChapterCatalog.clear()
     }
 
     @Test func translationsSortingLogicWorksCorrectly() {

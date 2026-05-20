@@ -8,6 +8,7 @@
 
 import SwiftUI
 import WebKit
+internal import UIKit
 
 enum HTMLContentStyle {
     case article
@@ -75,6 +76,9 @@ struct HTMLContentWebView: UIViewRepresentable {
         }
         configureScroll(webView, style: style)
         applyVerseCardInteractionPolicy(webView, style: style)
+        if style.isVerseCard, let target = contentHeight?.wrappedValue, target > 0 {
+            resizeVerseWebView(webView, height: target)
+        }
         let baseDirectory: URL?
         let embedFont: Bool
         if style.isVerseCard {
@@ -95,6 +99,10 @@ struct HTMLContentWebView: UIViewRepresentable {
         )
         guard context.coordinator.lastSignature != key else { return }
         context.coordinator.lastSignature = key
+
+        if style.isVerseCard, let binding = contentHeight {
+            binding.wrappedValue = AyahArabicWebBlock.placeholderHeight
+        }
 
         let html = Self.document(
             from: htmlFragment,
@@ -122,9 +130,24 @@ struct HTMLContentWebView: UIViewRepresentable {
     private func applyVerseCardInteractionPolicy(_ webView: WKWebView, style: HTMLContentStyle) {
         guard style.isVerseCard else { return }
         webView.isUserInteractionEnabled = false
-        webView.clipsToBounds = true
-        webView.scrollView.clipsToBounds = true
+        webView.clipsToBounds = false
+        webView.scrollView.clipsToBounds = false
         webView.scrollView.isUserInteractionEnabled = false
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
+    }
+
+    private func resizeVerseWebView(_ webView: WKWebView, height: CGFloat) {
+        var width = webView.bounds.width
+        if width < 1 {
+            width = webView.superview?.bounds.width ?? 0
+        }
+        if width < 1 {
+            width = max(UIScreen.main.bounds.width - 72, 280)
+        }
+        let size = CGSize(width: width, height: height)
+        webView.frame = CGRect(origin: .zero, size: size)
+        webView.scrollView.frame = CGRect(origin: .zero, size: size)
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
@@ -140,34 +163,78 @@ struct HTMLContentWebView: UIViewRepresentable {
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             guard style.isVerseCard, let binding = heightBinding else { return }
+            scheduleVerseCardHeightMeasurement(webView: webView, binding: binding)
+        }
+
+        private func scheduleVerseCardHeightMeasurement(webView: WKWebView, binding: Binding<CGFloat>) {
             measureVerseCardHeight(webView: webView, binding: binding)
+            for delay in [0.08, 0.2, 0.45, 0.9, 1.4] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self, weak webView] in
+                    guard let self, let webView else { return }
+                    self.measureVerseCardHeight(webView: webView, binding: binding)
+                }
+            }
         }
 
         private func measureVerseCardHeight(webView: WKWebView, binding: Binding<CGFloat>) {
+            resizeVerseWebView(webView, height: 12_000)
+
             let script = """
             (async function() {
               if (document.fonts && document.fonts.ready) { await document.fonts.ready; }
-              return document.body ? document.body.scrollHeight : 0;
+              await new Promise(function(resolve) {
+                requestAnimationFrame(function() { requestAnimationFrame(resolve); });
+              });
+              var root = document.getElementById('verse-measure') || document.body;
+              if (!root) return 0;
+              var top = root.getBoundingClientRect().top;
+              var maxBottom = root.getBoundingClientRect().bottom;
+              root.querySelectorAll('*').forEach(function(el) {
+                var r = el.getBoundingClientRect();
+                if (r.height > 0) { maxBottom = Math.max(maxBottom, r.bottom); }
+              });
+              return Math.ceil(Math.max(
+                maxBottom - top,
+                root.scrollHeight,
+                root.offsetHeight,
+                document.body.scrollHeight,
+                document.documentElement.scrollHeight
+              ));
             })();
             """
-            webView.evaluateJavaScript(script) { result, _ in
-                let raw: CGFloat
+            webView.evaluateJavaScript(script) { [weak webView] result, _ in
+                guard let webView else { return }
+                let jsHeight: CGFloat
                 if let n = result as? NSNumber {
-                    raw = CGFloat(truncating: n)
+                    jsHeight = CGFloat(truncating: n)
                 } else if let cg = result as? CGFloat {
-                    raw = cg
+                    jsHeight = cg
                 } else {
-                    raw = 120
+                    jsHeight = 120
                 }
-                let clamped = min(max(raw + 12, 100), 1200)
-                DispatchQueue.main.async {
+                let clamped = min(max(jsHeight + 24, 72), 4000)
+                DispatchQueue.main.async { [weak self] in
                     var txn = Transaction()
                     txn.animation = nil
                     withTransaction(txn) {
                         binding.wrappedValue = clamped
                     }
+                    self?.resizeVerseWebView(webView, height: clamped)
                 }
             }
+        }
+
+        private func resizeVerseWebView(_ webView: WKWebView, height: CGFloat) {
+            var width = webView.bounds.width
+            if width < 1 {
+                width = webView.superview?.bounds.width ?? 0
+            }
+            if width < 1 {
+                width = max(UIScreen.main.bounds.width - 72, 280)
+            }
+            let size = CGSize(width: width, height: height)
+            webView.frame = CGRect(origin: .zero, size: size)
+            webView.scrollView.frame = CGRect(origin: .zero, size: size)
         }
     }
 
@@ -255,9 +322,14 @@ struct HTMLContentWebView: UIViewRepresentable {
             \(prose)
           </style>
         </head>
-        <body>\(body)</body>
+        <body>\(verseCardBodyMarkup(body, style: style))</body>
         </html>
         """
+    }
+
+    private static func verseCardBodyMarkup(_ body: String, style: HTMLContentStyle) -> String {
+        guard style.isVerseCard else { return body }
+        return "<div id=\"verse-measure\">\(body)</div>"
     }
 
     private static func htmlLocale(for style: HTMLContentStyle) -> (lang: String, dir: String) {
@@ -341,6 +413,13 @@ struct HTMLContentWebView: UIViewRepresentable {
             html, body {
               background: transparent !important;
               color-scheme: light only;
+              overflow: visible !important;
+            }
+            #verse-measure {
+              display: block;
+              width: 100%;
+              overflow: visible;
+              box-sizing: border-box;
             }
             body {
               direction: rtl;
@@ -349,10 +428,11 @@ struct HTMLContentWebView: UIViewRepresentable {
               font-family: \(arabicFontStack);
               font-size: clamp(\(String(format: "%.1f", minPx))px, \(String(format: "%.1f", vw))vw, \(String(format: "%.1f", maxPx))px);
               line-height: \(String(format: "%.2f", lineHeight));
-              padding: 4px 0 12px;
+              padding: 4px 0 14px;
               color: \(bodyColor);
               -webkit-hyphens: none;
               margin: 0;
+              overflow: visible;
               -webkit-font-smoothing: antialiased;
             }
             span.end { opacity: 0.95; font-weight: 600; color: \(bodyColor); }

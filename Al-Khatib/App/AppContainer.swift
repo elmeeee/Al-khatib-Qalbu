@@ -79,7 +79,6 @@ final class AppContainer {
         await clearUserSession()
     }
 
-    /// Prefetch profile + Reflect feed in parallel after sign-in (my-posts loads only when that tab is opened).
     func warmReflectDataIfSignedIn() {
         Task(priority: .utility) {
             guard await userSession.hasUserAccessToken() else { return }
@@ -91,5 +90,11 @@ final class AppContainer {
 
     func warmUserProfileIfSignedIn() {
         warmReflectDataIfSignedIn()
+    }
+
+    func warmChapterCatalog() {
+        Task(priority: .utility) {
+            _ = try? await content.getChapters()
+        }
     }
 }

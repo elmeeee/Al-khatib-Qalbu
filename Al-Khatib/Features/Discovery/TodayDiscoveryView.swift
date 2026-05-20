@@ -16,6 +16,7 @@ private enum TodayDiscoveryLayout {
 struct TodayDiscoveryView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
     @State private var viewModel: TodayDiscoveryViewModel?
     @StateObject private var audio = AudioPlayerController()
     @StateObject private var prayer = PrayerTimesController()
@@ -27,6 +28,7 @@ struct TodayDiscoveryView: View {
     @State private var reflectStatusIsError = false
     @State private var showReflectStatus = false
     @State private var tafsirPresenter: TafsirPresenter?
+    @AppStorage(ChapterReaderPreferences.translationIdKey) private var chapterTranslationId = ChapterReaderPreferences.defaultTranslationId
 
     let verseState: TodayVerseState
 
@@ -88,6 +90,12 @@ struct TodayDiscoveryView: View {
             }
             vm.autoRefreshDailyAyahIfNeeded(forceIfNoData: true)
             prayer.refreshIfNeeded()
+        }
+        .onChange(of: chapterTranslationId) { _, _ in
+            viewModel?.reloadForTranslationChange()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: ChapterReaderPreferences.translationDidChangeNotification)) { _ in
+            viewModel?.reloadForTranslationChange()
         }
     }
 
@@ -255,6 +263,7 @@ struct TodayDiscoveryView: View {
             
             VStack(alignment: .trailing, spacing: 0) {
                 AyahArabicWebBlock(payload: d)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 12)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 16)
@@ -267,7 +276,10 @@ struct TodayDiscoveryView: View {
                     .padding(.top, 8)
             )
             
-            if let translation = d.translations?.first {
+            if showTranslation,
+               let translation = d.translations?.first,
+               let text = translation.text,
+               text.isEmpty == false {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("\u{201C}")
                         .font(.system(size: 32, weight: .light))
@@ -275,7 +287,7 @@ struct TodayDiscoveryView: View {
                         .padding(.leading, 16)
                         .offset(y: 8)
                     
-                    Text(translation.text ?? "")
+                    Text(text)
                         .font(.system(size: 17, weight: .regular))
                         .lineSpacing(6)
                         .foregroundStyle(Color(hex: "#1E293B"))
@@ -657,102 +669,6 @@ private struct RotatingPrayerDateLabel: View {
         }
         .onChange(of: hijri) { _, _ in showHijri = true }
         .onChange(of: gregorian) { _, _ in showHijri = true }
-    }
-}
-
-private struct PrayerArcCardLiveContent: View {
-    @ObservedObject var prayer: PrayerTimesController
-    @StateObject private var clock = PrayerUIClock()
-    var prayerArcSkeleton: Bool
-
-    var body: some View {
-        let now = clock.now
-        ZStack {
-            Circle()
-                .trim(from: 0.0, to: 0.5)
-                .stroke(Color.white.opacity(0.7),
-                        style: StrokeStyle(lineWidth: 24, lineCap: .round))
-                .rotationEffect(.degrees(180))
-                .frame(width: 280, height: 280)
-
-            Circle()
-                .trim(from: 0.0, to: CGFloat(prayer.progressClamped(at: now) * 0.5))
-                .stroke(
-                    LinearGradient(
-                        colors: [Color(hex: "#00D49C"), Color.Theme.deepEmerald],
-                        startPoint: .trailing,
-                        endPoint: .leading
-                    ),
-                    style: StrokeStyle(lineWidth: 24, lineCap: .round)
-                )
-                .rotationEffect(.degrees(180))
-                .frame(width: 280, height: 280)
-                .opacity(prayerArcSkeleton ? 0.25 : 1)
-
-            if prayerArcSkeleton {
-                VStack(spacing: 12) {
-                    SkeletonBar(width: 180, height: 34, cornerRadius: 10)
-                    SkeletonBar(width: 120, height: 14, cornerRadius: 6)
-                    SkeletonCapsuleBar().frame(width: 160, height: 36)
-                }
-                .offset(y: -10)
-            } else {
-                VStack(spacing: 8) {
-                    Text(prayer.nextPrayerName ?? "")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundColor(Color.Theme.deepEmerald)
-
-                    Text("In")
-                        .font(.system(size: 16))
-                        .foregroundColor(Color.Theme.deepEmerald.opacity(0.9))
-                        .padding(.bottom, 8)
-
-                    if let remaining = prayer.remainingText(at: now) {
-                        Text(remaining)
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(Color.Theme.deepEmerald)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.8))
-                                    .overlay(Capsule().stroke(Color.Theme.deepEmerald.opacity(0.4), lineWidth: 1))
-                            )
-                    }
-
-                    HStack(spacing: 8) {
-                        prayerPill(label: "Current", name: nil, time: prayer.nextPrayerTime)
-                        prayerPill(label: "Next", name: prayer.followingPrayerName, time: prayer.followingPrayerTime)
-                    }
-                    .padding(.top, 4)
-                }
-                .offset(y: -2)
-            }
-        }
-        .frame(height: 200)
-        .padding(.vertical, 12)
-        .animation(nil, value: now)
-        .transaction { $0.animation = nil }
-    }
-
-    @ViewBuilder
-    private func prayerPill(label: String, name: String?, time: String?) -> some View {
-        HStack(spacing: 5) {
-            Text(label)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color.Theme.deepEmerald.opacity(0.72))
-            if let name { Text(name).font(.system(size: 12, weight: .semibold)).foregroundColor(Color.Theme.deepEmerald) }
-            Text(time ?? "--:--")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color.Theme.deepEmerald)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(Color.white.opacity(0.74))
-                .overlay(Capsule().stroke(Color.Theme.deepEmerald.opacity(0.26), lineWidth: 0.8))
-        )
     }
 }
 

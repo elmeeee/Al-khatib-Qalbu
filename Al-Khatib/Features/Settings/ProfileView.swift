@@ -13,13 +13,14 @@ struct ProfileView: View {
     @Environment(\.appContainer) private var container
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("chapterReaderFontScale") private var fontScale = 1.0
-    @AppStorage("isDarkMode") private var isDarkMode = false
     @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
-    @AppStorage("adzanNotificationsEnabled") private var adzanEnabled = true
-    @AppStorage("imsakNotificationsEnabled") private var imsakEnabled = true
-    @AppStorage("tahajudNotificationsEnabled") private var tahajudEnabled = true
-    @AppStorage("chapterReaderTranslationId") private var selectedTranslationId = 131
-    @AppStorage("chapterReaderTranslationName") private var selectedTranslationName = ""
+    @AppStorage(PrayerNotificationPreferences.adzanKey) private var adzanEnabled = true
+    @AppStorage(PrayerNotificationPreferences.imsakKey) private var imsakEnabled = true
+    @AppStorage(PrayerNotificationPreferences.midnightKey) private var midnightEnabled = true
+    @AppStorage(PrayerNotificationPreferences.firstThirdKey) private var firstThirdEnabled = true
+    @AppStorage(PrayerNotificationPreferences.tahajudKey) private var tahajudEnabled = true
+    @AppStorage(ChapterReaderPreferences.translationIdKey) private var selectedTranslationId = ChapterReaderPreferences.defaultTranslationId
+    @AppStorage(ChapterReaderPreferences.translationNameKey) private var selectedTranslationName = ""
 
     @State private var vm: ProfileViewModel?
     @State private var isOAuthPresenting = false
@@ -53,16 +54,6 @@ struct ProfileView: View {
                                 )
                             }
                             .buttonStyle(.plain)
-
-                            Divider().padding(.leading, 64)
-
-                            ProfileRow(
-                                icon: "moon",
-                                title: "Dark Theme",
-                                subtitle: "Switch to a dark color scheme",
-                                hasToggle: true,
-                                isOn: $isDarkMode
-                            )
                         }
                         .background(Color.Theme.pureWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -95,13 +86,20 @@ struct ProfileView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                        }
+                        .background(Color.Theme.pureWhite)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
+                    }
 
-                            Divider().padding(.leading, 64)
+                    VStack(alignment: .leading, spacing: 14) {
+                        sectionHeader("Notifications")
 
+                        VStack(spacing: 0) {
                             ProfileRow(
                                 icon: "bell",
-                                title: "Adzan Notification",
-                                subtitle: "s",
+                                title: "Prayer times",
+                                subtitle: "Fajr, Dhuhr, Asr, Maghrib & Isha",
                                 hasToggle: true,
                                 isOn: $adzanEnabled
                             )
@@ -110,8 +108,8 @@ struct ProfileView: View {
 
                             ProfileRow(
                                 icon: "bell.badge",
-                                title: "Imsak Notification",
-                                subtitle: "Default",
+                                title: "Imsak",
+                                subtitle: "Reminder before Fajr while fasting",
                                 hasToggle: true,
                                 isOn: $imsakEnabled
                             )
@@ -119,9 +117,29 @@ struct ProfileView: View {
                             Divider().padding(.leading, 64)
 
                             ProfileRow(
+                                icon: "moon",
+                                title: "Midnight",
+                                subtitle: "Halfway through the night",
+                                hasToggle: true,
+                                isOn: $midnightEnabled
+                            )
+
+                            Divider().padding(.leading, 64)
+
+                            ProfileRow(
+                                icon: "moon.stars",
+                                title: "First third of night",
+                                subtitle: "Early night rest reminder",
+                                hasToggle: true,
+                                isOn: $firstThirdEnabled
+                            )
+
+                            Divider().padding(.leading, 64)
+
+                            ProfileRow(
                                 icon: "sparkles",
-                                title: "Tahajud Notification",
-                                subtitle: "Default",
+                                title: "Last third (Tahajud)",
+                                subtitle: "Best time for night prayer",
                                 hasToggle: true,
                                 isOn: $tahajudEnabled
                             )
@@ -159,6 +177,14 @@ struct ProfileView: View {
                 )
             }
         }
+        .onChange(of: selectedTranslationId) { _, _ in
+            ChapterReaderPreferences.notifyTranslationDidChange()
+        }
+        .onChange(of: adzanEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
+        .onChange(of: imsakEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
+        .onChange(of: midnightEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
+        .onChange(of: firstThirdEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
+        .onChange(of: tahajudEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             isOAuthPresenting = container?.oauth.isWebAuthInProgress == true
             guard isOAuthPresenting == false else { return }

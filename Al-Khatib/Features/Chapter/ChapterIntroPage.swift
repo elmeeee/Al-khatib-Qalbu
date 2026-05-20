@@ -77,6 +77,9 @@ struct ChapterIntroPage: View {
                             .foregroundColor(Color.Theme.gold.opacity(0.95))
                     }
 
+                    ChapterRevelationBadge(chapter: chapter)
+                        .padding(.top, 4)
+
                     // Bottom ornament line
                     HStack(spacing: 12) {
                         ornamentLine
