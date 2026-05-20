@@ -20,6 +20,7 @@ struct AyahArabicWebBlock: View {
         HTMLContentWebView(
             htmlFragment: payload.arabicFragmentForWebView(style: arabicTextStyle),
             style: style,
+            arabicScript: arabicTextStyle,
             fontScale: fontScale,
             contentHeight: $webHeight
         )

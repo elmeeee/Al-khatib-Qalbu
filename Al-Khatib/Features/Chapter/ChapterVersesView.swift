@@ -112,6 +112,23 @@ struct ChapterVersesView: View {
                     .safeAreaPadding(.bottom, floatingActionsBottomPadding)
                     .allowsHitTesting(false)
             }
+
+            if let vm, vm.isReloadingContent {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                    .overlay {
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .tint(.white)
+                            Text("Updating verses…")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(20)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .allowsHitTesting(true)
+            }
             }
         }
         .chapterReaderScreenBackground()

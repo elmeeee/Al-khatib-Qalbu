@@ -2,9 +2,6 @@
 //  QuranArabicTextStyle.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
-//
 
 import Foundation
 
@@ -26,6 +23,26 @@ enum QuranArabicTextStyle: String, CaseIterable, Sendable, Identifiable {
 
     var id: String { rawValue }
 
+    enum ScriptCategory: Sendable {
+        case uthmaniTajweed
+        case uthmani
+        case imlaei
+        case indopak
+        case qpc
+        case nastaleeq
+    }
+
+    var category: ScriptCategory {
+        switch self {
+        case .uthmaniTajweed: .uthmaniTajweed
+        case .uthmani, .uthmaniSimple: .uthmani
+        case .imlaei, .imlaeiSimple: .imlaei
+        case .indopak: .indopak
+        case .qpcHafs: .qpc
+        case .qpcNastaleeq, .qpcNastaleeqHafs, .indopakNastaleeq: .nastaleeq
+        }
+    }
+
     var displayName: String {
         switch self {
         case .indopak: "Indopak"
@@ -43,6 +60,64 @@ enum QuranArabicTextStyle: String, CaseIterable, Sendable, Identifiable {
 
     var usesTajweedMarkup: Bool {
         self == .uthmaniTajweed
+    }
+
+    /// Bundled tajweed font — only for Uthmani tajweed field markup.
+    var shouldEmbedTajweedWebFont: Bool {
+        category == .uthmaniTajweed
+    }
+
+    /// CSS `font-family` stack tuned per script (falls back to system Arabic fonts on iOS).
+    var webArabicFontStack: String {
+        if shouldEmbedTajweedWebFont {
+            return """
+            'AlKhatibQuranWeb', 'KFGQPC HAFS Uthmanic Script', 'Amiri Quran', 'Scheherazade New', \
+            'Geeza Pro', 'Noto Naskh Arabic', serif
+            """
+        }
+        switch category {
+        case .nastaleeq:
+            return """
+            'Noto Nastaliq Urdu', 'Al Tarikh', 'Urdu Typesetting', 'Geeza Pro', \
+            'Noto Naskh Arabic', serif
+            """
+        case .qpc:
+            return """
+            'KFGQPC HAFS Uthmanic Script', 'Amiri Quran', 'Scheherazade New', \
+            'KFGQPC Uthmanic Script HAFS', 'Geeza Pro', serif
+            """
+        case .imlaei:
+            return """
+            'KFGQPC Uthmanic Script HAFS', 'Damascus', 'Geeza Pro', \
+            'Noto Naskh Arabic', 'Arial', serif
+            """
+        case .indopak:
+            return """
+            'Noto Naskh Arabic', 'Damascus', 'Geeza Pro', 'Arial', serif
+            """
+        case .uthmani, .uthmaniTajweed:
+            return """
+            'KFGQPC HAFS Uthmanic Script', 'Amiri Quran', 'Scheherazade New', \
+            'Geeza Pro', 'Noto Naskh Arabic', serif
+            """
+        }
+    }
+
+    var webLineHeight: Double {
+        switch category {
+        case .nastaleeq: 2.05
+        case .imlaei: 1.78
+        case .indopak: 1.88
+        default: 1.82
+        }
+    }
+
+    var webFontSizeScale: Double {
+        switch category {
+        case .nastaleeq: 1.06
+        case .qpc: 1.02
+        default: 1.0
+        }
     }
 
     static func savedOrDefault() -> QuranArabicTextStyle {

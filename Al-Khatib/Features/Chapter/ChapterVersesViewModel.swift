@@ -18,7 +18,7 @@ final class ChapterVersesViewModel {
     var isLoading = false
     var isLoadingMore = false
     var isPreparingPlayAll = false
-    var isReloadingRecitation = false
+    var isReloadingContent = false
     var errorMessage: String?
     var recitations: [RecitationPayload] = []
     var selectedRecitationId: Int
@@ -66,11 +66,11 @@ final class ChapterVersesViewModel {
     }
 
     func applyContentPreferencesChange() async {
-        guard isReloadingRecitation == false else { return }
+        guard isReloadingContent == false else { return }
         UserDefaults.standard.set(selectedRecitationId, forKey: Self.recitationStorageKey)
         selectedArabicTextStyle.persist()
-        isReloadingRecitation = true
-        defer { isReloadingRecitation = false }
+        isReloadingContent = true
+        defer { isReloadingContent = false }
 
         let targetCount = max(verses.count, 1)
         var accumulated: [RandomAyahPayload] = []

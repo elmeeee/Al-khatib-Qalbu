@@ -26,17 +26,20 @@ enum HTMLContentStyle {
 struct HTMLContentWebView: UIViewRepresentable {
     let htmlFragment: String
     var style: HTMLContentStyle = .article
+    var arabicScript: QuranArabicTextStyle = .uthmaniTajweed
     var fontScale: Double = 1.0
     var contentHeight: Binding<CGFloat>?
 
     init(
         htmlFragment: String,
         style: HTMLContentStyle = .article,
+        arabicScript: QuranArabicTextStyle = .uthmaniTajweed,
         fontScale: Double = 1.0,
         contentHeight: Binding<CGFloat>? = nil
     ) {
         self.htmlFragment = htmlFragment
         self.style = style
+        self.arabicScript = arabicScript
         self.fontScale = fontScale
         self.contentHeight = contentHeight
     }
@@ -74,7 +77,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         let embedFont: Bool
         if style.isVerseCard {
             baseDirectory = AlKhatibTypography.verseArabicHTMLBaseDirectory()
-            embedFont = baseDirectory != nil
+            embedFont = baseDirectory != nil && arabicScript.shouldEmbedTajweedWebFont
         } else {
             baseDirectory = nil
             embedFont = false
@@ -83,6 +86,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         let key = ContentLoadSignature(
             htmlFragment: htmlFragment,
             style: style,
+            arabicScript: arabicScript,
             fontScale: fontScale,
             embedVerseWebFont: embedFont,
             baseURLPath: baseDirectory?.standardizedFileURL.path ?? ""
@@ -93,6 +97,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         let html = Self.document(
             from: htmlFragment,
             style: style,
+            arabicScript: arabicScript,
             embedVerseWebFont: embedFont,
             fontScale: fontScale
         )
@@ -149,6 +154,7 @@ struct HTMLContentWebView: UIViewRepresentable {
     fileprivate struct ContentLoadSignature: Equatable {
         let htmlFragment: String
         let style: HTMLContentStyle
+        let arabicScript: QuranArabicTextStyle
         let fontScale: Double
         let embedVerseWebFont: Bool
         let baseURLPath: String
@@ -157,6 +163,7 @@ struct HTMLContentWebView: UIViewRepresentable {
     private static func document(
         from raw: String,
         style: HTMLContentStyle,
+        arabicScript: QuranArabicTextStyle = .uthmaniTajweed,
         embedVerseWebFont: Bool = false,
         fontScale: Double = 1.0
     ) -> String {
@@ -167,6 +174,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         return wrappedFragment(
             trimmed,
             style: style,
+            arabicScript: arabicScript,
             embedVerseWebFont: embedVerseWebFont,
             fontScale: fontScale
         )
@@ -175,6 +183,7 @@ struct HTMLContentWebView: UIViewRepresentable {
     private static func wrappedFragment(
         _ body: String,
         style: HTMLContentStyle,
+        arabicScript: QuranArabicTextStyle,
         embedVerseWebFont: Bool,
         fontScale: Double
     ) -> String {
@@ -197,6 +206,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         case .verseCard, .verseCardOnDark:
             extraCSS = verseCardCSS(
                 onDark: style == .verseCardOnDark,
+                arabicScript: arabicScript,
                 embedVerseWebFont: embedVerseWebFont,
                 fontScale: fontScale
             )
@@ -243,11 +253,17 @@ struct HTMLContentWebView: UIViewRepresentable {
         }
     }
 
-    private static func verseCardCSS(onDark: Bool, embedVerseWebFont: Bool, fontScale: Double) -> String {
-        let scale = min(max(fontScale, 0.85), 1.45)
+    private static func verseCardCSS(
+        onDark: Bool,
+        arabicScript: QuranArabicTextStyle,
+        embedVerseWebFont: Bool,
+        fontScale: Double
+    ) -> String {
+        let scale = min(max(fontScale, 0.85), 1.45) * arabicScript.webFontSizeScale
         let minPx = 21 * scale
         let maxPx = 28 * scale
         let vw = 4.8 * scale
+        let lineHeight = arabicScript.webLineHeight
         let fontFace: String = {
             guard embedVerseWebFont else { return "" }
             let file = AlKhatibTypography.verseWebFontRelativeFileName
@@ -262,14 +278,13 @@ struct HTMLContentWebView: UIViewRepresentable {
             }
             """
         }()
-        let arabicFontStack =
-            embedVerseWebFont
-            ? "'AlKhatibQuranWeb', 'Geeza Pro', 'Damascus', 'Arabic Typesetting', 'Noto Sans Arabic', 'Noto Sans Arabic UI', serif"
-            : "'Geeza Pro', 'Damascus', 'Arabic Typesetting', 'Noto Sans Arabic', 'Noto Sans Arabic UI', serif"
+        let arabicFontStack = arabicScript.webArabicFontStack
         let bodyColor = onDark ? "#FFFFFF" : "#1D1D1F"
         let endGold = onDark ? "rgba(212, 175, 55, 0.95)" : "rgba(148, 80, 5, 0.95)"
-        let tajweed = onDark
-            ? """
+        let tajweed: String = {
+            guard arabicScript.usesTajweedMarkup else { return "" }
+            if onDark {
+                return """
                 .ghunnah { color: #81C784; }
                 .slnt { color: #B0BEC5; }
                 .madda_normal { color: #9FA8DA; }
@@ -279,8 +294,9 @@ struct HTMLContentWebView: UIViewRepresentable {
                 .idgham_ghunnah { color: #80CBC4; }
                 .ikhafa { color: #80DEEA; }
                 .ham_wasl { color: #AED581; }
-              """
-            : """
+                """
+            }
+            return """
                 .ghunnah { color: #2E7D32; }
                 .slnt { color: #5C6F7A; }
                 .madda_normal { color: #3949AB; }
@@ -290,7 +306,8 @@ struct HTMLContentWebView: UIViewRepresentable {
                 .idgham_ghunnah { color: #00897B; }
                 .ikhafa { color: #00838F; }
                 .ham_wasl { color: #558B2F; }
-              """
+                """
+        }()
         return """
             \(fontFace)
             html, body {
@@ -303,7 +320,7 @@ struct HTMLContentWebView: UIViewRepresentable {
               unicode-bidi: plaintext;
               font-family: \(arabicFontStack);
               font-size: clamp(\(String(format: "%.1f", minPx))px, \(String(format: "%.1f", vw))vw, \(String(format: "%.1f", maxPx))px);
-              line-height: 1.82;
+              line-height: \(String(format: "%.2f", lineHeight));
               padding: 4px 0 12px;
               color: \(bodyColor);
               -webkit-hyphens: none;

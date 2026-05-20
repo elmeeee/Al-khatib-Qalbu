@@ -36,12 +36,12 @@ struct RandomAyahPayload: Decodable, Sendable {
         case id, audio, translations
         case verseNumber
         case verseKey
-        case textIndopak
+        case textIndopak = "text_indopak"
         case textImlaeiSimple = "text_imlaei_simple"
         case textImlaei = "text_imlaei"
-        case textUthmani
+        case textUthmani = "text_uthmani"
         case textUthmaniSimple = "text_uthmani_simple"
-        case textUthmaniTajweed
+        case textUthmaniTajweed = "text_uthmani_tajweed"
         case textQpcHafs = "text_qpc_hafs"
         case textQpcNastaleeqHafs = "text_qpc_nastaleeq_hafs"
         case textQpcNastaleeq = "text_qpc_nastaleeq"
@@ -70,27 +70,34 @@ struct RandomAyahPayload: Decodable, Sendable {
     }
 
     func displayText(for style: QuranArabicTextStyle) -> String? {
-        rawArabicText(for: style)?
-            .strippingHTMLToPlainText()
-            .normalizedForQuranRenderingPreservingResponse()
+        guard let raw = rawArabicText(for: style) else { return nil }
+        let text = raw.containsHTMLMarkup ? raw.strippingHTMLToPlainText() : raw
+        return text.normalizedForQuranRenderingPreservingResponse()
     }
 
-    /// HTML for `WKWebView`: raw tajweed markup when present, otherwise escaped plain `displayText`.
-    /// Appends ۝ U+06DD + Eastern Arabic‑Indic digits for the ayah number (and removes redundant API `span.class=end` badges).
+    /// HTML for `WKWebView`: tajweed / API HTML when present; plain Arabic is inserted without HTML parsing.
     func arabicFragmentForWebView(style: QuranArabicTextStyle) -> String {
         let markerHtml = QuranAyahEndBadge.html(forAyahNumber: effectiveAyahNumber)
+        let spacer = markerHtml.isEmpty ? "" : " "
 
-        if style.usesTajweedMarkup,
-           let tajweed = textUthmaniTajweed?.trimmingCharacters(in: .whitespacesAndNewlines),
-           tajweed.isEmpty == false {
-            let body = tajweed.strippingHTMLSpansMatchingClassEnd
-            let spacer = markerHtml.isEmpty ? "" : " "
+        guard let raw = rawArabicText(for: style)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           raw.isEmpty == false else {
+            return "<div dir=\"rtl\" lang=\"ar\"></div>"
+        }
+
+        if style.usesTajweedMarkup || raw.containsHTMLMarkup {
+            var body = raw
+            if raw.containsAyahEndSpanMarkup {
+                body = raw.strippingHTMLSpansMatchingClassEnd
+            }
             return body + spacer + markerHtml
         }
-        let plain = displayText(for: style) ?? ""
+
+        let plain = raw.normalizedForQuranRenderingPreservingResponse()
         let inner = markerHtml.isEmpty
-            ? plain.htmlEscapedForAttribute
-            : "\(plain.htmlEscapedForAttribute) \(markerHtml)"
+            ? plain.htmlEscapedForWebBody
+            : "\(plain.htmlEscapedForWebBody) \(markerHtml)"
         return "<div dir=\"rtl\" lang=\"ar\">\(inner)</div>"
     }
 
@@ -148,26 +155,39 @@ private extension String {
         return regex.stringByReplacingMatches(in: self, options: [], range: range, withTemplate: "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// Minimal escaping so plain Arabic survives inside HTML fragments.
-    var htmlEscapedForAttribute: String {
-        map { ch -> String in
-            switch ch {
-            case "&": return "&amp;"
-            case "<": return "&lt;"
-            case ">": return "&gt;"
-            case "\"": return "&quot;"
-            default: return String(ch)
+    /// True when the API payload looks like HTML (tajweed tags, spans, etc.), not plain Arabic.
+    var containsHTMLMarkup: Bool {
+        range(of: #"<[a-zA-Z][^>]*>"#, options: .regularExpression) != nil
+    }
+
+    var containsAyahEndSpanMarkup: Bool {
+        localizedCaseInsensitiveContains("class=\"end\"")
+            || localizedCaseInsensitiveContains("class='end'")
+    }
+
+    /// Escape only characters that break HTML body text (leave Arabic Unicode intact).
+    var htmlEscapedForWebBody: String {
+        var out = ""
+        out.reserveCapacity(count)
+        for scalar in unicodeScalars {
+            switch scalar {
+            case "&": out += "&amp;"
+            case "<": out += "&lt;"
+            case ">": out += "&gt;"
+            default: out.unicodeScalars.append(scalar)
             }
-        }.joined()
+        }
+        return out
     }
 
     func strippingHTMLToPlainText() -> String {
+        guard containsHTMLMarkup else { return self }
         guard let data = data(using: .utf8) else { return self }
-        if let attributed = try? NSAttributedString(
-            data: data,
-            options: [.documentType: NSAttributedString.DocumentType.html],
-            documentAttributes: nil
-        ) {
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        if let attributed = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
             return attributed.string
         }
         return self
