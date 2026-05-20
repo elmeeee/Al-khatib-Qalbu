@@ -16,6 +16,10 @@ struct Al_KhatibApp: App {
     init() {
         Prowl.start()
         self.appContainer = AppContainer()
+        _ = AlKhatibTypography.verseArabicHTMLBaseDirectory()
+        Task { @MainActor in
+            _ = AlKhatibTypography.quranArabicUIFont(size: 24)
+        }
     }
 
     var body: some Scene {

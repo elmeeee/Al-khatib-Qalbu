@@ -14,21 +14,56 @@ struct AyahArabicWebBlock: View {
     var style: HTMLContentStyle = .verseCard
     var fontScale: Double = 1.0
     var measuredHeight: Binding<CGFloat>?
+
     @State private var webHeight: CGFloat = 160
+    @State private var tajweedFontRevision = 0
+
+    private var usesTajweedWeb: Bool {
+        payload.shouldUseTajweedWebView(for: arabicTextStyle)
+    }
 
     var body: some View {
+        Group {
+            if usesTajweedWeb {
+                tajweedWebView
+            } else if let plain = payload.plainArabicLine(for: arabicTextStyle) {
+                AyahArabicNativeBlock(
+                    text: plain,
+                    style: style,
+                    fontScale: fontScale,
+                    measuredHeight: measuredHeight
+                )
+            } else {
+                Color.clear
+                    .frame(height: 40)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .id(stableId)
+        .task(id: usesTajweedWeb) {
+            guard usesTajweedWeb else { return }
+            for _ in 0..<4 {
+                if AlKhatibTypography.verseArabicHTMLBaseDirectory() != nil {
+                    tajweedFontRevision &+= 1
+                    return
+                }
+                try? await Task.sleep(nanoseconds: 40_000_000)
+            }
+        }
+    }
+
+    private var tajweedWebView: some View {
         HTMLContentWebView(
-            htmlFragment: payload.arabicFragmentForWebView(style: arabicTextStyle),
+            htmlFragment: payload.tajweedWebHTMLFragment(),
             style: style,
-            arabicScript: arabicTextStyle,
+            arabicScript: .uthmaniTajweed,
+            rendersTajweedHTML: true,
             fontScale: fontScale,
             contentHeight: $webHeight
         )
         .frame(height: webHeight)
         .animation(nil, value: webHeight)
-        .frame(maxWidth: .infinity)
         .background(Color.clear)
-        .id(stableId)
         .onChangeWithFallback(of: reloadKey) { _ in
             webHeight = 160
             measuredHeight?.wrappedValue = 160
@@ -47,10 +82,11 @@ struct AyahArabicWebBlock: View {
         } else {
             base = "ayah"
         }
-        return "\(base)-\(arabicTextStyle.rawValue)-\(style)-\(fontScale)"
+        let mode = usesTajweedWeb ? "tajweed-web" : "native"
+        return "\(base)-\(mode)-\(arabicTextStyle.rawValue)-\(style)-\(fontScale)-f\(tajweedFontRevision)"
     }
 
     private var reloadKey: String {
-        "\(payload.verseKey ?? "")-\(arabicTextStyle.rawValue)-\(fontScale)"
+        "\(payload.verseKey ?? "")-\(arabicTextStyle.rawValue)-\(fontScale)-\(usesTajweedWeb)-f\(tajweedFontRevision)"
     }
 }

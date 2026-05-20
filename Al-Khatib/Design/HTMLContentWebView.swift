@@ -27,6 +27,7 @@ struct HTMLContentWebView: UIViewRepresentable {
     let htmlFragment: String
     var style: HTMLContentStyle = .article
     var arabicScript: QuranArabicTextStyle = .uthmaniTajweed
+    var rendersTajweedHTML: Bool = false
     var fontScale: Double = 1.0
     var contentHeight: Binding<CGFloat>?
 
@@ -34,12 +35,14 @@ struct HTMLContentWebView: UIViewRepresentable {
         htmlFragment: String,
         style: HTMLContentStyle = .article,
         arabicScript: QuranArabicTextStyle = .uthmaniTajweed,
+        rendersTajweedHTML: Bool = false,
         fontScale: Double = 1.0,
         contentHeight: Binding<CGFloat>? = nil
     ) {
         self.htmlFragment = htmlFragment
         self.style = style
         self.arabicScript = arabicScript
+        self.rendersTajweedHTML = rendersTajweedHTML
         self.fontScale = fontScale
         self.contentHeight = contentHeight
     }
@@ -77,7 +80,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         let embedFont: Bool
         if style.isVerseCard {
             baseDirectory = AlKhatibTypography.verseArabicHTMLBaseDirectory()
-            embedFont = baseDirectory != nil && arabicScript.shouldEmbedTajweedWebFont
+            embedFont = rendersTajweedHTML && baseDirectory != nil
         } else {
             baseDirectory = nil
             embedFont = false
@@ -87,6 +90,7 @@ struct HTMLContentWebView: UIViewRepresentable {
             htmlFragment: htmlFragment,
             style: style,
             arabicScript: arabicScript,
+            rendersTajweedHTML: rendersTajweedHTML,
             fontScale: fontScale,
             embedVerseWebFont: embedFont,
             baseURLPath: baseDirectory?.standardizedFileURL.path ?? ""
@@ -101,7 +105,8 @@ struct HTMLContentWebView: UIViewRepresentable {
             embedVerseWebFont: embedFont,
             fontScale: fontScale
         )
-        webView.loadHTMLString(html, baseURL: baseDirectory)
+        let loadBase = baseDirectory ?? URL(string: "about:blank")
+        webView.loadHTMLString(html, baseURL: loadBase)
     }
 
     private func configureScroll(_ webView: WKWebView, style: HTMLContentStyle) {
@@ -130,7 +135,17 @@ struct HTMLContentWebView: UIViewRepresentable {
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             guard style.isVerseCard, let binding = heightBinding else { return }
-            webView.evaluateJavaScript("document.body.scrollHeight") { result, _ in
+            measureVerseCardHeight(webView: webView, binding: binding)
+        }
+
+        private func measureVerseCardHeight(webView: WKWebView, binding: Binding<CGFloat>) {
+            let script = """
+            (async function() {
+              if (document.fonts && document.fonts.ready) { await document.fonts.ready; }
+              return document.body ? document.body.scrollHeight : 0;
+            })();
+            """
+            webView.evaluateJavaScript(script) { result, _ in
                 let raw: CGFloat
                 if let n = result as? NSNumber {
                     raw = CGFloat(truncating: n)
@@ -155,6 +170,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         let htmlFragment: String
         let style: HTMLContentStyle
         let arabicScript: QuranArabicTextStyle
+        let rendersTajweedHTML: Bool
         let fontScale: Double
         let embedVerseWebFont: Bool
         let baseURLPath: String
@@ -278,34 +294,47 @@ struct HTMLContentWebView: UIViewRepresentable {
             }
             """
         }()
-        let arabicFontStack = arabicScript.webArabicFontStack
+        let arabicFontStack = arabicScript.webArabicFontStack(embeddingTajweedWebFont: embedVerseWebFont)
         let bodyColor = onDark ? "#FFFFFF" : "#1D1D1F"
         let endGold = onDark ? "rgba(212, 175, 55, 0.95)" : "rgba(148, 80, 5, 0.95)"
         let tajweed: String = {
-            guard arabicScript.usesTajweedMarkup else { return "" }
+            guard embedVerseWebFont || arabicScript.usesTajweedMarkup else { return "" }
+            let base = """
+                tajweed, span[class*="tajweed"] {
+                  display: inline;
+                  color: inherit;
+                  font-family: inherit;
+                }
+            """
             if onDark {
-                return """
-                .ghunnah { color: #81C784; }
-                .slnt { color: #B0BEC5; }
-                .madda_normal { color: #9FA8DA; }
-                .madda_permissible { color: #CE93D8; }
-                .madda_obligatory { color: #E1BEE7; }
-                .qalaqah { color: #FFAB91; }
-                .idgham_ghunnah { color: #80CBC4; }
-                .ikhafa { color: #80DEEA; }
-                .ham_wasl { color: #AED581; }
+                return base + """
+                .ghunnah, [class*="ghunnah"] { color: #81C784; }
+                .slnt, [class*="slnt"] { color: #B0BEC5; }
+                .madda_normal, [class*="madda_normal"] { color: #9FA8DA; }
+                .madda_permissible, [class*="madda_permissible"] { color: #CE93D8; }
+                .madda_obligatory, [class*="madda_obligatory"] { color: #E1BEE7; }
+                .qalaqah, [class*="qalaqah"] { color: #FFAB91; }
+                .idgham_ghunnah, [class*="idgham_ghunnah"] { color: #80CBC4; }
+                .ikhafa, [class*="ikhafa"], .ikhafa_shafawi, [class*="ikhafa_shafawi"] { color: #80DEEA; }
+                .ham_wasl, [class*="ham_wasl"] { color: #AED581; }
+                .laam_shamsiyah, [class*="laam_shamsiyah"] { color: #FFCC80; }
+                .laam_qamariyah, [class*="laam_qamariyah"] { color: #CE93D8; }
+                .iqlab, [class*="iqlab"] { color: #80CBC4; }
                 """
             }
-            return """
-                .ghunnah { color: #2E7D32; }
-                .slnt { color: #5C6F7A; }
-                .madda_normal { color: #3949AB; }
-                .madda_permissible { color: #6A1B9A; }
-                .madda_obligatory { color: #7B1FA2; }
-                .qalaqah { color: #D84315; }
-                .idgham_ghunnah { color: #00897B; }
-                .ikhafa { color: #00838F; }
-                .ham_wasl { color: #558B2F; }
+            return base + """
+                .ghunnah, [class*="ghunnah"] { color: #2E7D32; }
+                .slnt, [class*="slnt"] { color: #5C6F7A; }
+                .madda_normal, [class*="madda_normal"] { color: #3949AB; }
+                .madda_permissible, [class*="madda_permissible"] { color: #6A1B9A; }
+                .madda_obligatory, [class*="madda_obligatory"] { color: #7B1FA2; }
+                .qalaqah, [class*="qalaqah"] { color: #D84315; }
+                .idgham_ghunnah, [class*="idgham_ghunnah"] { color: #00897B; }
+                .ikhafa, [class*="ikhafa"], .ikhafa_shafawi, [class*="ikhafa_shafawi"] { color: #00838F; }
+                .ham_wasl, [class*="ham_wasl"] { color: #558B2F; }
+                .laam_shamsiyah, [class*="laam_shamsiyah"] { color: #E65100; }
+                .laam_qamariyah, [class*="laam_qamariyah"] { color: #6A1B9A; }
+                .iqlab, [class*="iqlab"] { color: #00897B; }
                 """
         }()
         return """
@@ -327,7 +356,6 @@ struct HTMLContentWebView: UIViewRepresentable {
               margin: 0;
               -webkit-font-smoothing: antialiased;
             }
-            tajweed { display: inline; }
             span.end { opacity: 0.95; font-weight: 600; color: \(bodyColor); }
             .ayah-end-symbol {
               display: inline-grid;

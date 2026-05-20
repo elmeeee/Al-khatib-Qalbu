@@ -68,8 +68,9 @@ enum QuranArabicTextStyle: String, CaseIterable, Sendable, Identifiable {
     }
 
     /// CSS `font-family` stack tuned per script (falls back to system Arabic fonts on iOS).
-    var webArabicFontStack: String {
-        if shouldEmbedTajweedWebFont {
+    /// Pass `embeddingTajweedWebFont: true` only when `@font-face` for `AlKhatibQuranWeb` is embedded in the document.
+    func webArabicFontStack(embeddingTajweedWebFont: Bool) -> String {
+        if shouldEmbedTajweedWebFont, embeddingTajweedWebFont {
             return """
             'AlKhatibQuranWeb', 'KFGQPC HAFS Uthmanic Script', 'Amiri Quran', 'Scheherazade New', \
             'Geeza Pro', 'Noto Naskh Arabic', serif

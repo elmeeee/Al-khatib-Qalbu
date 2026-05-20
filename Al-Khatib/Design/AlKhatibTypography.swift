@@ -21,7 +21,6 @@ enum AlKhatibTypography {
         return FontResolver.quranUIFont(size: size)
     }
 
-    @MainActor
     static func verseArabicHTMLBaseDirectory() -> URL? {
         VerseArabicHTMLFontPreparer.shared.folderURLIfReady()
     }
@@ -32,7 +31,6 @@ enum AlKhatibTypography {
 private struct VerseArabicHTMLFontPreparer {
     static let shared = Self()
 
-    @MainActor
     func folderURLIfReady() -> URL? {
         guard let cachesRoot = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
             return nil

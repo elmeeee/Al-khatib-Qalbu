@@ -45,6 +45,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     @Published var sunriseTime: String?
     @Published var hijriDateLabel: String?
     @Published var gregorianDateLabel: String?
+    @Published var calculationMethod: PrayerCalculationMethod
 
     var nextPrayerName: String?  { nextPrayer?.name }
     var nextPrayerDate: Date?    { nextPrayer?.date }
@@ -55,10 +56,11 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     private let locationManager = CLLocationManager()
     private let notificationScheduler = PrayerNotificationScheduler()
     private var hasRequestedThisSession = false
-    private var todaySchedule: [PrayerEntry] = []   // Fajr → Isha only
+    private var todaySchedule: [PrayerEntry] = []
     private var lastKnownLocation: CLLocation?
     private var scheduleAnchorDate: Date?
     private var tickerCancellable: AnyCancellable?
+    private var methodChangeCancellable: AnyCancellable?
 
     func remainingText(at now: Date) -> String? {
         guard let target = nextPrayer?.date else { return nil }
@@ -77,6 +79,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     }
 
     override init() {
+        calculationMethod = PrayerCalculationMethod.savedOrDefault()
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
@@ -85,6 +88,36 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
             .publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] now in self?.handleTick(at: now) }
+
+        methodChangeCancellable = NotificationCenter.default
+            .publisher(for: .prayerCalculationMethodDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.applyCalculationMethodFromStorage(andRefetch: true)
+            }
+    }
+
+    func setCalculationMethod(_ method: PrayerCalculationMethod) {
+        guard calculationMethod != method else { return }
+        calculationMethod = method
+        method.persist()
+    }
+
+    private func applyCalculationMethodFromStorage(andRefetch: Bool) {
+        let saved = PrayerCalculationMethod.savedOrDefault()
+        guard calculationMethod != saved else {
+            if andRefetch { refetchPrayerTimesIfPossible() }
+            return
+        }
+        calculationMethod = saved
+        if andRefetch { refetchPrayerTimesIfPossible() }
+    }
+
+    private func refetchPrayerTimesIfPossible() {
+        guard let location = lastKnownLocation else { return }
+        guard !isLoading else { return }
+        isLoading = true
+        Task { await fetchPrayerTimes(for: location) }
     }
 
     func refreshIfNeeded() {
@@ -136,12 +169,24 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         }
 
         Task { @MainActor in
-            if let label = await Self.resolveAreaDisplayName(for: location), !label.isEmpty {
+            async let labelTask: String? = Self.resolveAreaDisplayName(for: location)
+            async let detectTask: Void = autoDetectCalculationMethodIfNeeded(for: location)
+            let (_, label) = await (detectTask, labelTask)
+            if let label, label.isEmpty == false {
                 cityName = label
             }
         }
 
         Task { await fetchPrayerTimes(for: location) }
+    }
+
+    private func autoDetectCalculationMethodIfNeeded(for location: CLLocation) async {
+        guard PrayerCalculationMethod.hasSavedPreference == false else { return }
+        guard let countryCode = await Self.resolveCountryCode(for: location) else { return }
+        let detected = PrayerCalculationMethod.forCountryCode(countryCode)
+        guard calculationMethod != detected else { return }
+        calculationMethod = detected
+        detected.persist(notify: false)
     }
 
     private func fetchPrayerTimes(for location: CLLocation) async {
@@ -152,7 +197,8 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         guard let url = AppEndpoints.URLBuilder.alAdhanTimings(
             timestamp: timestamp,
             latitude: lat,
-            longitude: lon
+            longitude: lon,
+            method: calculationMethod
         ) else {
             isLoading = false
             return
@@ -304,6 +350,16 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         do {
             let items = try await request.mapItems
             return items.first?.addressRepresentations?.cityName
+        } catch {
+            return nil
+        }
+    }
+
+    nonisolated private static func resolveCountryCode(for location: CLLocation) async -> String? {
+        let geocoder = CLGeocoder()
+        do {
+            let placemarks = try await geocoder.reverseGeocodeLocation(location)
+            return placemarks.first?.isoCountryCode
         } catch {
             return nil
         }

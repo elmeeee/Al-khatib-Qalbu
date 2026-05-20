@@ -12,6 +12,8 @@ struct ProfileView: View {
     var preferSystemNavigationTitle: Bool = false
     @Environment(\.appContainer) private var container
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage(PrayerCalculationMethod.storageKey)
+    private var prayerMethodRaw = PrayerCalculationMethod.defaultMethod.rawValue
     @State private var vm: ProfileViewModel?
 
     private let avatarSize: CGFloat = 120
@@ -36,6 +38,10 @@ struct ProfileView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                profileSettingsLinks
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 12)
 
                 signOutFooter
             }
@@ -104,6 +110,48 @@ struct ProfileView: View {
             Spacer(minLength: 24)
         }
         .padding(.horizontal, 32)
+    }
+
+    private var profileSettingsLinks: some View {
+        VStack(spacing: 10) {
+            NavigationLink {
+                PrayerCalculationSettingsView()
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "clock.fill")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Color.Theme.deepEmerald)
+                        .frame(width: 36, height: 36)
+                        .background(Color.Theme.deepEmerald.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Prayer times")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                        Text(
+                            (PrayerCalculationMethod(rawValue: prayerMethodRaw) ?? .muhammadiyah).subtitle
+                        )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.Theme.softGrey)
+                }
+                .padding(14)
+                .background(Color.Theme.pureWhite)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.Theme.softGrey.opacity(0.9), lineWidth: 1)
+                }
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     private func profileHero(_ profile: UserProfilePayload) -> some View {

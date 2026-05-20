@@ -111,24 +111,25 @@ enum AppEndpoints {
             return "\(External.versesWebBase)/\(raw)"
         }
 
-        /// Builds an Aladhan timings URL using the Muhammadiyah (Majelis Tarjih) calculation method.
-        /// - Fajr 18°, Isha 18°, standard Maghrib (sunset)
-        /// - School: Shafi'i (Asr shadow factor 1×)
-        /// - Tune: ihtiyat offsets matching Muhammadiyah published schedules
+        /// Builds an Aladhan `/v1/timings/{timestamp}` URL for the selected calculation method.
         static func alAdhanTimings(
             timestamp: Int,
             latitude: Double,
-            longitude: Double
+            longitude: Double,
+            method: PrayerCalculationMethod = .muhammadiyah
         ) -> URL? {
             var components = URLComponents(string: "\(External.alAdhanRoot)/v1/timings/\(timestamp)")
-            components?.queryItems = [
-                .init(name: "latitude",       value: "\(latitude)"),
-                .init(name: "longitude",      value: "\(longitude)"),
-                .init(name: "method",         value: "99"),
-                .init(name: "methodSettings", value: "18,null,18"),
-                .init(name: "school",         value: "0"),
-                .init(name: "tune",           value: "0,2,-1,1,1,3,0,2,0"),
+            var query: [URLQueryItem] = [
+                .init(name: "latitude", value: "\(latitude)"),
+                .init(name: "longitude", value: "\(longitude)"),
+                .init(name: "method", value: "\(method.aladhanMethodID)"),
+                .init(name: "school", value: "\(method.aladhanSchool)"),
+                .init(name: "tune", value: method.aladhanTune)
             ]
+            if let methodSettings = method.aladhanMethodSettings {
+                query.append(.init(name: "methodSettings", value: methodSettings))
+            }
+            components?.queryItems = query
             return components?.url
         }
     }

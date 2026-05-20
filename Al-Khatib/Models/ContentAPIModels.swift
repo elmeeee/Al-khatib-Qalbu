@@ -75,30 +75,54 @@ struct RandomAyahPayload: Decodable, Sendable {
         return text.normalizedForQuranRenderingPreservingResponse()
     }
 
-    /// HTML for `WKWebView`: tajweed / API HTML when present; plain Arabic is inserted without HTML parsing.
-    func arabicFragmentForWebView(style: QuranArabicTextStyle) -> String {
+    func shouldUseTajweedWebView(for style: QuranArabicTextStyle) -> Bool {
+        guard style.usesTajweedMarkup else { return false }
+        guard let raw = rawArabicText(for: style)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           raw.isEmpty == false,
+           raw.containsHTMLMarkup else {
+            return false
+        }
+        return true
+    }
+
+    func plainArabicLine(for style: QuranArabicTextStyle) -> String? {
+        guard shouldUseTajweedWebView(for: style) == false else { return nil }
+        guard let core = displayText(for: style)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           core.isEmpty == false else {
+            return nil
+        }
+        return QuranAyahEndBadge.appendNativeMarker(to: core, ayahNumber: effectiveAyahNumber)
+    }
+
+    func tajweedWebHTMLFragment() -> String {
         let markerHtml = QuranAyahEndBadge.html(forAyahNumber: effectiveAyahNumber)
         let spacer = markerHtml.isEmpty ? "" : " "
 
-        guard let raw = rawArabicText(for: style)?
+        guard let raw = rawArabicText(for: .uthmaniTajweed)?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            raw.isEmpty == false else {
             return "<div dir=\"rtl\" lang=\"ar\"></div>"
         }
 
-        if style.usesTajweedMarkup || raw.containsHTMLMarkup {
-            var body = raw
-            if raw.containsAyahEndSpanMarkup {
-                body = raw.strippingHTMLSpansMatchingClassEnd
+        var body = raw
+        if raw.containsAyahEndSpanMarkup {
+            let stripped = raw.strippingHTMLSpansMatchingClassEnd
+            if stripped.isEmpty == false {
+                body = stripped
             }
-            return body + spacer + markerHtml
         }
+        return "<div dir=\"rtl\" lang=\"ar\">\(body)\(spacer)\(markerHtml)</div>"
+    }
 
-        let plain = raw.normalizedForQuranRenderingPreservingResponse()
-        let inner = markerHtml.isEmpty
-            ? plain.htmlEscapedForWebBody
-            : "\(plain.htmlEscapedForWebBody) \(markerHtml)"
-        return "<div dir=\"rtl\" lang=\"ar\">\(inner)</div>"
+    /// HTML for `WKWebView`: tajweed / API HTML when present; plain Arabic is inserted without HTML parsing.
+    func arabicFragmentForWebView(style: QuranArabicTextStyle) -> String {
+        if shouldUseTajweedWebView(for: style) {
+            return tajweedWebHTMLFragment()
+        }
+        let plain = plainArabicLine(for: style) ?? ""
+        return "<div dir=\"rtl\" lang=\"ar\">\(plain.htmlEscapedForWebBody)</div>"
     }
 
     var resolvedVerseNumber: Int? {
@@ -143,6 +167,11 @@ private enum QuranAyahEndBadge {
         </span>
         """
     }
+
+    static func appendNativeMarker(to arabic: String, ayahNumber: Int?) -> String {
+        guard let n = ayahNumber, n > 0 else { return arabic }
+        return "\(arabic) \(rosette)\u{200C}\(easternArabicIndicDigits(n))"
+    }
 }
 
 private extension String {
@@ -161,8 +190,9 @@ private extension String {
     }
 
     var containsAyahEndSpanMarkup: Bool {
-        localizedCaseInsensitiveContains("class=\"end\"")
-            || localizedCaseInsensitiveContains("class='end'")
+        if localizedCaseInsensitiveContains("class=\"end\"") { return true }
+        if localizedCaseInsensitiveContains("class='end'") { return true }
+        return range(of: #"class\s*=\s*['"]?\s*end\b"#, options: [.regularExpression, .caseInsensitive]) != nil
     }
 
     /// Escape only characters that break HTML body text (leave Arabic Unicode intact).
