@@ -169,20 +169,19 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         }
 
         Task { @MainActor in
-            async let labelTask: String? = Self.resolveAreaDisplayName(for: location)
-            async let detectTask: Void = autoDetectCalculationMethodIfNeeded(for: location)
-            let (_, label) = await (detectTask, labelTask)
-            if let label, label.isEmpty == false {
+            let geocode = await Self.reverseGeocode(location: location)
+            if let label = geocode.cityName, label.isEmpty == false {
                 cityName = label
             }
+            await autoDetectCalculationMethodIfNeeded(countryCode: geocode.countryCode)
         }
 
         Task { await fetchPrayerTimes(for: location) }
     }
 
-    private func autoDetectCalculationMethodIfNeeded(for location: CLLocation) async {
+    private func autoDetectCalculationMethodIfNeeded(countryCode: String?) async {
         guard PrayerCalculationMethod.hasSavedPreference == false else { return }
-        guard let countryCode = await Self.resolveCountryCode(for: location) else { return }
+        guard let countryCode else { return }
         let detected = PrayerCalculationMethod.forCountryCode(countryCode)
         guard calculationMethod != detected else { return }
         calculationMethod = detected
@@ -345,23 +344,24 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         }.string(from: date)
     }
 
-    nonisolated private static func resolveAreaDisplayName(for location: CLLocation) async -> String? {
-        guard let request = MKReverseGeocodingRequest(location: location) else { return nil }
-        do {
-            let items = try await request.mapItems
-            return items.first?.addressRepresentations?.cityName
-        } catch {
-            return nil
-        }
+    private struct ReverseGeocodeResult: Sendable {
+        let cityName: String?
+        let countryCode: String?
     }
 
-    nonisolated private static func resolveCountryCode(for location: CLLocation) async -> String? {
-        let geocoder = CLGeocoder()
+    nonisolated private static func reverseGeocode(location: CLLocation) async -> ReverseGeocodeResult {
+        guard let request = MKReverseGeocodingRequest(location: location) else {
+            return ReverseGeocodeResult(cityName: nil, countryCode: nil)
+        }
         do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            return placemarks.first?.isoCountryCode
+            let items = try await request.mapItems
+            let reps = items.first?.addressRepresentations
+            return ReverseGeocodeResult(
+                cityName: reps?.cityName,
+                countryCode: reps?.regionCode
+            )
         } catch {
-            return nil
+            return ReverseGeocodeResult(cityName: nil, countryCode: nil)
         }
     }
 

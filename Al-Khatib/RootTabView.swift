@@ -68,19 +68,6 @@ struct RootTabView: View {
         .task {
             await verseState.ensureProfileLoaded(container: container)
         }
-        .onChange(of: selectedTab) { _, newTab in
-            guard newTab == .reflect else { return }
-            Task { @MainActor in
-                await verseState.ensureProfileLoaded(container: container)
-                guard verseState.hasResolvedSession else { return }
-                guard verseState.isLoggedIn == false else { return }
-                guard verseState.isLoggingIn == false else { return }
-                await verseState.signIn(container: container)
-                if verseState.isLoggedIn == false {
-                    verseState.selectTodayTab()
-                }
-            }
-        }
         .onChange(of: verseState.shouldNavigateToReflect) { _, shouldNavigate in
             if shouldNavigate {
                 if selectedTab != .reflect {

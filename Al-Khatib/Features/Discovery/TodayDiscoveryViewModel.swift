@@ -61,9 +61,7 @@ final class TodayDiscoveryViewModel {
         errorMessage = nil
         Task {
             do {
-                let response = try await content.getRandomAyah(
-                    arabicTextStyle: QuranArabicTextStyle.savedOrDefault()
-                )
+                let response = try await content.getRandomAyah()
                 guard let verse = response.verse else {
                     throw QFError.parsingError("daily verse payload")
                 }

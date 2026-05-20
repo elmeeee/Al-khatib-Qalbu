@@ -30,6 +30,16 @@ struct ReflectionView: View {
                 } else {
                     LoadingSkeleton()
                 }
+            } else if verseState.hasResolvedSession {
+                SignInPromptView(
+                    title: "Sign in to Reflect",
+                    message: "Connect your Quran Reflect account to read community reflections and share your own.",
+                    isLoading: verseState.isLoggingIn
+                ) {
+                    Task { await verseState.signIn(container: container) }
+                }
+            } else {
+                LoadingSkeleton()
             }
         }
         .overlay(alignment: .top) {

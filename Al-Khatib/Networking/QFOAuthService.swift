@@ -72,6 +72,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
     private let pendingAuthKey = "qf.oauth.pendingAuth"
     private var isHandlingCallback = false
     private var lastHandledCode: String?
+    private var activeSignInTask: Task<Void, Error>?
 
     init(configuration: QFConfiguration, userSession: QFUserSession) {
         self.configuration = configuration
@@ -81,6 +82,20 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
     }
 
     func signIn() async throws {
+        if let activeSignInTask {
+            try await activeSignInTask.value
+            return
+        }
+        let task = Task { @MainActor in
+            try await self.performSignIn()
+        }
+        activeSignInTask = task
+        defer { activeSignInTask = nil }
+        try await task.value
+    }
+
+    private func performSignIn() async throws {
+        cancelActiveWebAuthSession()
         let verifier = Self.randomURLSafe(length: 64)
         let challenge = Self.codeChallenge(from: verifier)
         let state = Self.randomURLSafe(length: 32)
@@ -112,16 +127,40 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             authorizeURL: authorizeURL,
             callbackScheme: callbackScheme
         )
+        if await userSession.hasUserAccessToken() {
+            clearPendingAuth()
+            return
+        }
         do {
             try await completeSignIn(from: callbackURL)
         } catch {
+            if await userSession.hasUserAccessToken() {
+                clearPendingAuth()
+                return
+            }
             oauthConsole("signIn failed: \(error.localizedDescription)")
             throw error
         }
     }
 
     func signOut() async {
+        activeSignInTask?.cancel()
+        activeSignInTask = nil
+        cancelActiveWebAuthSession()
+        clearPendingAuth()
+        lastHandledCode = nil
+        isHandlingCallback = false
         await userSession.clear()
+    }
+
+    private func cancelActiveWebAuthSession() {
+        authSession?.cancel()
+        authSession = nil
+    }
+
+    private func clearPendingAuth() {
+        pendingAuth = nil
+        Self.savePendingAuth(nil, defaults: defaults, key: pendingAuthKey)
     }
 
     func refreshAccessTokenIfPossible() async throws {
@@ -143,6 +182,10 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
 
     func handleIncomingCallback(_ url: URL) async {
         guard isHandlingCallback == false else {
+            return
+        }
+        if await userSession.hasUserAccessToken() {
+            clearPendingAuth()
             return
         }
         guard let pending = pendingAuth ?? Self.loadPendingAuth(defaults: defaults, key: pendingAuthKey) else {
@@ -173,7 +216,12 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             let session = ASWebAuthenticationSession(
                 url: authorizeURL,
                 callbackURLScheme: callbackScheme
-            ) { url, error in
+            ) { [weak self] url, error in
+                defer {
+                    Task { @MainActor in
+                        self?.authSession = nil
+                    }
+                }
                 if didResume {
                     return
                 }
@@ -194,7 +242,11 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             session.presentationContextProvider = self
             session.prefersEphemeralWebBrowserSession = true
             self.authSession = session
-            _ = session.start()
+            guard session.start() else {
+                self.authSession = nil
+                continuation.resume(throwing: QFOAuthError.tokenExchangeFailed("Could not start sign-in."))
+                return
+            }
         }
     }
 
@@ -213,8 +265,7 @@ final class QFOAuthService: NSObject, ASWebAuthenticationPresentationContextProv
             refreshToken: token.refreshToken
         )
         _ = await userSession.hasUserAccessToken()
-        pendingAuth = nil
-        Self.savePendingAuth(nil, defaults: defaults, key: pendingAuthKey)
+        clearPendingAuth()
     }
 
     private func exchangeCodeForToken(code: String, verifier: String, expectedNonce: String) async throws -> UserTokenResponse {

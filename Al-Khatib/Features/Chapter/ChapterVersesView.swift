@@ -374,7 +374,6 @@ struct ChapterVersesView: View {
                         ForEach(bindable.verses, id: \.listIdentity) { verse in
                             ChapterAyahPage(
                                 verse: verse,
-                                arabicTextStyle: bindable.selectedArabicTextStyle,
                                 showTranslation: showTranslation,
                                 fontScale: fontScale,
                                 isPlaying: audio.isPlayingURL(verse.audio?.url) && audio.isPlaying,
@@ -392,7 +391,7 @@ struct ChapterVersesView: View {
                 .scrollIndicators(.hidden)
                 .scrollContentBackground(.hidden)
             }
-            .ignoresSafeArea()
+            .ignoresSafeArea(edges: .top)
         }
     }
 

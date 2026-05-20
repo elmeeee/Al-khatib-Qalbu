@@ -6,12 +6,24 @@
 //  Copyright © 2026 Elmee. All rights reserved.
 //
 
+import Foundation
 import Testing
+@testable import Al_Khatib
 
 struct Al_KhatibTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func randomAyahPayloadDecodesTajweedField() throws {
+        let json = """
+        {
+          "verse_key": "2:172",
+          "text_uthmani_tajweed": "يَ<tajweed class=madda_obligatory>ـٰٓ</tajweed>أَيُّهَا"
+        }
+        """.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let payload = try decoder.decode(RandomAyahPayload.self, from: json)
+        #expect(payload.textUthmaniTajweed?.contains("tajweed") == true)
+        #expect(payload.tajweedWebHTMLFragment().contains("tajweed"))
     }
 
 }

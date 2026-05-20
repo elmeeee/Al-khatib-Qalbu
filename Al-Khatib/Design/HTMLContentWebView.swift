@@ -26,7 +26,6 @@ enum HTMLContentStyle {
 struct HTMLContentWebView: UIViewRepresentable {
     let htmlFragment: String
     var style: HTMLContentStyle = .article
-    var arabicScript: QuranArabicTextStyle = .uthmaniTajweed
     var rendersTajweedHTML: Bool = false
     var fontScale: Double = 1.0
     var contentHeight: Binding<CGFloat>?
@@ -34,14 +33,12 @@ struct HTMLContentWebView: UIViewRepresentable {
     init(
         htmlFragment: String,
         style: HTMLContentStyle = .article,
-        arabicScript: QuranArabicTextStyle = .uthmaniTajweed,
         rendersTajweedHTML: Bool = false,
         fontScale: Double = 1.0,
         contentHeight: Binding<CGFloat>? = nil
     ) {
         self.htmlFragment = htmlFragment
         self.style = style
-        self.arabicScript = arabicScript
         self.rendersTajweedHTML = rendersTajweedHTML
         self.fontScale = fontScale
         self.contentHeight = contentHeight
@@ -63,6 +60,7 @@ struct HTMLContentWebView: UIViewRepresentable {
         webView.navigationDelegate = context.coordinator
         context.coordinator.webViewRef = webView
         configureScroll(webView, style: style)
+        applyVerseCardInteractionPolicy(webView, style: style)
         return webView
     }
 
@@ -76,6 +74,7 @@ struct HTMLContentWebView: UIViewRepresentable {
             webView.underPageBackgroundColor = .clear
         }
         configureScroll(webView, style: style)
+        applyVerseCardInteractionPolicy(webView, style: style)
         let baseDirectory: URL?
         let embedFont: Bool
         if style.isVerseCard {
@@ -89,7 +88,6 @@ struct HTMLContentWebView: UIViewRepresentable {
         let key = ContentLoadSignature(
             htmlFragment: htmlFragment,
             style: style,
-            arabicScript: arabicScript,
             rendersTajweedHTML: rendersTajweedHTML,
             fontScale: fontScale,
             embedVerseWebFont: embedFont,
@@ -101,7 +99,6 @@ struct HTMLContentWebView: UIViewRepresentable {
         let html = Self.document(
             from: htmlFragment,
             style: style,
-            arabicScript: arabicScript,
             embedVerseWebFont: embedFont,
             fontScale: fontScale
         )
@@ -120,6 +117,15 @@ struct HTMLContentWebView: UIViewRepresentable {
             webView.scrollView.bounces = false
             webView.scrollView.contentInsetAdjustmentBehavior = .never
         }
+    }
+
+    /// Verse cards sit inside tappable SwiftUI parents; WKWebView must not steal touches or extend past its frame.
+    private func applyVerseCardInteractionPolicy(_ webView: WKWebView, style: HTMLContentStyle) {
+        guard style.isVerseCard else { return }
+        webView.isUserInteractionEnabled = false
+        webView.clipsToBounds = true
+        webView.scrollView.clipsToBounds = true
+        webView.scrollView.isUserInteractionEnabled = false
     }
 
     final class Coordinator: NSObject, WKNavigationDelegate {
@@ -169,7 +175,6 @@ struct HTMLContentWebView: UIViewRepresentable {
     fileprivate struct ContentLoadSignature: Equatable {
         let htmlFragment: String
         let style: HTMLContentStyle
-        let arabicScript: QuranArabicTextStyle
         let rendersTajweedHTML: Bool
         let fontScale: Double
         let embedVerseWebFont: Bool
@@ -179,7 +184,6 @@ struct HTMLContentWebView: UIViewRepresentable {
     private static func document(
         from raw: String,
         style: HTMLContentStyle,
-        arabicScript: QuranArabicTextStyle = .uthmaniTajweed,
         embedVerseWebFont: Bool = false,
         fontScale: Double = 1.0
     ) -> String {
@@ -190,7 +194,6 @@ struct HTMLContentWebView: UIViewRepresentable {
         return wrappedFragment(
             trimmed,
             style: style,
-            arabicScript: arabicScript,
             embedVerseWebFont: embedVerseWebFont,
             fontScale: fontScale
         )
@@ -199,7 +202,6 @@ struct HTMLContentWebView: UIViewRepresentable {
     private static func wrappedFragment(
         _ body: String,
         style: HTMLContentStyle,
-        arabicScript: QuranArabicTextStyle,
         embedVerseWebFont: Bool,
         fontScale: Double
     ) -> String {
@@ -222,7 +224,6 @@ struct HTMLContentWebView: UIViewRepresentable {
         case .verseCard, .verseCardOnDark:
             extraCSS = verseCardCSS(
                 onDark: style == .verseCardOnDark,
-                arabicScript: arabicScript,
                 embedVerseWebFont: embedVerseWebFont,
                 fontScale: fontScale
             )
@@ -271,15 +272,14 @@ struct HTMLContentWebView: UIViewRepresentable {
 
     private static func verseCardCSS(
         onDark: Bool,
-        arabicScript: QuranArabicTextStyle,
         embedVerseWebFont: Bool,
         fontScale: Double
     ) -> String {
-        let scale = min(max(fontScale, 0.85), 1.45) * arabicScript.webFontSizeScale
+        let scale = min(max(fontScale, 0.85), 1.45) * QuranVerseArabic.webFontSizeScale
         let minPx = 21 * scale
         let maxPx = 28 * scale
         let vw = 4.8 * scale
-        let lineHeight = arabicScript.webLineHeight
+        let lineHeight = QuranVerseArabic.webLineHeight
         let fontFace: String = {
             guard embedVerseWebFont else { return "" }
             let file = AlKhatibTypography.verseWebFontRelativeFileName
@@ -294,11 +294,11 @@ struct HTMLContentWebView: UIViewRepresentable {
             }
             """
         }()
-        let arabicFontStack = arabicScript.webArabicFontStack(embeddingTajweedWebFont: embedVerseWebFont)
+        let arabicFontStack = QuranVerseArabic.webArabicFontStack(embeddingTajweedWebFont: embedVerseWebFont)
         let bodyColor = onDark ? "#FFFFFF" : "#1D1D1F"
         let endGold = onDark ? "rgba(212, 175, 55, 0.95)" : "rgba(148, 80, 5, 0.95)"
         let tajweed: String = {
-            guard embedVerseWebFont || arabicScript.usesTajweedMarkup else { return "" }
+            // Verse cards always use Uthmani tajweed markup from the API.
             let base = """
                 tajweed, span[class*="tajweed"] {
                   display: inline;

@@ -32,75 +32,24 @@ struct RandomAyahPayload: Decodable, Sendable {
     let audio: AudioPayload?
     let translations: [InlineTranslation]?
 
-    enum CodingKeys: String, CodingKey {
-        case id, audio, translations
-        case verseNumber
-        case verseKey
-        case textIndopak = "text_indopak"
-        case textImlaeiSimple = "text_imlaei_simple"
-        case textImlaei = "text_imlaei"
-        case textUthmani = "text_uthmani"
-        case textUthmaniSimple = "text_uthmani_simple"
-        case textUthmaniTajweed = "text_uthmani_tajweed"
-        case textQpcHafs = "text_qpc_hafs"
-        case textQpcNastaleeqHafs = "text_qpc_nastaleeq_hafs"
-        case textQpcNastaleeq = "text_qpc_nastaleeq"
-        case textIndopakNastaleeq = "text_indopak_nastaleeq"
-        case pageNumber
-        case juzNumber
-    }
+    // Keys must stay camelCase: QFApiClient uses `convertFromSnakeCase`, which maps JSON
+    // `text_uthmani_tajweed` → `textUthmaniTajweed`. Explicit snake_case raw values break decoding.
     
-    func rawArabicText(for style: QuranArabicTextStyle) -> String? {
-        switch style {
-        case .indopak: textIndopak
-        case .imlaeiSimple: textImlaeiSimple
-        case .imlaei: textImlaei
-        case .uthmani: textUthmani
-        case .uthmaniSimple: textUthmaniSimple
-        case .uthmaniTajweed: textUthmaniTajweed
-        case .qpcHafs: textQpcHafs
-        case .qpcNastaleeqHafs: textQpcNastaleeqHafs
-        case .qpcNastaleeq: textQpcNastaleeq
-        case .indopakNastaleeq: textIndopakNastaleeq
-        }
-    }
-
     var displayText: String? {
-        displayText(for: QuranArabicTextStyle.savedOrDefault())
-    }
-
-    func displayText(for style: QuranArabicTextStyle) -> String? {
-        guard let raw = rawArabicText(for: style) else { return nil }
-        let text = raw.containsHTMLMarkup ? raw.strippingHTMLToPlainText() : raw
-        return text.normalizedForQuranRenderingPreservingResponse()
-    }
-
-    func shouldUseTajweedWebView(for style: QuranArabicTextStyle) -> Bool {
-        guard style.usesTajweedMarkup else { return false }
-        guard let raw = rawArabicText(for: style)?
+        guard let raw = textUthmaniTajweed?
             .trimmingCharacters(in: .whitespacesAndNewlines),
-           raw.isEmpty == false,
-           raw.containsHTMLMarkup else {
-            return false
-        }
-        return true
-    }
-
-    func plainArabicLine(for style: QuranArabicTextStyle) -> String? {
-        guard shouldUseTajweedWebView(for: style) == false else { return nil }
-        guard let core = displayText(for: style)?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-           core.isEmpty == false else {
+           raw.isEmpty == false else {
             return nil
         }
-        return QuranAyahEndBadge.appendNativeMarker(to: core, ayahNumber: effectiveAyahNumber)
+        let text = raw.containsHTMLMarkup ? raw.strippingHTMLToPlainText() : raw
+        return text.normalizedForQuranRenderingPreservingResponse()
     }
 
     func tajweedWebHTMLFragment() -> String {
         let markerHtml = QuranAyahEndBadge.html(forAyahNumber: effectiveAyahNumber)
         let spacer = markerHtml.isEmpty ? "" : " "
 
-        guard let raw = rawArabicText(for: .uthmaniTajweed)?
+        guard let raw = textUthmaniTajweed?
             .trimmingCharacters(in: .whitespacesAndNewlines),
            raw.isEmpty == false else {
             return "<div dir=\"rtl\" lang=\"ar\"></div>"
@@ -116,15 +65,8 @@ struct RandomAyahPayload: Decodable, Sendable {
         return "<div dir=\"rtl\" lang=\"ar\">\(body)\(spacer)\(markerHtml)</div>"
     }
 
-    /// HTML for `WKWebView`: tajweed / API HTML when present; plain Arabic is inserted without HTML parsing.
-    func arabicFragmentForWebView(style: QuranArabicTextStyle) -> String {
-        if shouldUseTajweedWebView(for: style) {
-            return tajweedWebHTMLFragment()
-        }
-        let plain = plainArabicLine(for: style) ?? ""
-        return "<div dir=\"rtl\" lang=\"ar\">\(plain.htmlEscapedForWebBody)</div>"
-    }
 
+    /// Verse number for UI markers (public for chapter/Today layout).
     var resolvedVerseNumber: Int? {
         if let n = verseNumber, n > 0 { return n }
         guard let vk = verseKey?.split(separator: ":").last else { return nil }
@@ -416,13 +358,6 @@ struct ContentPagination: Decodable, Sendable {
     let totalPages: Int?
     let totalRecords: Int?
 
-    enum CodingKeys: String, CodingKey {
-        case perPage = "per_page"
-        case currentPage = "current_page"
-        case nextPage = "next_page"
-        case totalPages = "total_pages"
-        case totalRecords = "total_records"
-    }
 
     var hasNextPage: Bool {
         guard let nextPage, let currentPage else { return false }

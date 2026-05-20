@@ -20,7 +20,6 @@ struct ChapterReadingSettingsSheetContent: View {
             fontScale: $fontScale,
             showTranslation: $showTranslation,
             selectedRecitationId: $viewModel.selectedRecitationId,
-            selectedArabicTextStyle: $viewModel.selectedArabicTextStyle,
             recitations: viewModel.recitations,
             isLoadingRecitations: viewModel.recitations.isEmpty && viewModel.isLoading,
             isApplyingPreferences: viewModel.isReloadingContent
@@ -35,11 +34,6 @@ struct ChapterReadingSettingsSheetContent: View {
             lastRecitationId = newValue
             onPreferencesChange()
         }
-        .onChange(of: viewModel.selectedArabicTextStyle) { _, newValue in
-            guard preferencesReady else { return }
-            newValue.persist()
-            onPreferencesChange()
-        }
     }
 }
 
@@ -47,7 +41,6 @@ struct ChapterReadingSettingsSheet: View {
     @Binding var fontScale: Double
     @Binding var showTranslation: Bool
     @Binding var selectedRecitationId: Int
-    @Binding var selectedArabicTextStyle: QuranArabicTextStyle
     let recitations: [RecitationPayload]
     let isLoadingRecitations: Bool
     let isApplyingPreferences: Bool
@@ -59,7 +52,6 @@ struct ChapterReadingSettingsSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                arabicScriptSection
                 recitationSection
 
                 Section {
@@ -93,29 +85,6 @@ struct ChapterReadingSettingsSheet: View {
         .presentationDetents([.medium, .large])
     }
 
-    private var arabicScriptSection: some View {
-        Section {
-            Picker("Arabic script", selection: $selectedArabicTextStyle) {
-                ForEach(QuranArabicTextStyle.allCases) { style in
-                    Text(style.displayName).tag(style)
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(isApplyingPreferences)
-
-            if isApplyingPreferences {
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text("Loading verses…")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        } footer: {
-            Text("Fetches and updates Arabic text immediately when you change script.")
-        }
-    }
-
     private var recitationSection: some View {
         Section {
             if isLoadingRecitations && recitations.isEmpty {
@@ -137,6 +106,15 @@ struct ChapterReadingSettingsSheet: View {
                 }
                 .pickerStyle(.menu)
                 .disabled(isApplyingPreferences)
+            }
+
+            if isApplyingPreferences {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Loading verses…")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
         } footer: {
             Text("Updates audio for all verses in this surah.")

@@ -17,7 +17,6 @@ private enum QuranVerseContentQuery {
 
     static func items(
         recitationId: Int = defaultRecitationId,
-        arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed,
         page: Int? = nil,
         perPage: Int? = nil
     ) -> [URLQueryItem] {
@@ -25,7 +24,7 @@ private enum QuranVerseContentQuery {
             URLQueryItem(name: "language", value: language),
             URLQueryItem(name: "translations", value: translations),
             URLQueryItem(name: "audio", value: String(recitationId)),
-            URLQueryItem(name: "fields", value: arabicTextStyle.rawValue),
+            URLQueryItem(name: "fields", value: QuranVerseArabic.apiFields),
             URLQueryItem(name: "translation_fields", value: translationFields)
         ]
         if let page {
@@ -57,13 +56,11 @@ struct QuranContentRepository: Sendable {
     func getVersesByChapter(
         chapterNumber: Int,
         recitationId: Int = QuranVerseContentQuery.defaultRecitationId,
-        arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed,
         page: Int = 1,
         perPage: Int = 50
     ) async throws -> VersesByChapterResponse {
         let query = QuranVerseContentQuery.items(
             recitationId: recitationId,
-            arabicTextStyle: arabicTextStyle,
             page: page,
             perPage: perPage
         )
@@ -73,10 +70,9 @@ struct QuranContentRepository: Sendable {
     }
 
     func getRandomAyah(
-        recitationId: Int = QuranVerseContentQuery.defaultRecitationId,
-        arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed
+        recitationId: Int = QuranVerseContentQuery.defaultRecitationId
     ) async throws -> RandomAyahResponse {
-        let query = QuranVerseContentQuery.items(recitationId: recitationId, arabicTextStyle: arabicTextStyle)
+        let query = QuranVerseContentQuery.items(recitationId: recitationId)
 
         var attempt = 0
         let maxAttempts = 3

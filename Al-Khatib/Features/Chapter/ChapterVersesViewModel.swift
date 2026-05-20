@@ -22,7 +22,6 @@ final class ChapterVersesViewModel {
     var errorMessage: String?
     var recitations: [RecitationPayload] = []
     var selectedRecitationId: Int
-    var selectedArabicTextStyle: QuranArabicTextStyle
 
     var surahDisplayTitle: String { chapter.displayComplexName }
     var reciterDisplayName: String {
@@ -38,7 +37,6 @@ final class ChapterVersesViewModel {
         self.content = content
         let saved = UserDefaults.standard.integer(forKey: Self.recitationStorageKey)
         selectedRecitationId = saved > 0 ? saved : Self.defaultRecitationId
-        selectedArabicTextStyle = QuranArabicTextStyle.savedOrDefault()
     }
 
     func loadInitial() async {
@@ -68,7 +66,6 @@ final class ChapterVersesViewModel {
     func applyContentPreferencesChange() async {
         guard isReloadingContent == false else { return }
         UserDefaults.standard.set(selectedRecitationId, forKey: Self.recitationStorageKey)
-        selectedArabicTextStyle.persist()
         isReloadingContent = true
         defer { isReloadingContent = false }
 
@@ -82,7 +79,6 @@ final class ChapterVersesViewModel {
                 let response = try await content.getVersesByChapter(
                     chapterNumber: chapter.id,
                     recitationId: selectedRecitationId,
-                    arabicTextStyle: selectedArabicTextStyle,
                     page: page,
                     perPage: 50
                 )
@@ -146,7 +142,6 @@ final class ChapterVersesViewModel {
             let response = try await content.getVersesByChapter(
                 chapterNumber: chapter.id,
                 recitationId: selectedRecitationId,
-                arabicTextStyle: selectedArabicTextStyle,
                 page: page,
                 perPage: 50
             )
