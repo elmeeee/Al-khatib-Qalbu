@@ -173,7 +173,11 @@ struct ReflectionView: View {
         }
 
         if vm == nil, let container {
-            vm = ReflectionViewModel(reflect: container.reflect)
+            let m = ReflectionViewModel(reflect: container.reflect)
+            m.onSessionInvalidated = { @MainActor in
+                await container.clearUserSession()
+            }
+            vm = m
         }
         container?.warmReflectDataIfSignedIn()
         vm?.scheduleLoad(refresh: true, force: false)
@@ -194,7 +198,11 @@ struct ReflectionView: View {
 
     private func bootstrapFeed(force: Bool = false) async {
         if let c = container, vm == nil {
-            vm = ReflectionViewModel(reflect: c.reflect)
+            let m = ReflectionViewModel(reflect: c.reflect)
+            m.onSessionInvalidated = { @MainActor in
+                await c.clearUserSession()
+            }
+            vm = m
         }
         vm?.scheduleLoad(refresh: true, force: force)
 

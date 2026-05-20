@@ -41,6 +41,10 @@ final class ReflectionViewModel {
 
     private let reflect: ReflectRepository
     private let pageSize = 8
+    /// Cap in-memory post payloads (bodies + metadata) when users page deep in the reel.
+    private let maxPostsKept = 72
+    /// Clears Reflect session (Keychain + caches) so UI returns to sign-in when API returns 401/403.
+    var onSessionInvalidated: (@MainActor () async -> Void)?
     private var loadTask: Task<Void, Never>?
     private var loadGeneration: UInt = 0
     private var togglingLikePostIDs: Set<String> = []
@@ -112,25 +116,44 @@ final class ReflectionViewModel {
                 posts = rows
             } else {
                 posts.append(contentsOf: rows)
+                trimPostsIfNeeded()
             }
             errorMessage = nil
         } catch QFError.missingUserSession {
             if Task.isCancelled { return }
             if let generation, generation != loadGeneration { return }
-            posts = []
-            errorMessage = segment == .myPosts
-                ? "Sign in to see your reflections."
-                : "Sign in to see the Reflect feed."
+            await handleReflectAuthenticationFailure()
         } catch {
             if Task.isCancelled { return }
             if let generation, generation != loadGeneration { return }
+            if TodayVerseState.isAuthenticationFailure(error) {
+                await handleReflectAuthenticationFailure()
+                return
+            }
             if refresh { posts = [] }
             errorMessage = Self.userFacingMessage(for: error, segment: segment)
         }
     }
 
+    /// Drop feed state and sign out locally so Reflect shows the login prompt (401 / 403 / expired token).
+    private func handleReflectAuthenticationFailure() async {
+        posts = []
+        errorMessage = nil
+        currentPage = 1
+        totalPages = 1
+        await onSessionInvalidated?()
+    }
+
     func showMyPostsAfterPublish() {
         onSegmentChanged(to: .myPosts)
+    }
+
+    private func trimPostsIfNeeded() {
+        guard posts.count > maxPostsKept else { return }
+        let target = maxPostsKept - pageSize
+        let remove = posts.count - target
+        guard remove > 0 else { return }
+        posts.removeFirst(remove)
     }
 
     private static func userFacingMessage(for error: Error, segment: ReflectPostsSegment) -> String {
@@ -179,9 +202,13 @@ final class ReflectionViewModel {
         } catch QFError.missingUserSession {
             posts[index].isLiked = wasLiked
             posts[index].likesCount = previousCount
+            await handleReflectAuthenticationFailure()
         } catch {
             posts[index].isLiked = wasLiked
             posts[index].likesCount = previousCount
+            if TodayVerseState.isAuthenticationFailure(error) {
+                await handleReflectAuthenticationFailure()
+            }
         }
     }
 
@@ -233,9 +260,15 @@ final class ReflectionViewModel {
             NotificationCenter.default.post(name: .reflectDidPost, object: nil)
             return "Reflection posted!"
         } catch QFError.missingUserSession {
-            shareError = "Please sign in first."
+            shareError = "Please sign in again."
+            await handleReflectAuthenticationFailure()
             return "Sign in to post a reflection."
         } catch {
+            if TodayVerseState.isAuthenticationFailure(error) {
+                shareError = "Please sign in again."
+                await handleReflectAuthenticationFailure()
+                return "Sign in to post a reflection."
+            }
             shareError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             return "Post failed: \(shareError ?? "Unknown error")"
         }

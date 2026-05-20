@@ -83,6 +83,21 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         return max(0, min(1, now.timeIntervalSince(start) / end.timeIntervalSince(start)))
     }
 
+    private var cachedNightDivisions: [NightDivisionEntry] = []
+    private var cachedImsakEntry: PrayerEntry? = nil
+
+    private var isAdzanEnabled: Bool {
+        UserDefaults.standard.object(forKey: "adzanNotificationsEnabled") as? Bool ?? true
+    }
+    
+    private var isImsakEnabled: Bool {
+        UserDefaults.standard.object(forKey: "imsakNotificationsEnabled") as? Bool ?? true
+    }
+    
+    private var isTahajudEnabled: Bool {
+        UserDefaults.standard.object(forKey: "tahajudNotificationsEnabled") as? Bool ?? true
+    }
+
     override init() {
         calculationMethod = PrayerCalculationMethod.savedOrDefault()
         super.init()
@@ -100,6 +115,33 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
             .sink { [weak self] _ in
                 self?.applyCalculationMethodFromStorage(andRefetch: true)
             }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleUserDefaultsChange),
+            name: UserDefaults.didChangeNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleUserDefaultsChange() {
+        guard !todaySchedule.isEmpty else { return }
+        let prayers = todaySchedule
+        let imsak = cachedImsakEntry
+        let night = cachedNightDivisions
+        let adzan = isAdzanEnabled
+        let imsakOn = isImsakEnabled
+        let tahajud = isTahajudEnabled
+        Task {
+            await notificationScheduler.schedule(
+                prayers: prayers,
+                imsakEntry: imsak,
+                nightDivisions: night,
+                adzanEnabled: adzan,
+                imsakEnabled: imsakOn,
+                tahajudEnabled: tahajud
+            )
+        }
     }
 
     func setCalculationMethod(_ method: PrayerCalculationMethod) {
@@ -305,12 +347,24 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         scheduleAnchorDate = calendar.startOfDay(for: scheduleDay)
         refreshPublishedPrayerState(at: now)
 
+        cachedNightDivisions = nightDivisions
+        cachedImsakEntry = resolve("Imsak").map { PrayerEntry(name: "Imsak", date: $0) }
+
         let prayerSnapshot = todaySchedule
-        let nightSnapshot = nightDivisions
+        let imsakSnapshot = cachedImsakEntry
+        let nightSnapshot = cachedNightDivisions
+        let adzan = isAdzanEnabled
+        let imsakOn = isImsakEnabled
+        let tahajud = isTahajudEnabled
+
         Task {
             await notificationScheduler.schedule(
                 prayers: prayerSnapshot,
-                nightDivisions: nightSnapshot
+                imsakEntry: imsakSnapshot,
+                nightDivisions: nightSnapshot,
+                adzanEnabled: adzan,
+                imsakEnabled: imsakOn,
+                tahajudEnabled: tahajud
             )
         }
         return true

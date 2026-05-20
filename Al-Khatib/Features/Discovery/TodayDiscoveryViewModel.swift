@@ -32,6 +32,7 @@ final class TodayDiscoveryViewModel {
     private let randomAyahRefreshInterval: TimeInterval = 60 * 60
     private var shareTextCache: [String: String] = [:]
     private var shareTafsirCache: [String: String] = [:]
+    private let maxShareCacheEntries = 24
 
     init(content: QuranContentRepository) {
         self.content = content
@@ -139,6 +140,7 @@ final class TodayDiscoveryViewModel {
         guard shareTextCache[cacheKey] == nil else { return }
         let text = await prepareShareText(for: verse)
         shareTextCache[cacheKey] = text
+        trimShareCachesIfNeeded()
     }
 
     func cachedShareText(for verse: RandomAyahPayload) -> String? {
@@ -206,6 +208,7 @@ final class TodayDiscoveryViewModel {
 
         if let cacheKey {
             shareTextCache[cacheKey] = final
+            trimShareCachesIfNeeded()
         }
         return final
     }
@@ -233,6 +236,7 @@ final class TodayDiscoveryViewModel {
             } else {
                 self.shareTafsirCache[ayahKey] = ""
             }
+            self.trimShareCachesIfNeeded()
             return value
         }
     }
@@ -246,6 +250,17 @@ final class TodayDiscoveryViewModel {
         if let key = resolvedAyahKey(for: verse) { return key }
         if let id = verse.id { return "id-\(id)" }
         return nil
+    }
+
+    private func trimShareCachesIfNeeded() {
+        while shareTextCache.count > maxShareCacheEntries {
+            guard let key = shareTextCache.keys.first else { break }
+            shareTextCache.removeValue(forKey: key)
+        }
+        while shareTafsirCache.count > maxShareCacheEntries {
+            guard let key = shareTafsirCache.keys.first else { break }
+            shareTafsirCache.removeValue(forKey: key)
+        }
     }
 
     private func buildFaithfulShareText(

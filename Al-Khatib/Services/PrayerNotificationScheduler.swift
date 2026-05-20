@@ -38,6 +38,8 @@ private enum PrayerNotificationCopy {
             return "The sun just set. This one can't wait."
         case "Isha":
             return "End your day the right way."
+        case "Imsak":
+            return "Prepare for your fast. The dawn is near."
         default:
             return "It is now time for the \(prayerName) prayer."
         }
@@ -101,7 +103,14 @@ final class PrayerNotificationScheduler {
         }
     }
 
-    func schedule(prayers: [PrayerEntry], nightDivisions: [NightDivisionEntry]) async {
+    func schedule(
+        prayers: [PrayerEntry],
+        imsakEntry: PrayerEntry?,
+        nightDivisions: [NightDivisionEntry],
+        adzanEnabled: Bool,
+        imsakEnabled: Bool,
+        tahajudEnabled: Bool
+    ) async {
         guard await requestAuthorizationIfNeeded() else {
             prayerNotifLog.debug("Skipping notifications — authorization not granted")
             return
@@ -119,20 +128,38 @@ final class PrayerNotificationScheduler {
         let calendar = Calendar.current
         var scheduledCount = 0
 
-        for prayer in prayers {
-            for fireDate in Self.upcomingOccurrences(of: prayer.date, from: now, calendar: calendar) {
-                let id = "\(prayerPrefix).\(prayer.name).\(Int(fireDate.timeIntervalSince1970))"
+        if adzanEnabled {
+            for prayer in prayers {
+                for fireDate in Self.upcomingOccurrences(of: prayer.date, from: now, calendar: calendar) {
+                    let id = "\(prayerPrefix).\(prayer.name).\(Int(fireDate.timeIntervalSince1970))"
+                    await addNotification(
+                        identifier: id,
+                        fireDate: fireDate,
+                        title: PrayerNotificationCopy.title(for: prayer.name, at: fireDate),
+                        body: PrayerNotificationCopy.body(for: prayer.name)
+                    )
+                    scheduledCount += 1
+                }
+            }
+        }
+
+        if imsakEnabled, let imsak = imsakEntry {
+            for fireDate in Self.upcomingOccurrences(of: imsak.date, from: now, calendar: calendar) {
+                let id = "\(prayerPrefix).Imsak.\(Int(fireDate.timeIntervalSince1970))"
                 await addNotification(
                     identifier: id,
                     fireDate: fireDate,
-                    title: PrayerNotificationCopy.title(for: prayer.name, at: fireDate),
-                    body: PrayerNotificationCopy.body(for: prayer.name)
+                    title: PrayerNotificationCopy.title(for: "Imsak", at: fireDate),
+                    body: PrayerNotificationCopy.body(for: "Imsak")
                 )
                 scheduledCount += 1
             }
         }
 
         for division in nightDivisions {
+            if division.kind == .lastThird && !tahajudEnabled {
+                continue
+            }
             for fireDate in Self.upcomingOccurrences(of: division.date, from: now, calendar: calendar) {
                 let id = "\(nightPrefix).\(division.kind.rawValue).\(Int(fireDate.timeIntervalSince1970))"
                 await addNotification(

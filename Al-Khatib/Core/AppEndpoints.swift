@@ -79,6 +79,7 @@ enum AppEndpoints {
             "verses/by_chapter/\(chapterNumber)"
         }
         static let resourcesRecitations = "resources/recitations"
+        static let resourcesTranslations = "resources/translations"
         static func verseByKey(_ key: String) -> String { "verses/by_key/\(key)" }
         static func hadithsByAyah(_ ayahKey: String) -> String {
             "hadith_references/by_ayah/\(ayahKey)/hadiths"

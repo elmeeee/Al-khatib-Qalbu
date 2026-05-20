@@ -411,7 +411,9 @@ struct ChapterVersesView: View {
                 let pageHeight = pagerGeo.size.height
 
                 ScrollView(.vertical) {
-                    VStack(spacing: 0) {
+                    // LazyVStack is required: each ayah embeds a WKWebView (Arabic tajweed). A plain VStack
+                    // instantiates every page at once and can exhaust memory on long surahs (e.g. Al-Baqarah).
+                    LazyVStack(spacing: 0) {
                         ChapterIntroPage(
                             chapter: chapter,
                             isPreparingPlayAll: bindable.isPreparingPlayAll,

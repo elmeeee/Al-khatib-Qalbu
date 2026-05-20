@@ -10,7 +10,7 @@ import Foundation
 import UserNotifications
 
 final class PrayerNotificationCenterDelegate: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
-    nonisolated(unsafe) static let shared = PrayerNotificationCenterDelegate()
+    static let shared = PrayerNotificationCenterDelegate()
 
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,

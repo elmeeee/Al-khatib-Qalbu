@@ -355,3 +355,21 @@ struct ContentPagination: Decodable, Sendable {
         return nextPage > currentPage
     }
 }
+
+struct QFTranslation: Decodable, Identifiable, Hashable, Sendable {
+    let id: Int
+    let name: String
+    let authorName: String
+    let slug: String
+    let languageName: String
+    let translatedName: TranslatedName?
+
+    struct TranslatedName: Decodable, Hashable, Sendable {
+        let name: String
+        let languageName: String
+    }
+}
+
+struct TranslationsResponse: Decodable, Sendable {
+    let translations: [QFTranslation]
+}

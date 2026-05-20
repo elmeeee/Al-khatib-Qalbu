@@ -13,6 +13,7 @@ enum QuranContentEndpoint: QFEndpoint {
     case versesByChapter(chapterNumber: Int, query: [URLQueryItem])
     case randomAyah(query: [URLQueryItem])
     case resourcesRecitations(query: [URLQueryItem])
+    case resourcesTranslations(query: [URLQueryItem])
     case tafsirByAyah(resourceId: String, ayahKey: String, query: [URLQueryItem])
     case hadithsByAyah(ayahKey: String, query: [URLQueryItem])
 
@@ -29,6 +30,8 @@ enum QuranContentEndpoint: QFEndpoint {
             return AppEndpoints.Content.versesRandom
         case .resourcesRecitations:
             return AppEndpoints.Content.resourcesRecitations
+        case .resourcesTranslations:
+            return AppEndpoints.Content.resourcesTranslations
         case .tafsirByAyah(let resourceId, let ayahKey, _):
             return AppEndpoints.Content.tafsirByAyah(resourceId: resourceId, ayahKey: ayahKey)
         case .hadithsByAyah(let ayahKey, _):
@@ -42,6 +45,7 @@ enum QuranContentEndpoint: QFEndpoint {
              .versesByChapter(_, let query),
              .randomAyah(let query),
              .resourcesRecitations(let query),
+             .resourcesTranslations(let query),
              .tafsirByAyah(_, _, let query),
              .hadithsByAyah(_, let query):
             return query

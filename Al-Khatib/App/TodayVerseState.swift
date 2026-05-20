@@ -209,9 +209,13 @@ final class TodayVerseState {
     static func isAuthenticationFailure(_ error: Error) -> Bool {
         if case QFError.missingUserSession = error { return true }
         if case QFError.authExpired = error { return true }
+        if case QFError.sessionForbidden = error { return true }
         if let qf = error as? QFError, case .parsingError(let detail) = qf {
             let lower = detail.lowercased()
-            if lower.contains("http 401") || lower.contains("invalid_grant") || lower.contains("invalid_token") {
+            if lower.contains("http 401")
+                || lower.contains("http 403")
+                || lower.contains("invalid_grant")
+                || lower.contains("invalid_token") {
                 return true
             }
         }

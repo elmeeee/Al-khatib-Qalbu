@@ -10,7 +10,10 @@ import Foundation
 
 private enum QuranVerseContentQuery {
     static let language = "en"
-    static let translations = "85"
+    static var translations: String {
+        let savedId = UserDefaults.standard.integer(forKey: "chapterReaderTranslationId")
+        return savedId > 0 ? String(savedId) : "131"
+    }
     static let defaultRecitationId = 6
     static let translationFields = "resource_name"
 
@@ -135,6 +138,15 @@ struct QuranContentRepository: Sendable {
             QuranContentEndpoint.resourcesRecitations(query: query)
         )
     }
+
+    func getTranslations(language: String = "en") async throws -> TranslationsResponse {
+        let query: [URLQueryItem] = [
+            URLQueryItem(name: "language", value: language)
+        ]
+        return try await client.send(
+            QuranContentEndpoint.resourcesTranslations(query: query)
+        )
+    }
 }
 
 /// One in-flight request + short in-memory cache so Today (prefetch + share + sheet) does not
@@ -173,10 +185,17 @@ private actor TafsirByAyahCache {
     }
 
     private func pruneMemoryIfNeeded() {
-        guard memory.count > 80 else { return }
+        let maxEntries = 32
+        guard memory.count > maxEntries else { return }
         let now = Date()
         memory = memory.filter { _, pair in
             now.timeIntervalSince(pair.1) < ttl
+        }
+        guard memory.count > maxEntries else { return }
+        let keysByAge = memory.sorted { $0.value.1 < $1.value.1 }.map(\.key)
+        let toRemove = max(0, memory.count - 24)
+        for key in keysByAge.prefix(toRemove) {
+            memory.removeValue(forKey: key)
         }
     }
 }

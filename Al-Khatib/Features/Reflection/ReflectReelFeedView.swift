@@ -137,7 +137,7 @@ struct ReflectReelFeedView: View {
                     .foregroundStyle(.white.opacity(0.7))
             }
 
-            Text(segment == .myPosts ? "Couldn\u{2019}t load your reflections" : "Couldn\u{2019}t load the feed")
+            Text(segment == .myPosts ? "Couldn\u{2019}t load your reflections" : "Couldn\u{2019}t load all reflections")
                 .font(.title3.bold())
                 .foregroundStyle(.white)
 

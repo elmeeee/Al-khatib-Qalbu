@@ -24,11 +24,13 @@ struct Al_KhatibApp: App {
         }
     }
 
+    @AppStorage("isDarkMode") private var isDarkMode = false
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.appContainer, appContainer)
-                .preferredColorScheme(.light)
+                .preferredColorScheme(isDarkMode ? .dark : .light)
                 .onOpenURL { url in
                     Task { await appContainer.oauth.handleIncomingCallback(url) }
                 }

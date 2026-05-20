@@ -28,6 +28,9 @@ final class TafsirPresenter {
 
     private var activeAyahKey: String?
     private var cache: [String: CachedTafsir] = [:]
+    /// Full tafsir HTML is large; unbounded cache + prefetch caused OOM while scrolling long surahs.
+    private var cacheAccessOrder: [String] = []
+    private let maxCachedAyahs = 12
     private let content: QuranContentRepository
     private let resourceId: String
 
@@ -74,13 +77,28 @@ final class TafsirPresenter {
     }
 
     private func loadCached(ayahKey: String) async throws -> CachedTafsir {
-        if let cached = cache[ayahKey] { return cached }
+        if let cached = cache[ayahKey] {
+            cacheAccessOrder.removeAll { $0 == ayahKey }
+            cacheAccessOrder.append(ayahKey)
+            return cached
+        }
         let response = try await content.getTafsirByAyah(resourceId: resourceId, ayahKey: ayahKey)
         let html = response.tafsir?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let plainText = response.tafsir?.textStrippingHTML?.trimmingCharacters(in: .whitespacesAndNewlines)
         let sourceName = response.tafsir?.resourceName ?? "Tafsir Ibn Kathir (English)"
         let result = CachedTafsir(html: html, plainText: plainText, sourceName: sourceName)
-        cache[ayahKey] = result
+        rememberCache(ayahKey: ayahKey, result: result)
         return result
+    }
+
+    private func rememberCache(ayahKey: String, result: CachedTafsir) {
+        cache[ayahKey] = result
+        cacheAccessOrder.removeAll { $0 == ayahKey }
+        cacheAccessOrder.append(ayahKey)
+        while cacheAccessOrder.count > maxCachedAyahs {
+            guard let victim = cacheAccessOrder.first(where: { $0 != activeAyahKey }) else { break }
+            cacheAccessOrder.removeAll { $0 == victim }
+            cache.removeValue(forKey: victim)
+        }
     }
 }

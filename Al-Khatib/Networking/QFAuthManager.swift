@@ -138,6 +138,9 @@ func validateHTTP(_ response: URLResponse, data: Data, expectedMinStatus: Int, e
     if http.statusCode == QFHTTPStatus.unauthorized {
         throw QFError.authExpired
     }
+    if http.statusCode == QFHTTPStatus.forbidden {
+        throw QFError.sessionForbidden
+    }
     guard (expectedMinStatus...expectedMaxStatus).contains(http.statusCode) else {
         if let message = extractAPIErrorMessage(from: data), message.isEmpty == false {
             throw QFError.parsingError("http \(http.statusCode) \(message)")
