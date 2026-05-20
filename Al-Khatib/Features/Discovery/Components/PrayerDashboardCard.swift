@@ -57,6 +57,17 @@ struct PrayerDashboardCard: View {
         }
         .padding(.horizontal, 20)
         .animation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0), value: viewModel.activeTheme)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(prayerSpokenSummary)
+        .accessibilityHint("Prayer schedule for Muslims. Countdown updates automatically.")
+    }
+
+    private var prayerSpokenSummary: String {
+        guard viewModel.mappedPrayers.isEmpty == false, viewModel.isLoading == false else {
+            return "Loading prayer times"
+        }
+        let city = viewModel.cityName ?? "your location"
+        return "Next prayer \(viewModel.nextPrayerDisplayName) in \(viewModel.countdownString). Location \(city)."
     }
     
     @ViewBuilder

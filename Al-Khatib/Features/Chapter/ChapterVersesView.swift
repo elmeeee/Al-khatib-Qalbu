@@ -356,13 +356,18 @@ struct ChapterVersesView: View {
     }
 
     private func headerIconButton(systemName: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        let label = systemName == "chevron.left"
+            ? AlKhatibAccessibility.Reader.back
+            : AlKhatibAccessibility.Reader.settings
+        let hint = systemName == "gearshape.fill" ? AlKhatibAccessibility.Reader.settingsHint : nil
+        return Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.white)
                 .frame(width: 40, height: 40)
                 .background(Circle().fill(Color.white.opacity(0.12)))
         }
+        .alKhatibAccessibility(label: label, hint: hint)
     }
 
     private var tafsirSheetBinding: Binding<Bool> {

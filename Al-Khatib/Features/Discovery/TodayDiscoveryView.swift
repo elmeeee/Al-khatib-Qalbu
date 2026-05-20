@@ -188,6 +188,9 @@ struct TodayDiscoveryView: View {
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                .refreshable {
+                    await refreshToday(vm: vm)
+                }
             }
         }
         .background(Color.Theme.deepEmerald.ignoresSafeArea(edges: .top))
@@ -210,6 +213,7 @@ struct TodayDiscoveryView: View {
                 Text("Verse of the Day")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(Color.Theme.deepEmerald)
+                    .accessibilityAddTraits(.isHeader)
                 
                 Spacer()
             }
@@ -219,6 +223,7 @@ struct TodayDiscoveryView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(Color.Theme.deepEmerald.opacity(0.6))
                     .padding(.leading, 22)
+                    .accessibilityAddTraits(.isHeader)
             }
             
             HStack(spacing: 0) {
@@ -260,9 +265,13 @@ struct TodayDiscoveryView: View {
             ornamentalDivider
                 .padding(.horizontal, 24)
                 .padding(.top, 14)
+                .accessibilityHidden(true)
             
             VStack(alignment: .trailing, spacing: 0) {
-                AyahArabicWebBlock(payload: d)
+                AyahArabicWebBlock(
+                    payload: d,
+                    includeTranslationInAccessibility: showTranslation
+                )
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 12)
                     .padding(.horizontal, 20)
@@ -310,6 +319,7 @@ struct TodayDiscoveryView: View {
             ornamentalDivider
                 .padding(.horizontal, 24)
                 .padding(.bottom, 14)
+                .accessibilityHidden(true)
             
             actionButtonRow(for: d)
                 .padding(.horizontal, 16)
@@ -341,6 +351,16 @@ struct TodayDiscoveryView: View {
                 )
         )
         .shadow(color: Color.Theme.deepEmerald.opacity(0.06), radius: 12, x: 0, y: 6)
+    }
+
+    private func refreshToday(vm: TodayDiscoveryViewModel?) async {
+        async let prayerRefresh: Void = prayer.forceRefresh()
+        async let ayahRefresh: Void = {
+            if let vm {
+                await vm.refreshDailyAyah()
+            }
+        }()
+        _ = await (prayerRefresh, ayahRefresh)
     }
     
     private var ornamentalDivider: some View {
@@ -383,7 +403,11 @@ struct TodayDiscoveryView: View {
             actionPill(
                 icon: "speaker.wave.2.fill",
                 text: "Audio",
-                tint: Color.Theme.deepEmerald
+                tint: Color.Theme.deepEmerald,
+                accessibilityHint: AlKhatibAccessibility.VerseActions.audio(
+                    hint: viewModel?.recitations
+                        .first(where: { $0.id == viewModel?.selectedRecitationId })?.displayName ?? ""
+                )
             ) {
                 if let u = d.audio?.url {
                     let reciterLabel = viewModel?.recitations
@@ -402,7 +426,8 @@ struct TodayDiscoveryView: View {
             actionPill(
                 icon: "square.and.arrow.up",
                 text: "Share",
-                tint: Color(hex: "#2563EB")
+                tint: Color(hex: "#2563EB"),
+                accessibilityHint: AlKhatibAccessibility.VerseActions.shareHint
             ) {
                 guard !isGeneratingShare else { return }
                 isGeneratingShare = true
@@ -415,7 +440,8 @@ struct TodayDiscoveryView: View {
             actionPill(
                 icon: "lightbulb.fill",
                 text: "Reflect",
-                tint: Color.Theme.gold
+                tint: Color.Theme.gold,
+                accessibilityHint: AlKhatibAccessibility.VerseActions.reflectHint
             ) {
                 guard !isPostingReflection, !isGeneratingShare else { return }
                 Task { await publishReflection(for: d) }
@@ -424,7 +450,8 @@ struct TodayDiscoveryView: View {
             actionPill(
                 icon: "book.closed.fill",
                 text: "Tafsir",
-                tint: Color(hex: "#4F46E5")
+                tint: Color(hex: "#4F46E5"),
+                accessibilityHint: AlKhatibAccessibility.VerseActions.tafsirHint
             ) {
                 openTafsir(for: d)
             }
@@ -432,7 +459,13 @@ struct TodayDiscoveryView: View {
     }
     
     @ViewBuilder
-    private func actionPill(icon: String, text: String, tint: Color, action: @escaping () -> Void) -> some View {
+    private func actionPill(
+        icon: String,
+        text: String,
+        tint: Color,
+        accessibilityHint: String? = nil,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
@@ -453,6 +486,7 @@ struct TodayDiscoveryView: View {
             )
         }
         .buttonStyle(PillPressStyle())
+        .alKhatibAccessibility(label: text, hint: accessibilityHint)
     }
 
     @MainActor
@@ -551,6 +585,8 @@ extension TodayDiscoveryView {
                         .padding(.leading, 2)
                 }
                 .foregroundColor(Color.Theme.deepEmerald)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(AlKhatibAccessibility.Today.location), \(prayer.cityName ?? "")")
             }
 
             Spacer()
@@ -561,6 +597,10 @@ extension TodayDiscoveryView {
                 profileAvatarIcon
             }
             .disabled(verseState.isLoggingIn)
+            .alKhatibAccessibility(
+                label: AlKhatibAccessibility.Today.account,
+                hint: AlKhatibAccessibility.Today.accountHint
+            )
         }
         .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
         .padding(.top, 16)
@@ -648,6 +688,13 @@ private struct RotatingPrayerDateLabel: View {
         return nil
     }
 
+    private var dateAccessibilityLabel: String {
+        var parts: [String] = []
+        if let hijri, hijri.isEmpty == false { parts.append("Hijri date \(hijri)") }
+        if let gregorian, gregorian.isEmpty == false { parts.append("Gregorian date \(gregorian)") }
+        return parts.isEmpty ? "Date" : parts.joined(separator: ". ")
+    }
+
     var body: some View {
         Group {
             if let displayedText {
@@ -661,6 +708,7 @@ private struct RotatingPrayerDateLabel: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
+        .accessibilityLabel(dateAccessibilityLabel)
         .onReceive(
             Timer.publish(every: interval, on: .main, in: .common).autoconnect()
         ) { _ in

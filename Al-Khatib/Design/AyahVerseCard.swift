@@ -76,6 +76,7 @@ struct AyahVerseCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.Theme.softGrey, lineWidth: 1)
         )
+        .accessibilityElement(children: .contain)
     }
 
     private func actionButton(icon: String, text: String, action: @escaping () -> Void) -> some View {
@@ -90,5 +91,11 @@ struct AyahVerseCard: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
+        .alKhatibAccessibility(
+            label: text,
+            hint: text == "Audio"
+                ? AlKhatibAccessibility.VerseActions.audio(hint: "")
+                : AlKhatibAccessibility.VerseActions.tafsirHint
+        )
     }
 }

@@ -46,6 +46,8 @@ struct SignInPromptView: View {
             .buttonStyle(.primaryFlat)
             .disabled(isLoading)
             .padding(.horizontal, 4)
+            .accessibilityLabel(isLoading ? "Signing in" : "Continue with Quran Reflect")
+            .accessibilityHint("Sign in to save reflections and sync your profile")
 
             Spacer(minLength: 24)
         }

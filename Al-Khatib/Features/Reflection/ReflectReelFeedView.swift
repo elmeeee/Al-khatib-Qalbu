@@ -156,6 +156,7 @@ struct ReflectReelFeedView: View {
                     .background(.white)
                     .clipShape(Capsule())
             }
+            .alKhatibAccessibility(label: AlKhatibAccessibility.Reflect.tryAgain)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -235,6 +236,10 @@ private struct ReflectFeedTabBar: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(
+                    AlKhatibAccessibility.Reflect.segmentTab(segment.title, isSelected: isSelected)
+                )
+                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
             }
         }
         .padding(4)
@@ -334,6 +339,7 @@ private struct ReflectReelPage: View {
         }
         .frame(height: pageHeight)
         .clipped()
+        .accessibilityHint(AlKhatibAccessibility.Reflect.scrollPosts)
     }
 
     private var profileSection: some View {
@@ -381,6 +387,9 @@ private struct ReflectReelPage: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.bottom, 8)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(post.spokenAccessibilitySummary)
+        .accessibilityAddTraits(.isStaticText)
     }
 
     private var authorRow: some View {
@@ -417,6 +426,10 @@ private struct ReflectReelPage: View {
             reelActionButton(
                 icon: post.isLiked == true ? "heart.fill" : "heart",
                 label: formatCount(post.likesCount),
+                accessibilityLabel: AlKhatibAccessibility.Reflect.like(
+                    isLiked: post.isLiked == true,
+                    count: post.likesCount ?? 0
+                ),
                 isHighlighted: post.isLiked == true,
                 isLoading: isTogglingLike,
                 action: onToggleLike
@@ -432,6 +445,7 @@ private struct ReflectReelPage: View {
     private func reelActionButton(
         icon: String,
         label: String,
+        accessibilityLabel: String,
         isHighlighted: Bool,
         isLoading: Bool = false,
         action: (() -> Void)? = nil
@@ -483,6 +497,7 @@ private struct ReflectReelPage: View {
         }
         .buttonStyle(.plain)
         .disabled(action == nil || isLoading)
+        .accessibilityLabel(accessibilityLabel)
     }
 
     @ViewBuilder

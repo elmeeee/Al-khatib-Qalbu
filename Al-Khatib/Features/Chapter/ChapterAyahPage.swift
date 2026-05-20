@@ -60,7 +60,8 @@ struct ChapterAyahPage: View {
                             payload: verse,
                             style: .verseCardOnDark,
                             fontScale: effectiveFontScale,
-                            measuredHeight: $arabicMeasuredHeight
+                            measuredHeight: $arabicMeasuredHeight,
+                            includeTranslationInAccessibility: showTranslation
                         )
                         .padding(.horizontal, 8)
 
@@ -82,6 +83,17 @@ struct ChapterAyahPage: View {
                 .padding(.bottom, chromeInsets.bottom)
                 .frame(width: geometry.size.width, height: availableHeight, alignment: .top)
                 .contentShape(Rectangle())
+                .accessibilityAddTraits(hasAudio ? .isButton : [])
+                .accessibilityLabel(
+                    hasAudio
+                        ? (isPlaying ? "Pause ayah recitation" : "Play ayah recitation")
+                        : verse.spokenAccessibilitySummary(includeTranslation: showTranslation)
+                )
+                .accessibilityHint(
+                    hasAudio
+                        ? "Double tap to play or pause. Arabic with tajweed is shown on screen."
+                        : ""
+                )
                 .onTapGesture {
                     guard hasAudio else { return }
                     onTapScreen()

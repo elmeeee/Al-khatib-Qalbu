@@ -54,6 +54,10 @@ struct ProfileView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .alKhatibAccessibility(
+                                label: AlKhatibAccessibility.Profile.fontSize,
+                                hint: "Current size \(fontScaleLabel). Opens font size picker"
+                            )
                         }
                         .background(Color.Theme.pureWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -86,6 +90,12 @@ struct ProfileView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .alKhatibAccessibility(
+                                label: AlKhatibAccessibility.Profile.translator,
+                                hint: selectedTranslationName.isEmpty
+                                    ? "Choose translation language for Quran text"
+                                    : "Current translator \(selectedTranslationName)"
+                            )
                         }
                         .background(Color.Theme.pureWhite)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -287,6 +297,10 @@ struct ProfileView: View {
             }
             .buttonStyle(PillPressStyle())
             .disabled(isOAuthPresenting)
+            .alKhatibAccessibility(
+                label: AlKhatibAccessibility.Profile.signIn,
+                hint: "Back up reflections and sync your profile"
+            )
         }
         .padding(16)
         .background(Color.Theme.pureWhite)
@@ -319,6 +333,7 @@ struct ProfileView: View {
             .font(.system(size: 15, weight: .bold))
             .foregroundColor(slateBlueColor)
             .padding(.leading, 4)
+            .accessibilityAddTraits(.isHeader)
     }
 
     private var logOutButton: some View {
@@ -344,6 +359,7 @@ struct ProfileView: View {
         .buttonStyle(PillPressStyle())
         .disabled(isOAuthPresenting)
         .opacity(isOAuthPresenting ? 0.5 : 1)
+        .alKhatibAccessibility(label: AlKhatibAccessibility.Profile.signOut)
     }
 
 
@@ -380,21 +396,31 @@ private struct ProfileRow: View {
                     .foregroundColor(tealThemeColor)
             }
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color(hex: "#1E293B"))
-                Text(subtitle)
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(.secondary)
+            if hasToggle == false {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(Color(hex: "#1E293B"))
+                    Text(subtitle)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(.secondary)
+                }
             }
 
             Spacer()
 
             if hasToggle {
-                Toggle("", isOn: $isOn)
-                    .labelsHidden()
-                    .tint(tealThemeColor)
+                Toggle(isOn: $isOn) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(title)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(Color(hex: "#1E293B"))
+                        Text(subtitle)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .tint(tealThemeColor)
             } else {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .bold))
@@ -404,6 +430,12 @@ private struct ProfileRow: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .contentShape(Rectangle())
+        .accessibilityElement(children: hasToggle ? .ignore : .combine)
+        .accessibilityLabel(
+            hasToggle
+                ? AlKhatibAccessibility.Profile.toggle(title, subtitle: subtitle, isOn: isOn)
+                : "\(title). \(subtitle)"
+        )
     }
 }
 

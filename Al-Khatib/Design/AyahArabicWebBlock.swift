@@ -15,6 +15,7 @@ struct AyahArabicWebBlock: View {
     var style: HTMLContentStyle = .verseCard
     var fontScale: Double = 1.0
     var measuredHeight: Binding<CGFloat>?
+    var includeTranslationInAccessibility: Bool = false
 
     @State private var webHeight: CGFloat = placeholderHeight
 
@@ -28,6 +29,9 @@ struct AyahArabicWebBlock: View {
         )
         .frame(maxWidth: .infinity, alignment: .top)
         .frame(height: webHeight)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(payload.spokenAccessibilitySummary(includeTranslation: includeTranslationInAccessibility))
+        .accessibilityAddTraits(.isStaticText)
         .allowsHitTesting(false)
         .animation(nil, value: webHeight)
         .id(stableId)

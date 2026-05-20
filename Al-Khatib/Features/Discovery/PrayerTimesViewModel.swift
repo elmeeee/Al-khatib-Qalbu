@@ -173,6 +173,16 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
         requestLocation()
     }
 
+    func forceRefresh() async {
+        if let location = lastKnownLocation {
+            guard !isLoading else { return }
+            isLoading = true
+            await fetchPrayerTimes(for: location, bypassDedupe: true)
+            return
+        }
+        refreshIfNeeded()
+    }
+
     private func requestLocation() {
         switch locationManager.authorizationStatus {
         case .notDetermined:

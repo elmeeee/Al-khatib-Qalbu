@@ -59,15 +59,18 @@ struct RootTabView: View {
             }
             .tag(Tab.today)
             .tabItem { Label("Today", systemImage: "sun.max.fill") }
+            .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.today, hint: AlKhatibAccessibility.Tab.todayHint)
             ReflectionView(
                 verseState: verseState,
                 isTabSelected: selectedTab == .reflect
             )
             .tag(Tab.reflect)
             .tabItem { Label("Reflect", systemImage: "square.and.pencil") }
+            .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.reflect, hint: AlKhatibAccessibility.Tab.reflectHint)
             ChaptersView()
                 .tag(Tab.journey)
                 .tabItem { Label("Quran", systemImage: "book.fill") }
+                .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.quran, hint: AlKhatibAccessibility.Tab.quranHint)
         }
         .onChangeWithFallback(of: verseState.shouldNavigateToReflect) { shouldNavigate in
             if shouldNavigate {

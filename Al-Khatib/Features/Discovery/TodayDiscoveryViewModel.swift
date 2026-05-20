@@ -106,6 +106,37 @@ final class TodayDiscoveryViewModel {
         loadDailyAyahWithHadith()
     }
 
+    func refreshDailyAyah() async {
+        guard isDetailLoading == false else { return }
+        stopAudio()
+        detail = nil
+        isDetailLoading = true
+        errorMessage = nil
+        defer { isDetailLoading = false }
+
+        do {
+            async let ayahTask = content.getRandomAyah()
+            async let recitationsTask: [RecitationPayload]? = recitations.isEmpty
+                ? (try? content.getRecitations().recitations)
+                : nil
+
+            let response = try await ayahTask
+            guard let verse = response.verse else {
+                throw QFError.parsingError("daily verse payload")
+            }
+
+            detail = .init(verse)
+            loadedTranslationId = ChapterReaderPreferences.selectedTranslationId(defaults: defaults)
+            defaults.set(Date().timeIntervalSince1970, forKey: randomAyahLastFetchKey)
+
+            if let fetched = await recitationsTask, fetched.isEmpty == false {
+                recitations = fetched
+            }
+        } catch {
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
     private func shouldRefreshRandomAyah(forceIfNoData: Bool) -> Bool {
         if forceIfNoData, detail == nil {
             return true

@@ -262,6 +262,9 @@ private struct ContinueReadingCard: View {
                 )
         )
         .shadow(color: Color.Theme.gold.opacity(0.08), radius: 8, y: 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Continue reading \(chapter.displayComplexName), ayah \(verseNumber)")
+        .accessibilityHint("Resume where you left off")
     }
 }
 
@@ -354,5 +357,8 @@ private struct QuranChapterRow: View {
                 )
         )
         .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(chapter.spokenAccessibilitySummary)
+        .accessibilityHint("Open surah to read and listen")
     }
 }

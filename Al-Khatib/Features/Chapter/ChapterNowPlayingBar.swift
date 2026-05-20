@@ -52,6 +52,8 @@ struct ChapterNowPlayingBar: View {
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(audio.isPlaying ? "Pause recitation" : "Play recitation")
+                .accessibilityHint(trackLine)
 
                 Button { audio.stop() } label: {
                     Image(systemName: "xmark")
@@ -61,8 +63,10 @@ struct ChapterNowPlayingBar: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Stop audio")
             }
         }
+        .accessibilityElement(children: .contain)
         .padding(.leading, 12)
         .padding(.trailing, 6)
         .padding(.vertical, 10)
