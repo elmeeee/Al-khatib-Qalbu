@@ -2,9 +2,6 @@
 //  ChapterVersesViewModel.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
-//
 
 import Foundation
 import Observation
@@ -12,19 +9,24 @@ import Observation
 @MainActor
 @Observable
 final class ChapterVersesViewModel {
+    static let defaultRecitationId = 6
+    private static let recitationStorageKey = "chapterReaderRecitationId"
+
     let chapter: QuranChapter
 
     var verses: [RandomAyahPayload] = []
     var isLoading = false
     var isLoadingMore = false
     var isPreparingPlayAll = false
+    var isReloadingRecitation = false
     var errorMessage: String?
     var recitations: [RecitationPayload] = []
-    var selectedRecitationId: Int = 6
+    var selectedRecitationId: Int
+    var selectedArabicTextStyle: QuranArabicTextStyle
 
     var surahDisplayTitle: String { chapter.displayComplexName }
     var reciterDisplayName: String {
-        recitations.first(where: { $0.id == selectedRecitationId })?.displayName ?? ""
+        recitations.first(where: { $0.identifiableId == selectedRecitationId })?.displayName ?? ""
     }
 
     private let content: QuranContentRepository
@@ -34,6 +36,9 @@ final class ChapterVersesViewModel {
     init(chapter: QuranChapter, content: QuranContentRepository) {
         self.chapter = chapter
         self.content = content
+        let saved = UserDefaults.standard.integer(forKey: Self.recitationStorageKey)
+        selectedRecitationId = saved > 0 ? saved : Self.defaultRecitationId
+        selectedArabicTextStyle = QuranArabicTextStyle.savedOrDefault()
     }
 
     func loadInitial() async {
@@ -53,7 +58,53 @@ final class ChapterVersesViewModel {
         guard recitations.isEmpty else { return }
         if let fetched = try? await content.getRecitations().recitations {
             recitations = fetched
+            if recitations.contains(where: { $0.identifiableId == selectedRecitationId }) == false,
+               let first = recitations.first?.identifiableId {
+                selectedRecitationId = first
+            }
         }
+    }
+
+    func applyContentPreferencesChange() async {
+        guard isReloadingRecitation == false else { return }
+        UserDefaults.standard.set(selectedRecitationId, forKey: Self.recitationStorageKey)
+        selectedArabicTextStyle.persist()
+        isReloadingRecitation = true
+        defer { isReloadingRecitation = false }
+
+        let targetCount = max(verses.count, 1)
+        var accumulated: [RandomAyahPayload] = []
+        var page = 1
+        var stillHasMore = true
+
+        repeat {
+            do {
+                let response = try await content.getVersesByChapter(
+                    chapterNumber: chapter.id,
+                    recitationId: selectedRecitationId,
+                    arabicTextStyle: selectedArabicTextStyle,
+                    page: page,
+                    perPage: 50
+                )
+                accumulated.append(contentsOf: response.verses)
+                if response.pagination?.hasNextPage == true,
+                   let next = response.pagination?.nextPage {
+                    page = next
+                    stillHasMore = true
+                } else {
+                    stillHasMore = false
+                }
+            } catch {
+                if accumulated.isEmpty {
+                    errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                }
+                return
+            }
+        } while stillHasMore && accumulated.count < targetCount
+
+        verses = accumulated
+        nextPage = page
+        hasMorePages = stillHasMore
     }
 
     func ensureAllVersesLoaded() async {
@@ -63,18 +114,15 @@ final class ChapterVersesViewModel {
     }
 
     func audioQueueItems() -> [AudioQueueItem] {
-        let reciter = reciterDisplayName
         return verses.compactMap { verse in
             guard let url = verse.audio?.url, url.isEmpty == false else { return nil }
-            let label = ayahSubtitle(for: verse)
-            let subtitle = reciter.isEmpty ? label : "\(label) — \(reciter)"
-            return AudioQueueItem(url: url, subtitle: subtitle)
+            return AudioQueueItem(url: url, subtitle: ayahSubtitle(for: verse))
         }
     }
 
     func ayahSubtitle(for verse: RandomAyahPayload) -> String {
         if let number = verse.verseNumber {
-            return "Ayah \(number)"
+            return "\(number)"
         }
         if let key = verse.verseKey {
             return ShareVerseCard.humanLabel(for: key)
@@ -97,6 +145,8 @@ final class ChapterVersesViewModel {
         do {
             let response = try await content.getVersesByChapter(
                 chapterNumber: chapter.id,
+                recitationId: selectedRecitationId,
+                arabicTextStyle: selectedArabicTextStyle,
                 page: page,
                 perPage: 50
             )

@@ -252,7 +252,7 @@ struct TodayDiscoveryView: View {
                         audio.playVerse(
                             url: u,
                             surahTitle: verseLabel,
-                            ayahSubtitle: reciterLabel,
+                            ayahLabel: reciterLabel,
                             reciterName: reciterLabel
                         )
                     }

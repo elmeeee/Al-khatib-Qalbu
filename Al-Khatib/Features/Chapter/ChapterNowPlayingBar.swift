@@ -12,48 +12,88 @@ struct ChapterNowPlayingBar: View {
     @ObservedObject var audio: AudioPlayerController
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: audio.isPlaying ? "waveform" : "pause.fill")
-                .font(.caption.weight(.bold))
-                .foregroundColor(Color.Theme.gold)
-                .frame(width: 22)
+        HStack(spacing: 12) {
+            artwork
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Playing")
-                    .font(.caption2.weight(.bold))
-                    .foregroundColor(.white.opacity(0.9))
-                Text(audio.trackSubtitle.isEmpty ? audio.reciterName : audio.trackSubtitle)
-                    .font(.caption2)
-                    .foregroundColor(.white.opacity(0.78))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(trackLine)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
                     .lineLimit(1)
+
+                if audio.reciterName.isEmpty == false {
+                    Text(audio.reciterName)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.72))
+                        .lineLimit(1)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: 0)
+            HStack(spacing: 4) {
+                Button { audio.toggle() } label: {
+                    Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 40, height: 40)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
 
-            Button { audio.toggle() } label: {
-                Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 32, height: 32)
-            }
-
-            Button { audio.stop() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white.opacity(0.65))
-                    .frame(width: 28, height: 32)
+                Button { audio.stop() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .frame(width: 32, height: 40)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
-        .padding(.leading, 14)
-        .padding(.trailing, 8)
-        .padding(.vertical, 8)
+        .padding(.leading, 12)
+        .padding(.trailing, 6)
+        .padding(.vertical, 10)
         .background {
             RoundedRectangle(cornerRadius: TabBarLayout.chromeCornerRadius, style: .continuous)
-                .fill(Color.white.opacity(0.14))
+                .fill(.ultraThinMaterial.opacity(0.35))
+                .background {
+                    RoundedRectangle(cornerRadius: TabBarLayout.chromeCornerRadius, style: .continuous)
+                        .fill(Color.white.opacity(0.12))
+                }
                 .overlay {
                     RoundedRectangle(cornerRadius: TabBarLayout.chromeCornerRadius, style: .continuous)
-                        .stroke(Color.white.opacity(0.18), lineWidth: 0.5)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
                 }
         }
+    }
+
+    private var trackLine: String {
+        let surah = audio.trackTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let ayah = audio.trackSubtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if surah.isEmpty, ayah.isEmpty { return "" }
+        if ayah.isEmpty { return surah }
+        if surah.isEmpty { return ayah }
+        return "\(surah)・\(ayah)"
+    }
+
+    private var artwork: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.Theme.gold.opacity(0.35),
+                            Color.Theme.gold.opacity(0.12)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            Image(systemName: audio.isPlaying ? "waveform" : "play.fill")
+                .font(.system(size: audio.isPlaying ? 14 : 12, weight: .semibold))
+                .foregroundStyle(Color.Theme.gold)
+                .symbolEffect(.variableColor.iterative, isActive: audio.isPlaying)
+        }
+        .frame(width: 40, height: 40)
     }
 }

@@ -129,10 +129,17 @@ struct ChapterVersesView: View {
             await model.loadInitial()
         }
         .sheet(isPresented: $showReadingSettings) {
-            ChapterReadingSettingsSheet(
-                fontScale: $fontScale,
-                showTranslation: $showTranslation
-            )
+            if let vm {
+                ChapterReadingSettingsSheetContent(
+                    viewModel: vm,
+                    fontScale: $fontScale,
+                    showTranslation: $showTranslation,
+                    onPreferencesChange: {
+                        audio.stop()
+                        Task { await vm.applyContentPreferencesChange() }
+                    }
+                )
+            }
         }
         .sheet(isPresented: tafsirSheetBinding) {
             if let tafsirPresenter {
@@ -326,6 +333,7 @@ struct ChapterVersesView: View {
                         ForEach(bindable.verses, id: \.listIdentity) { verse in
                             ChapterAyahPage(
                                 verse: verse,
+                                arabicTextStyle: bindable.selectedArabicTextStyle,
                                 showTranslation: showTranslation,
                                 fontScale: fontScale,
                                 isPlaying: audio.isPlayingURL(verse.audio?.url) && audio.isPlaying,
@@ -381,7 +389,7 @@ struct ChapterVersesView: View {
         audio.playVerse(
             url: url,
             surahTitle: vm.surahDisplayTitle,
-            ayahSubtitle: "\(ayah) — \(reciter)",
+            ayahLabel: ayah,
             reciterName: reciter
         )
     }

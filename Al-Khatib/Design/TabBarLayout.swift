@@ -13,7 +13,7 @@ enum TabBarLayout {
     static let nowPlayingHorizontalInset: CGFloat = 64
     static let chromeCornerRadius: CGFloat = 20
     static let spacingAboveTabBar: CGFloat = 12
-    static let nowPlayingBarHeight: CGFloat = 52
+    static let nowPlayingBarHeight: CGFloat = 60
     static let nowPlayingBottomPadding: CGFloat = 8
 
     static var nowPlayingChromeHeight: CGFloat {

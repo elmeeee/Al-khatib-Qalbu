@@ -53,13 +53,13 @@ final class AudioPlayerController: ObservableObject {
     func playVerse(
         url: String,
         surahTitle: String,
-        ayahSubtitle: String,
+        ayahLabel: String,
         reciterName: String
     ) {
         queue = []
         queueIndex = 0
         trackTitle = surahTitle
-        trackSubtitle = ayahSubtitle
+        trackSubtitle = ayahLabel
         play(from: url, reciterName: reciterName)
     }
 

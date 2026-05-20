@@ -13,6 +13,7 @@ struct ChapterAyahPage: View {
     @Environment(\.chapterReaderChromeInsets) private var chromeInsets
 
     let verse: RandomAyahPayload
+    let arabicTextStyle: QuranArabicTextStyle
     let showTranslation: Bool
     let fontScale: Double
     let isPlaying: Bool
@@ -58,6 +59,7 @@ struct ChapterAyahPage: View {
                     VStack(spacing: contentSpacing) {
                         AyahArabicWebBlock(
                             payload: verse,
+                            arabicTextStyle: arabicTextStyle,
                             style: .verseCardOnDark,
                             fontScale: effectiveFontScale,
                             measuredHeight: $arabicMeasuredHeight

@@ -10,6 +10,7 @@ import SwiftUI
 
 struct AyahArabicWebBlock: View {
     let payload: RandomAyahPayload
+    var arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed
     var style: HTMLContentStyle = .verseCard
     var fontScale: Double = 1.0
     var measuredHeight: Binding<CGFloat>?
@@ -17,7 +18,7 @@ struct AyahArabicWebBlock: View {
 
     var body: some View {
         HTMLContentWebView(
-            htmlFragment: payload.arabicFragmentForWebView(),
+            htmlFragment: payload.arabicFragmentForWebView(style: arabicTextStyle),
             style: style,
             fontScale: fontScale,
             contentHeight: $webHeight
@@ -45,10 +46,10 @@ struct AyahArabicWebBlock: View {
         } else {
             base = "ayah"
         }
-        return "\(base)-\(style)-\(fontScale)"
+        return "\(base)-\(arabicTextStyle.rawValue)-\(style)-\(fontScale)"
     }
 
     private var reloadKey: String {
-        "\(payload.verseKey ?? "")-\(fontScale)"
+        "\(payload.verseKey ?? "")-\(arabicTextStyle.rawValue)-\(fontScale)"
     }
 }

@@ -18,8 +18,15 @@ struct RandomAyahPayload: Decodable, Sendable {
     let verseNumber: Int?
     let verseKey: String?
     let textIndopak: String?
+    let textImlaeiSimple: String?
+    let textImlaei: String?
     let textUthmani: String?
+    let textUthmaniSimple: String?
     let textUthmaniTajweed: String?
+    let textQpcHafs: String?
+    let textQpcNastaleeqHafs: String?
+    let textQpcNastaleeq: String?
+    let textIndopakNastaleeq: String?
     let pageNumber: Int?
     let juzNumber: Int?
     let audio: AudioPayload?
@@ -30,31 +37,57 @@ struct RandomAyahPayload: Decodable, Sendable {
         case verseNumber
         case verseKey
         case textIndopak
+        case textImlaeiSimple = "text_imlaei_simple"
+        case textImlaei = "text_imlaei"
         case textUthmani
+        case textUthmaniSimple = "text_uthmani_simple"
         case textUthmaniTajweed
+        case textQpcHafs = "text_qpc_hafs"
+        case textQpcNastaleeqHafs = "text_qpc_nastaleeq_hafs"
+        case textQpcNastaleeq = "text_qpc_nastaleeq"
+        case textIndopakNastaleeq = "text_indopak_nastaleeq"
         case pageNumber
         case juzNumber
     }
     
+    func rawArabicText(for style: QuranArabicTextStyle) -> String? {
+        switch style {
+        case .indopak: textIndopak
+        case .imlaeiSimple: textImlaeiSimple
+        case .imlaei: textImlaei
+        case .uthmani: textUthmani
+        case .uthmaniSimple: textUthmaniSimple
+        case .uthmaniTajweed: textUthmaniTajweed
+        case .qpcHafs: textQpcHafs
+        case .qpcNastaleeqHafs: textQpcNastaleeqHafs
+        case .qpcNastaleeq: textQpcNastaleeq
+        case .indopakNastaleeq: textIndopakNastaleeq
+        }
+    }
+
     var displayText: String? {
-        let raw = textUthmaniTajweed?.strippingHTMLToPlainText()
-            ?? textIndopak
-            ?? textUthmani
-        return raw?
+        displayText(for: QuranArabicTextStyle.savedOrDefault())
+    }
+
+    func displayText(for style: QuranArabicTextStyle) -> String? {
+        rawArabicText(for: style)?
+            .strippingHTMLToPlainText()
             .normalizedForQuranRenderingPreservingResponse()
     }
 
     /// HTML for `WKWebView`: raw tajweed markup when present, otherwise escaped plain `displayText`.
     /// Appends ۝ U+06DD + Eastern Arabic‑Indic digits for the ayah number (and removes redundant API `span.class=end` badges).
-    func arabicFragmentForWebView() -> String {
+    func arabicFragmentForWebView(style: QuranArabicTextStyle) -> String {
         let markerHtml = QuranAyahEndBadge.html(forAyahNumber: effectiveAyahNumber)
 
-        if let tajweed = textUthmaniTajweed?.trimmingCharacters(in: .whitespacesAndNewlines), tajweed.isEmpty == false {
+        if style.usesTajweedMarkup,
+           let tajweed = textUthmaniTajweed?.trimmingCharacters(in: .whitespacesAndNewlines),
+           tajweed.isEmpty == false {
             let body = tajweed.strippingHTMLSpansMatchingClassEnd
             let spacer = markerHtml.isEmpty ? "" : " "
             return body + spacer + markerHtml
         }
-        let plain = displayText ?? ""
+        let plain = displayText(for: style) ?? ""
         let inner = markerHtml.isEmpty
             ? plain.htmlEscapedForAttribute
             : "\(plain.htmlEscapedForAttribute) \(markerHtml)"
@@ -237,8 +270,10 @@ struct RecitationPayload: Decodable, Sendable {
         case translatedName
     }
 
+    var identifiableId: Int { id ?? 0 }
+
     var displayName: String {
-        return translatedName?.name ?? reciterName ?? "Reciter \(id ?? 0)"
+        return translatedName?.name ?? reciterName ?? "Reciter \(identifiableId)"
     }
 }
 

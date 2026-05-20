@@ -12,16 +12,20 @@ import Foundation
 private enum QuranVerseContentQuery {
     static let language = "en"
     static let translations = "85"
-    static let audio = "6"
-    static let fields = "text_uthmani_tajweed"
+    static let defaultRecitationId = 6
     static let translationFields = "resource_name"
 
-    static func items(page: Int? = nil, perPage: Int? = nil) -> [URLQueryItem] {
+    static func items(
+        recitationId: Int = defaultRecitationId,
+        arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed,
+        page: Int? = nil,
+        perPage: Int? = nil
+    ) -> [URLQueryItem] {
         var query: [URLQueryItem] = [
             URLQueryItem(name: "language", value: language),
             URLQueryItem(name: "translations", value: translations),
-            URLQueryItem(name: "audio", value: audio),
-            URLQueryItem(name: "fields", value: fields),
+            URLQueryItem(name: "audio", value: String(recitationId)),
+            URLQueryItem(name: "fields", value: arabicTextStyle.rawValue),
             URLQueryItem(name: "translation_fields", value: translationFields)
         ]
         if let page {
@@ -52,17 +56,27 @@ struct QuranContentRepository: Sendable {
 
     func getVersesByChapter(
         chapterNumber: Int,
+        recitationId: Int = QuranVerseContentQuery.defaultRecitationId,
+        arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed,
         page: Int = 1,
         perPage: Int = 50
     ) async throws -> VersesByChapterResponse {
-        let query = QuranVerseContentQuery.items(page: page, perPage: perPage)
+        let query = QuranVerseContentQuery.items(
+            recitationId: recitationId,
+            arabicTextStyle: arabicTextStyle,
+            page: page,
+            perPage: perPage
+        )
         return try await client.send(
             QuranContentEndpoint.versesByChapter(chapterNumber: chapterNumber, query: query)
         )
     }
 
-    func getRandomAyah() async throws -> RandomAyahResponse {
-        let query = QuranVerseContentQuery.items()
+    func getRandomAyah(
+        recitationId: Int = QuranVerseContentQuery.defaultRecitationId,
+        arabicTextStyle: QuranArabicTextStyle = .uthmaniTajweed
+    ) async throws -> RandomAyahResponse {
+        let query = QuranVerseContentQuery.items(recitationId: recitationId, arabicTextStyle: arabicTextStyle)
 
         var attempt = 0
         let maxAttempts = 3
