@@ -19,4 +19,15 @@ final class PrayerNotificationCenterDelegate: NSObject, UNUserNotificationCenter
     ) {
         completionHandler([.banner, .sound, .badge])
     }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        if response.notification.request.content.userInfo["openTab"] as? String == "today" {
+            NotificationCenter.default.post(name: DailyVerseNotificationPreferences.openTodayTabNotification, object: nil)
+        }
+        completionHandler()
+    }
 }

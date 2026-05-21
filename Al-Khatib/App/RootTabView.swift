@@ -107,6 +107,9 @@ struct RootTabView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: DailyVerseNotificationPreferences.openTodayTabNotification)) { _ in
+            verseState.selectTodayTab()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserSessionDidChange)) { _ in
             Task { @MainActor in
                 guard container?.oauth.isWebAuthInProgress == false else { return }
@@ -115,7 +118,6 @@ struct RootTabView: View {
                     selectedTab = .today
                 }
                 if todayNavigationPath.isEmpty == false {
-                    // Let Profile / `.task` finish suspending before tearing down NavigationStack (Today → Account).
                     await Task.yield()
                     todayNavigationPath = []
                 }

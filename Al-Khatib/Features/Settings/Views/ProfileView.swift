@@ -21,6 +21,10 @@ struct ProfileView: View {
     @AppStorage(PrayerNotificationPreferences.midnightKey) private var midnightEnabled = true
     @AppStorage(PrayerNotificationPreferences.firstThirdKey) private var firstThirdEnabled = true
     @AppStorage(PrayerNotificationPreferences.tahajudKey) private var tahajudEnabled = true
+    @AppStorage(DailyVerseNotificationPreferences.enabledKey) private var dailyVerseEnabled = true
+    @AppStorage(DailyVerseNotificationPreferences.hourKey) private var dailyVerseHour = DailyVerseNotificationPreferences.defaultHour
+    @AppStorage(DailyVerseNotificationPreferences.minuteKey) private var dailyVerseMinute = DailyVerseNotificationPreferences.defaultMinute
+    @State private var showingDailyVerseTimeSheet = false
     @AppStorage(ChapterReaderPreferences.translationIdKey) private var selectedTranslationId = ChapterReaderPreferences.defaultTranslationId
     @AppStorage(ChapterReaderPreferences.translationNameKey) private var selectedTranslationName = ""
     @AppStorage(PrayerCalculationMethod.storageKey)
@@ -81,6 +85,9 @@ struct ProfileView: View {
                 )
             }
         }
+        .sheet(isPresented: $showingDailyVerseTimeSheet) {
+            DailyVerseNotificationTimeSheetView(hour: $dailyVerseHour, minute: $dailyVerseMinute)
+        }
         .onChange(of: selectedTranslationId) { _, _ in
             ChapterReaderPreferences.notifyTranslationDidChange()
         }
@@ -89,6 +96,17 @@ struct ProfileView: View {
         .onChange(of: midnightEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
         .onChange(of: firstThirdEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
         .onChange(of: tahajudEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
+        .onChange(of: dailyVerseEnabled) { _, enabled in
+            Task {
+                await DailyVerseNotificationCoordinator.setEnabled(enabled, container: container)
+            }
+        }
+        .onChange(of: dailyVerseHour) { _, _ in
+            Task { await applyDailyVerseMorningTime() }
+        }
+        .onChange(of: dailyVerseMinute) { _, _ in
+            Task { await applyDailyVerseMorningTime() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             isOAuthPresenting = container?.oauth.isWebAuthInProgress == true
             guard isOAuthPresenting == false else { return }
@@ -220,10 +238,56 @@ struct ProfileView: View {
         }
     }
 
+    private var dailyVerseNotificationSubtitle: String {
+        "Today’s surah & translation in your notification"
+    }
+
+    private var dailyVerseTimeRowSubtitle: String {
+        DailyVerseNotificationPreferences.formattedMorningTime(
+            hour: dailyVerseHour,
+            minute: dailyVerseMinute
+        )
+    }
+
+    private func applyDailyVerseMorningTime() async {
+        await DailyVerseNotificationCoordinator.applyMorningTime(
+            hour: dailyVerseHour,
+            minute: dailyVerseMinute,
+            container: container
+        )
+    }
+
     private var notificationsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             ProfileSectionHeaderView(title: "Notifications")
             VStack(spacing: 0) {
+                ProfileRowView(
+                    icon: "book.closed.fill",
+                    title: "Verse of the day",
+                    subtitle: dailyVerseNotificationSubtitle,
+                    hasToggle: true,
+                    isOn: $dailyVerseEnabled
+                )
+                if dailyVerseEnabled {
+                    Divider().padding(.leading, 64)
+                    Button {
+                        showingDailyVerseTimeSheet = true
+                    } label: {
+                        ProfileRowView(
+                            icon: "clock.fill",
+                            title: "Morning time",
+                            subtitle: dailyVerseTimeRowSubtitle,
+                            hasToggle: false,
+                            isOn: .constant(false)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .alKhatibAccessibility(
+                        label: "Morning reminder time",
+                        hint: "Currently \(dailyVerseTimeRowSubtitle). Double tap to change."
+                    )
+                }
+                Divider().padding(.leading, 64)
                 ProfileRowView(
                     icon: "bell",
                     title: "Prayer times",

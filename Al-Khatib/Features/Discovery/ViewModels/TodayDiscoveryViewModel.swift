@@ -112,6 +112,10 @@ final class TodayDiscoveryViewModel {
             if let fetched = await recitationsTask, fetched.isEmpty == false {
                 recitations = fetched
             }
+
+            if let detail {
+                await DailyVerseNotificationCoordinator.refreshAfterDailyAyahLoaded(detail)
+            }
         } catch {
             guard generation == dailyAyahFetchGeneration else { return }
             guard NetworkLoadErrorPolicy.shouldSurface(error) else { return }

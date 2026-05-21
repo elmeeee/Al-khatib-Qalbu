@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.appContainer) private var container
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var isSplashActive = true
     @State private var verseState = TodayVerseState()
@@ -41,6 +42,13 @@ struct ContentView: View {
             await verseState.ensureProfileLoaded(container: container)
             container?.warmChapterCatalog()
             container?.warmUserProfileIfSignedIn()
+            await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active, hasCompletedOnboarding else { return }
+            Task {
+                await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             verseState.syncOAuthUIState(container: container)
