@@ -2,7 +2,7 @@
 //  PrayerType.swift
 //  Al-Khatib
 //
-//  Created by Antigravity on 20/05/2026.
+//  Created by Elmee on 25/04/2026.
 //  Copyright © 2026 Elmee. All rights reserved.
 //
 

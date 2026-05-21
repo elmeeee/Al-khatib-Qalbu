@@ -2,6 +2,9 @@
 //  TodayDiscoveryViewModel.swift
 //  Al-Khatib
 //
+//  Created by Elmee on 25/04/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
+//
 
 import Foundation
 import Observation
@@ -25,8 +28,6 @@ final class TodayDiscoveryViewModel {
         self.content = content
         self.shareComposer = shareComposer ?? TodayShareTextComposer(content: content)
     }
-
-    // MARK: - Daily ayah
 
     func loadDailyAyahWithHadith() {
         detail = nil
@@ -61,8 +62,6 @@ final class TodayDiscoveryViewModel {
         await performDailyAyahFetch(clearDetailOnStart: false)
     }
 
-    // MARK: - Share (delegates to composer)
-
     func prefetchShareTextIfNeeded(for verse: RandomAyahPayload) async {
         await shareComposer.prefetchShareTextIfNeeded(for: verse)
     }
@@ -78,8 +77,6 @@ final class TodayDiscoveryViewModel {
     func prepareShareText(for verse: RandomAyahPayload) async -> String {
         await shareComposer.prepareShareText(for: verse)
     }
-
-    // MARK: - Fetch
 
     private func performDailyAyahFetch(clearDetailOnStart: Bool) async {
         dailyAyahFetchGeneration += 1

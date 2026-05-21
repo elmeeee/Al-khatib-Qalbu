@@ -2,8 +2,8 @@
 //  PrayerThematicTheme.swift
 //  Al-Khatib
 //
-//  Contextual visual theme for the prayer dashboard (day vs night).
-//  Composes palette values from `Color.Token` — not raw hex.
+//  Created by Elmee on 25/04/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
 //
 
 import SwiftUI
@@ -45,7 +45,6 @@ enum PrayerThematicTheme: Equatable, Sendable {
         }
     }
 
-    /// Maps active prayer slot to dashboard theme.
     static func forActivePrayer(_ name: String) -> PrayerThematicTheme {
         name == "Maghrib" || name == "Isha" ? .night : .daylight
     }

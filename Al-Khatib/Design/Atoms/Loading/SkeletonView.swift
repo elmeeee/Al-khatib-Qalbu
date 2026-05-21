@@ -2,23 +2,17 @@
 //  SkeletonView.swift
 //  Al-Khatib
 //
-//  Single source for loading placeholders (Atomic Design — atoms + layout presets).
+//  Created by Elmee on 25/04/2026.
+//  Copyright © 2026 Elmee. All rights reserved.
 //
 
 import SwiftUI
 
-// MARK: - Tone
-
 enum SkeletonTone {
-    /// Light screens (`systemGray5`).
     case light
-    /// Muted placeholders on themed cards (prayer dashboard, etc.).
     case muted
-    /// Reflect reel and other dark gradients.
     case onDark
 }
-
-// MARK: - Atoms
 
 struct SkeletonBar: View {
     var width: CGFloat?
@@ -90,8 +84,6 @@ struct SkeletonCircleDot: View {
     }
 }
 
-// MARK: - Shimmer
-
 private struct SkeletonShimmerModifier: ViewModifier {
     let tone: SkeletonTone
     @State private var offset: CGFloat = -200
@@ -135,9 +127,6 @@ extension View {
     }
 }
 
-// MARK: - Layout presets (molecules / organisms)
-
-/// Default list loading for light screens (Chapters, Today, Reflection tab).
 struct LoadingSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -164,7 +153,6 @@ struct LoadingSkeleton: View {
     }
 }
 
-/// Prayer dashboard card placeholder.
 struct PrayerDashboardSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -194,7 +182,6 @@ struct PrayerDashboardSkeleton: View {
     }
 }
 
-/// Full-page reflect reel loading card.
 struct ReflectReelSkeletonPage: View {
     let pageHeight: CGFloat
 

@@ -76,24 +76,6 @@ struct ChaptersView: View {
                         .font(.largeTitle.bold())
                         .foregroundColor(Color.Token.deepEmerald)
                 }
-
-                Spacer()
-
-                if let vm, vm.isLoading == false {
-                    Button {
-                        Task { await vm.refreshAll(force: true) }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Color.Token.deepEmerald)
-                            .frame(width: 36, height: 36)
-                            .background(
-                                Circle()
-                                    .fill(Color.Token.deepEmerald.opacity(0.08))
-                            )
-                    }
-                    .accessibilityLabel("Refresh chapters")
-                }
             }
 
             Text("114 Surahs \u{2022} The Noble Quran")

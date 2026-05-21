@@ -85,7 +85,6 @@ enum APICache {
         private func cached(entry: Entry?, limit: Int, ignoreTTL: Bool = false) -> ReflectFeedEnvelope? {
             guard let entry, entry.limit == limit else { return nil }
             if ignoreTTL {
-                // Allow up to 2 hours of stale data for immediate UI rendering (SWR)
                 return Date().timeIntervalSince(entry.fetchedAt) < 7200 ? entry.envelope : nil
             }
             guard APICache.reflectFeedTTL > 0,
