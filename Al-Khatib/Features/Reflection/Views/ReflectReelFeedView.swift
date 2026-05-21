@@ -20,10 +20,8 @@ struct ReflectReelFeedView: View {
 
             VStack(spacing: 0) {
                 ReflectFeedTabBarView(
-                    selection: Binding(
-                        get: { viewModel.selectedSegment },
-                        set: { viewModel.onSegmentChanged(to: $0) }
-                    )
+                    selection: viewModel.selectedSegment,
+                    onSelect: { viewModel.onSegmentChanged(to: $0) }
                 )
 
                 GeometryReader { geo in
@@ -84,38 +82,34 @@ struct ReflectReelFeedView: View {
     }
 
     private func reelPager(pageHeight: CGFloat, pageWidth: CGFloat) -> some View {
-        ScrollView(.vertical) {
-            LazyVStack(spacing: 0) {
-                ForEach(viewModel.posts) { post in
-                    ReflectReelPageView(
-                        post: post,
-                        pageHeight: pageHeight,
-                        isTogglingLike: viewModel.isTogglingLike(postId: post.id),
-                        onToggleLike: {
-                            Task { await viewModel.toggleLike(for: post) }
-                        },
-                        onTapVerse: { key in
-                            Task {
-                                await verseDetailViewModel.open(
-                                    verseKey: key,
-                                    content: container?.content
-                                )
-                            }
+        TabView {
+            ForEach(viewModel.posts) { post in
+                ReflectReelPageView(
+                    post: post,
+                    pageHeight: pageHeight,
+                    isTogglingLike: viewModel.isTogglingLike(postId: post.id),
+                    onToggleLike: {
+                        Task { await viewModel.toggleLike(for: post) }
+                    },
+                    onTapVerse: { key in
+                        Task {
+                            await verseDetailViewModel.open(
+                                verseKey: key,
+                                content: container?.content
+                            )
                         }
-                    )
-                    .frame(width: pageWidth, height: pageHeight)
-                    .id(post.id)
-                    .onAppear {
-                        viewModel.loadMoreIfNeeded(currentPost: post)
                     }
+                )
+                .frame(width: pageWidth, height: pageHeight)
+                .tag(post.id)
+                .onAppear {
+                    viewModel.loadMoreIfNeeded(currentPost: post)
                 }
             }
-            .scrollTargetLayout()
         }
-        .scrollTargetBehavior(.paging)
-        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
+        .tabViewStyle(.page(indexDisplayMode: .never))
         .scrollIndicators(.hidden)
-        .clipped()
+        .id(viewModel.selectedSegment)
         .refreshable {
             await viewModel.loadPosts(refresh: true, force: true)
         }

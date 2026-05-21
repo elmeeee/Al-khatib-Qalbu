@@ -53,7 +53,6 @@ final class TodayReflectionPublishViewModel {
                 idempotencyKey: idempotencyKey
             )
             verseState.notifyFeedDidUpdate()
-            verseState.requestReflect()
             return .published
         } catch {
             let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription

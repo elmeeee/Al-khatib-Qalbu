@@ -9,7 +9,8 @@
 import SwiftUI
 
 struct ReflectFeedTabBarView: View {
-    @Binding var selection: ReflectPostsSegment
+    let selection: ReflectPostsSegment
+    let onSelect: (ReflectPostsSegment) -> Void
     @Namespace private var tabNamespace
 
     var body: some View {
@@ -17,8 +18,9 @@ struct ReflectFeedTabBarView: View {
             ForEach(ReflectPostsSegment.allCases) { segment in
                 let isSelected = selection == segment
                 Button {
+                    guard isSelected == false else { return }
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-                        selection = segment
+                        onSelect(segment)
                     }
                 } label: {
                     HStack(spacing: 6) {

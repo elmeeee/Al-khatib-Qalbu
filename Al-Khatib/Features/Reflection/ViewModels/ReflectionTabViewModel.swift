@@ -19,11 +19,11 @@ final class ReflectionTabViewModel {
         guard hasResolvedSession else { return .sessionLoading }
 
         if isLoggedIn {
-            return feedViewModel == nil ? .bootLoading : .feed
+            return .feed
         }
 
-        if hasAccessToken || isRefreshingProfile {
-            return .sessionLoading
+        if hasAccessToken {
+            return feedViewModel == nil ? .bootLoading : .feed
         }
 
         return .signIn
@@ -51,27 +51,38 @@ final class ReflectionTabViewModel {
         hasAccessToken = await container.userSession.hasUserAccessToken()
     }
 
+    func prepareFeedIfNeeded(container: AppContainer) {
+        ensureFeedViewModel(container: container)
+    }
+
     func openTab(container: AppContainer, verseState: TodayVerseState) async {
         sync(verseState: verseState)
         await refreshAccessToken(using: container)
 
-        if isLoggedIn == false {
-            if hasAccessToken {
-                await verseState.ensureProfileLoadedAndAwait(container: container)
-            } else {
-                await verseState.ensureProfileLoaded(container: container)
-            }
+        if isLoggedIn {
+            ensureFeedViewModel(container: container)
+            container.warmReflectDataIfSignedIn()
+            feedViewModel?.scheduleLoad(refresh: true, force: false)
+            return
+        }
+
+        if hasAccessToken {
+            await verseState.ensureProfileLoadedAndAwait(container: container)
             sync(verseState: verseState)
             await refreshAccessToken(using: container)
             guard isLoggedIn else {
                 feedViewModel = nil
                 return
             }
+            ensureFeedViewModel(container: container)
+            container.warmReflectDataIfSignedIn()
+            feedViewModel?.scheduleLoad(refresh: true, force: false)
+            return
         }
 
-        ensureFeedViewModel(container: container)
-        container.warmReflectDataIfSignedIn()
-        feedViewModel?.scheduleLoad(refresh: true, force: false)
+        await verseState.ensureProfileLoaded(container: container)
+        sync(verseState: verseState)
+        feedViewModel = nil
     }
 
     func bootstrapFeed(container: AppContainer, verseState: TodayVerseState, force: Bool) async {

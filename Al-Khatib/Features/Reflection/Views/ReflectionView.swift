@@ -70,6 +70,9 @@ struct ReflectionView: View {
         }
         .onAppear {
             tabViewModel.sync(verseState: verseState)
+            if let container, verseState.isLoggedIn {
+                tabViewModel.prepareFeedIfNeeded(container: container)
+            }
         }
     }
 
@@ -89,6 +92,9 @@ struct ReflectionView: View {
         case .feed:
             if let feedViewModel = tabViewModel.feedViewModel {
                 ReflectReelFeedView(viewModel: feedViewModel)
+            } else if tabViewModel.canShowReflectFeed, let container {
+                reelBootLoading
+                    .task { tabViewModel.prepareFeedIfNeeded(container: container) }
             } else {
                 reelBootLoading
             }

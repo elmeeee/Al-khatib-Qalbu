@@ -38,6 +38,7 @@ final class ReflectionViewModel {
     }
 
     func onSegmentChanged(to segment: ReflectPostsSegment) {
+        guard selectedSegment != segment else { return }
         selectedSegment = segment
         posts = []
         errorMessage = nil
@@ -73,7 +74,7 @@ final class ReflectionViewModel {
                 }
                 
                 if let cached = cachedEnvelope, let data = cached.data, !data.isEmpty {
-                    posts = data
+                    posts = Self.sanitizedPosts(data)
                     isLoading = false // Instantly render cache
                 } else {
                     isLoading = true
@@ -107,7 +108,7 @@ final class ReflectionViewModel {
             if Task.isCancelled { return }
             if let generation, generation != loadGeneration { return }
 
-            let rows = envelope.data ?? []
+            let rows = Self.sanitizedPosts(envelope.data ?? [])
             totalPages = max(envelope.pages ?? 1, 1)
             currentPage = envelope.currentPage ?? page
             if refresh {
@@ -153,6 +154,14 @@ final class ReflectionViewModel {
 
     func showMyPostsAfterPublish() {
         onSegmentChanged(to: .myPosts)
+    }
+
+    private static func sanitizedPosts(_ rows: [ReflectFeedPost]) -> [ReflectFeedPost] {
+        var seen = Set<String>()
+        return rows.filter { post in
+            guard post.id.isEmpty == false else { return false }
+            return seen.insert(post.id).inserted
+        }
     }
 
     private func trimPostsIfNeeded() {
