@@ -2,15 +2,13 @@
 //  DailyVerseNotificationTimeSheetView.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
-//
 
 import SwiftUI
 
 struct DailyVerseNotificationTimeSheetView: View {
     @Binding var hour: Int
     @Binding var minute: Int
+    var onSaved: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     @State private var pickerDate = Date()
@@ -45,6 +43,7 @@ struct DailyVerseNotificationTimeSheetView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         applyPickerToBindings()
+                        onSaved()
                         dismiss()
                     }
                     .fontWeight(.semibold)
@@ -55,6 +54,9 @@ struct DailyVerseNotificationTimeSheetView: View {
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
+        .task {
+            _ = await DailyVerseNotificationScheduler().requestAuthorizationIfNeeded()
+        }
         .onAppear {
             pickerDate = Self.date(hour: hour, minute: minute)
         }
@@ -64,6 +66,7 @@ struct DailyVerseNotificationTimeSheetView: View {
         let components = Calendar.current.dateComponents([.hour, .minute], from: pickerDate)
         hour = components.hour ?? DailyVerseNotificationPreferences.defaultHour
         minute = components.minute ?? DailyVerseNotificationPreferences.defaultMinute
+        DailyVerseNotificationPreferences.setMorningTime(hour: hour, minute: minute)
     }
 
     private static func date(hour: Int, minute: Int) -> Date {

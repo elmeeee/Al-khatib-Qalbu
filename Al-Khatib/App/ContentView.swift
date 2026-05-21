@@ -42,12 +42,12 @@ struct ContentView: View {
             await verseState.ensureProfileLoaded(container: container)
             container?.warmChapterCatalog()
             container?.warmUserProfileIfSignedIn()
-            await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
+            _ = await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active, hasCompletedOnboarding else { return }
             Task {
-                await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
+                _ = await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in

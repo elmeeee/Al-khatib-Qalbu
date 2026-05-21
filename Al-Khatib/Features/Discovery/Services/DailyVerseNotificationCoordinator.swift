@@ -2,50 +2,67 @@
 //  DailyVerseNotificationCoordinator.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
-//
 
 import Foundation
+import UserNotifications
 
 @MainActor
 enum DailyVerseNotificationCoordinator {
     private static let scheduler = DailyVerseNotificationScheduler()
     private static let defaults = UserDefaults.standard
 
-    static func refreshAfterDailyAyahLoaded(_ verse: RandomAyahPayload) async {
+    @discardableResult
+    static func refreshAfterDailyAyahLoaded(_ verse: RandomAyahPayload) async -> DailyVerseNotificationScheduler.ScheduleResult {
         cache(verse: verse)
-        await rescheduleFromCache()
+        return await rescheduleFromCache()
     }
 
-    static func refreshIfNeeded(container: AppContainer?) async {
+    @discardableResult
+    static func refreshIfNeeded(container: AppContainer?) async -> DailyVerseNotificationScheduler.ScheduleResult {
         guard DailyVerseNotificationPreferences.isEnabled(defaults: defaults) else {
             await scheduler.cancelAll()
-            return
+            return .disabled
         }
 
         if cacheIsFreshForToday() == false, let container {
             await fetchAndCache(container: container)
         }
 
-        await rescheduleFromCache()
+        return await rescheduleFromCache()
     }
 
-    static func setEnabled(_ enabled: Bool, container: AppContainer?) async {
+    @discardableResult
+    static func setEnabled(_ enabled: Bool, container: AppContainer?) async -> DailyVerseNotificationScheduler.ScheduleResult {
         defaults.set(enabled, forKey: DailyVerseNotificationPreferences.enabledKey)
         DailyVerseNotificationPreferences.notifyDidChange()
 
         if enabled {
-            await refreshIfNeeded(container: container)
-        } else {
-            await scheduler.cancelAll()
+            return await refreshIfNeeded(container: container)
         }
+        await scheduler.cancelAll()
+        return .disabled
     }
 
-    static func applyMorningTime(hour: Int, minute: Int, container: AppContainer?) async {
+    @discardableResult
+    static func applyMorningTime(
+        hour: Int,
+        minute: Int,
+        container: AppContainer?
+    ) async -> DailyVerseNotificationScheduler.ScheduleResult {
         DailyVerseNotificationPreferences.setMorningTime(hour: hour, minute: minute, defaults: defaults)
-        guard DailyVerseNotificationPreferences.isEnabled(defaults: defaults) else { return }
-        await rescheduleFromCache()
+        guard DailyVerseNotificationPreferences.isEnabled(defaults: defaults) else {
+            return .disabled
+        }
+
+        if cacheIsFreshForToday() == false, let container {
+            await fetchAndCache(container: container)
+        }
+
+        return await rescheduleFromCache()
+    }
+
+    static func isAuthorizationDenied() async -> Bool {
+        await scheduler.authorizationStatus() == .denied
     }
 
     private static func cacheIsFreshForToday() -> Bool {
@@ -73,13 +90,14 @@ enum DailyVerseNotificationCoordinator {
         cache(verse: verse)
     }
 
-    private static func rescheduleFromCache() async {
+    @discardableResult
+    private static func rescheduleFromCache() async -> DailyVerseNotificationScheduler.ScheduleResult {
         let enabled = DailyVerseNotificationPreferences.isEnabled(defaults: defaults)
         let time = DailyVerseNotificationPreferences.morningTime(defaults: defaults)
         let label = defaults.string(forKey: DailyVerseNotificationPreferences.cacheVerseKeyKey) ?? "Your Quran verse"
         let snippet = defaults.string(forKey: DailyVerseNotificationPreferences.cacheBodyKey) ?? ""
 
-        await scheduler.reschedule(
+        return await scheduler.reschedule(
             verseLabel: label,
             bodySnippet: snippet,
             hour: time.hour,

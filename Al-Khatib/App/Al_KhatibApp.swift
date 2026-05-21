@@ -21,6 +21,9 @@ struct Al_KhatibApp: App {
         _ = AlKhatibTypography.verseArabicHTMLBaseDirectory()
         Task { @MainActor in
             _ = AlKhatibTypography.quranArabicUIFont(size: 24)
+            if DailyVerseNotificationPreferences.isEnabled() {
+                _ = await DailyVerseNotificationScheduler().requestAuthorizationIfNeeded()
+            }
         }
     }
 

@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+internal import UIKit
 
 struct ProfileView: View {
     var preferSystemNavigationTitle: Bool = false
@@ -25,6 +26,8 @@ struct ProfileView: View {
     @AppStorage(DailyVerseNotificationPreferences.hourKey) private var dailyVerseHour = DailyVerseNotificationPreferences.defaultHour
     @AppStorage(DailyVerseNotificationPreferences.minuteKey) private var dailyVerseMinute = DailyVerseNotificationPreferences.defaultMinute
     @State private var showingDailyVerseTimeSheet = false
+    @State private var showNotificationDeniedAlert = false
+    @State private var notificationAlertMessage = ""
     @AppStorage(ChapterReaderPreferences.translationIdKey) private var selectedTranslationId = ChapterReaderPreferences.defaultTranslationId
     @AppStorage(ChapterReaderPreferences.translationNameKey) private var selectedTranslationName = ""
     @AppStorage(PrayerCalculationMethod.storageKey)
@@ -66,6 +69,10 @@ struct ProfileView: View {
             if viewModel == nil { viewModel = ProfileViewModel(container: container) }
             await viewModel?.reloadIfNeeded()
             viewModel?.sync(to: verseState)
+            if dailyVerseEnabled {
+                let result = await DailyVerseNotificationCoordinator.refreshIfNeeded(container: container)
+                handleDailyVerseScheduleResult(result)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfUserProfileDidUpdate)) { _ in
             Task { @MainActor in
@@ -86,7 +93,23 @@ struct ProfileView: View {
             }
         }
         .sheet(isPresented: $showingDailyVerseTimeSheet) {
-            DailyVerseNotificationTimeSheetView(hour: $dailyVerseHour, minute: $dailyVerseMinute)
+            DailyVerseNotificationTimeSheetView(
+                hour: $dailyVerseHour,
+                minute: $dailyVerseMinute,
+                onSaved: {
+                    Task { await applyDailyVerseMorningTime() }
+                }
+            )
+        }
+        .alert("Notifications disabled", isPresented: $showNotificationDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(notificationAlertMessage)
         }
         .onChange(of: selectedTranslationId) { _, _ in
             ChapterReaderPreferences.notifyTranslationDidChange()
@@ -98,14 +121,9 @@ struct ProfileView: View {
         .onChange(of: tahajudEnabled) { _, _ in PrayerNotificationPreferences.notifyDidChange() }
         .onChange(of: dailyVerseEnabled) { _, enabled in
             Task {
-                await DailyVerseNotificationCoordinator.setEnabled(enabled, container: container)
+                let result = await DailyVerseNotificationCoordinator.setEnabled(enabled, container: container)
+                handleDailyVerseScheduleResult(result)
             }
-        }
-        .onChange(of: dailyVerseHour) { _, _ in
-            Task { await applyDailyVerseMorningTime() }
-        }
-        .onChange(of: dailyVerseMinute) { _, _ in
-            Task { await applyDailyVerseMorningTime() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .qfOAuthWebAuthStateDidChange)) { _ in
             isOAuthPresenting = container?.oauth.isWebAuthInProgress == true
@@ -250,11 +268,26 @@ struct ProfileView: View {
     }
 
     private func applyDailyVerseMorningTime() async {
-        await DailyVerseNotificationCoordinator.applyMorningTime(
+        let result = await DailyVerseNotificationCoordinator.applyMorningTime(
             hour: dailyVerseHour,
             minute: dailyVerseMinute,
             container: container
         )
+        handleDailyVerseScheduleResult(result)
+    }
+
+    private func handleDailyVerseScheduleResult(_ result: DailyVerseNotificationScheduler.ScheduleResult) {
+        switch result {
+        case .scheduled, .disabled:
+            break
+        case .authorizationDenied:
+            notificationAlertMessage =
+                "Allow notifications for Al-Khatib in Settings to receive your daily verse reminder."
+            showNotificationDeniedAlert = true
+        case .failed(let message):
+            notificationAlertMessage = message
+            showNotificationDeniedAlert = true
+        }
     }
 
     private var notificationsSection: some View {
