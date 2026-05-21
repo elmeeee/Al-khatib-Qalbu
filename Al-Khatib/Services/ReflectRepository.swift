@@ -17,6 +17,14 @@ struct ReflectRepository: Sendable {
         self.habits = habits
     }
 
+    func getCachedFeed(limit: Int) async -> ReflectFeedEnvelope? {
+        await APICache.ReflectFeed.shared.cachedFeed(limit: limit, ignoreTTL: true)
+    }
+
+    func getCachedMyPosts(limit: Int) async -> ReflectFeedEnvelope? {
+        await APICache.ReflectFeed.shared.cachedMyPosts(limit: limit, ignoreTTL: true)
+    }
+
     func fetchFeed(page: Int = 1, limit: Int = 12, force: Bool = false) async throws -> ReflectFeedEnvelope {
         if page == 1, force == false, let cached = await APICache.ReflectFeed.shared.cachedFeed(limit: limit) {
             return cached

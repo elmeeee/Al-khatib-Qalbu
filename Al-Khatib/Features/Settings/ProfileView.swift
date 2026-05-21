@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ProfileView: View {
     var preferSystemNavigationTitle: Bool = false
+    var verseState: TodayVerseState?
     @Environment(\.appContainer) private var container
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("chapterReaderFontScale") private var fontScale = 1.0
@@ -21,18 +22,20 @@ struct ProfileView: View {
     @AppStorage(PrayerNotificationPreferences.tahajudKey) private var tahajudEnabled = true
     @AppStorage(ChapterReaderPreferences.translationIdKey) private var selectedTranslationId = ChapterReaderPreferences.defaultTranslationId
     @AppStorage(ChapterReaderPreferences.translationNameKey) private var selectedTranslationName = ""
+    @AppStorage(PrayerCalculationMethod.storageKey)
+    private var prayerMethodRaw = PrayerCalculationMethod.defaultMethod.rawValue
 
     @State private var vm: ProfileViewModel?
     @State private var isOAuthPresenting = false
     @State private var showingFontScaleSheet = false
     @State private var showingTranslatorSheet = false
 
-    private let tealThemeColor = Color(hex: "#0D9488")
-    private let slateBlueColor = Color(hex: "#64748B")
+    private let tealThemeColor = Color.Token.teal
+    private let slateBlueColor = Color.Token.slate500
 
     var body: some View {
         ZStack {
-            Color(hex: "#F8FAFC").ignoresSafeArea()
+            Color.Token.screenBackground.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 24) {
@@ -68,6 +71,25 @@ struct ProfileView: View {
                         sectionHeader("Prayer Setting")
 
                         VStack(spacing: 0) {
+                            NavigationLink {
+                                PrayerCalculationSettingsView()
+                            } label: {
+                                ProfileRow(
+                                    icon: "clock.badge.checkmark",
+                                    title: "Prayer calculation",
+                                    subtitle: selectedPrayerMethod.displayName,
+                                    hasToggle: false,
+                                    isOn: .constant(false)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .alKhatibAccessibility(
+                                label: AlKhatibAccessibility.Profile.prayerCalculation,
+                                hint: "Current method \(selectedPrayerMethod.displayName). Choose how prayer times are calculated"
+                            )
+
+                            Divider().padding(.leading, 64)
+
                             ProfileRow(
                                 icon: "book.pages",
                                 title: "Show Translation",
@@ -159,7 +181,7 @@ struct ProfileView: View {
                         .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
                     }
 
-                    if vm?.profile != nil {
+                    if showsSignedInActions {
                         logOutButton
                     }
                 }
@@ -170,10 +192,23 @@ struct ProfileView: View {
         }
         .navigationTitle(preferSystemNavigationTitle ? "Profile" : "")
         .navigationBarTitleDisplayMode(preferSystemNavigationTitle ? .large : .inline)
+        .onAppear {
+            guard let container, vm == nil else { return }
+            vm = ProfileViewModel(container: container)
+        }
         .task {
             guard let container else { return }
             if vm == nil { vm = ProfileViewModel(container: container) }
+            await vm?.hydrateFromCacheIfNeeded()
+            syncVerseStateProfile()
             await vm?.fetchProfile()
+            syncVerseStateProfile()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .qfUserProfileDidUpdate)) { _ in
+            Task { @MainActor in
+                await vm?.hydrateFromCacheIfNeeded()
+                syncVerseStateProfile()
+            }
         }
         .sheet(isPresented: $showingFontScaleSheet) {
             FontScaleSheet(fontScale: $fontScale)
@@ -201,6 +236,7 @@ struct ProfileView: View {
             Task { @MainActor in
                 if await container?.userSession.hasUserAccessToken() == true {
                     await vm?.fetchProfile(force: true)
+                    syncVerseStateProfile()
                 } else {
                     vm?.profile = nil
                 }
@@ -212,6 +248,7 @@ struct ProfileView: View {
                 guard let container else { return }
                 if await container.userSession.hasUserAccessToken() {
                     await vm?.fetchProfile(force: true)
+                    syncVerseStateProfile()
                 } else {
                     vm?.profile = nil
                     vm?.isLoading = false
@@ -222,40 +259,105 @@ struct ProfileView: View {
 
     private var headerSection: some View {
         Group {
-            if let profile = vm?.profile {
-                HStack(spacing: 16) {
-                    profileAvatar
+            if let vm {
+                bindableHeaderSection(vm: vm)
+            } else {
+                headerSectionWithoutViewModel
+            }
+        }
+    }
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(profile.displayTitle)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(Color(hex: "#1E293B"))
+    @ViewBuilder
+    private func bindableHeaderSection(vm: ProfileViewModel) -> some View {
+        @Bindable var vm = vm
+        if let profile = vm.profile {
+            signedInHeader(profile: profile)
+        } else if verseState?.isLoggedIn == true {
+            signedInHeaderFromVerseState
+        } else if vm.isLoading {
+            headerLoadingCard
+        } else {
+            headerSignInCard
+        }
+    }
 
-                        let country = profile.country ?? ""
-                        if !country.isEmpty {
-                            HStack(spacing: 4) {
-                                Image(systemName: "mappin.and.ellipse")
-                                    .font(.system(size: 11, weight: .semibold))
-                                Text(country)
-                                    .font(.system(size: 12, weight: .medium))
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 8, weight: .bold))
-                            }
-                            .foregroundColor(tealThemeColor)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(tealThemeColor.opacity(0.12))
-                            .clipShape(Capsule())
-                        }
-                    }
-
-                    Spacer()
-                }
-                .padding(.vertical, 8)
+    private var headerSectionWithoutViewModel: some View {
+        Group {
+            if verseState?.isLoggedIn == true {
+                signedInHeaderFromVerseState
             } else {
                 headerSignInCard
             }
         }
+    }
+
+    private func signedInHeader(profile: UserProfilePayload) -> some View {
+        HStack(spacing: 16) {
+            profileAvatar(url: profile.preferredAvatarURL)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(profile.displayTitle)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Color.Token.slate800)
+
+                let country = profile.country ?? ""
+                if !country.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(country)
+                            .font(.system(size: 12, weight: .medium))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 8, weight: .bold))
+                    }
+                    .foregroundColor(tealThemeColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(tealThemeColor.opacity(0.12))
+                    .clipShape(Capsule())
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, 8)
+    }
+
+    private var signedInHeaderFromVerseState: some View {
+        HStack(spacing: 16) {
+            profileAvatar(url: verseState?.userAvatarURL)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(verseState?.userDisplayName ?? "Profile")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Color.Token.slate800)
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, 8)
+    }
+
+    private var headerLoadingCard: some View {
+        HStack(spacing: 16) {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.Theme.softGrey.opacity(0.35))
+                .frame(width: 52, height: 52)
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.Theme.softGrey.opacity(0.35))
+                    .frame(width: 140, height: 14)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.Theme.softGrey.opacity(0.25))
+                    .frame(width: 90, height: 10)
+            }
+            Spacer()
+            ProgressView().tint(tealThemeColor)
+        }
+        .padding(16)
+        .background(Color.Theme.pureWhite)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
     }
 
     private var headerSignInCard: some View {
@@ -270,7 +372,7 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Sync Reflections")
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color(hex: "#1E293B"))
+                    .foregroundColor(Color.Token.slate800)
                 Text("Sign in to back up progress.")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.secondary)
@@ -279,7 +381,10 @@ struct ProfileView: View {
             Spacer()
 
             Button {
-                Task { await vm?.signIn() }
+                Task {
+                    await vm?.signIn()
+                    syncVerseStateProfile()
+                }
             } label: {
                 HStack(spacing: 6) {
                     if isOAuthPresenting {
@@ -308,24 +413,33 @@ struct ProfileView: View {
         .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
     }
 
-    private var profileAvatar: some View {
+    private func profileAvatar(url: URL?) -> some View {
         Group {
-            if let url = vm?.profile?.preferredAvatarURL {
+            if let url {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
                     case .failure, .empty:
-                        EmptyView()
+                        defaultProfileAvatar
                     @unknown default:
-                        EmptyView()
+                        defaultProfileAvatar
                     }
                 }
+                .id(url)
+            } else {
+                defaultProfileAvatar
             }
         }
         .frame(width: 80, height: 80)
         .clipShape(Circle())
         .shadow(color: Color.black.opacity(0.08), radius: 6, y: 3)
+    }
+
+    private var defaultProfileAvatar: some View {
+        Image(systemName: "person.crop.circle.fill")
+            .font(.system(size: 72))
+            .foregroundColor(tealThemeColor.opacity(0.85))
     }
 
     private func sectionHeader(_ text: String) -> some View {
@@ -352,9 +466,9 @@ struct ProfileView: View {
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(Color(hex: "#EF4444"))
+            .background(Color.Token.danger)
             .clipShape(Capsule())
-            .shadow(color: Color(hex: "#EF4444").opacity(0.2), radius: 8, y: 4)
+            .shadow(color: Color.Token.danger.opacity(0.2), radius: 8, y: 4)
         }
         .buttonStyle(PillPressStyle())
         .disabled(isOAuthPresenting)
@@ -362,7 +476,21 @@ struct ProfileView: View {
         .alKhatibAccessibility(label: AlKhatibAccessibility.Profile.signOut)
     }
 
+    private var showsSignedInActions: Bool {
+        if let vm {
+            return vm.profile != nil || verseState?.isLoggedIn == true
+        }
+        return verseState?.isLoggedIn == true
+    }
 
+    private func syncVerseStateProfile() {
+        guard let profile = vm?.profile else { return }
+        verseState?.applyProfile(profile)
+    }
+
+    private var selectedPrayerMethod: PrayerCalculationMethod {
+        PrayerCalculationMethod(rawValue: prayerMethodRaw) ?? PrayerCalculationMethod.defaultMethod
+    }
 
     private var fontScaleLabel: String {
         switch fontScale {
@@ -381,7 +509,7 @@ private struct ProfileRow: View {
     let hasToggle: Bool
     @Binding var isOn: Bool
 
-    private let tealThemeColor = Color(hex: "#0D9488")
+    private let tealThemeColor = Color.Token.teal
 
     var body: some View {
         HStack(spacing: 16) {
@@ -400,7 +528,7 @@ private struct ProfileRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(hex: "#1E293B"))
+                        .foregroundColor(Color.Token.slate800)
                     Text(subtitle)
                         .font(.system(size: 12, weight: .regular))
                         .foregroundColor(.secondary)
@@ -414,7 +542,7 @@ private struct ProfileRow: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(title)
                             .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(Color(hex: "#1E293B"))
+                            .foregroundColor(Color.Token.slate800)
                         Text(subtitle)
                             .font(.system(size: 12, weight: .regular))
                             .foregroundColor(.secondary)
@@ -443,7 +571,7 @@ private struct FontScaleSheet: View {
     @Binding var fontScale: Double
     @Environment(\.dismiss) private var dismiss
 
-    private let tealThemeColor = Color(hex: "#0D9488")
+    private let tealThemeColor = Color.Token.teal
     private let fontScaleRange: ClosedRange<Double> = 0.85 ... 1.35
 
     var body: some View {
@@ -532,8 +660,6 @@ private struct FontScaleSheet: View {
     }
 }
 
-// MARK: - Premium Translator Picker Sheet
-
 private struct TranslatorSelectionSheet: View {
     @Binding var selectedTranslationId: Int
     @Binding var selectedTranslationName: String
@@ -546,7 +672,7 @@ private struct TranslatorSelectionSheet: View {
 
     let contentRepository: QuranContentRepository
 
-    private let tealThemeColor = Color(hex: "#0D9488")
+    private let tealThemeColor = Color.Token.teal
 
     var filteredTranslations: [QFTranslation] {
         if searchQuery.isEmpty {
@@ -563,7 +689,7 @@ private struct TranslatorSelectionSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "#F8FAFC").ignoresSafeArea()
+                Color.Token.screenBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Search Bar
@@ -624,7 +750,7 @@ private struct TranslatorSelectionSheet: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(trans.authorName.isEmpty ? trans.name : trans.authorName)
                                             .font(.system(size: 15, weight: .bold))
-                                            .foregroundColor(Color(hex: "#1E293B"))
+                                            .foregroundColor(Color.Token.slate800)
                                         Text("\(trans.languageName.capitalized) · \(trans.name)")
                                             .font(.system(size: 12, weight: .regular))
                                             .foregroundColor(.secondary)

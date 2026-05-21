@@ -11,7 +11,6 @@ import Foundation
 enum QFError: Error, LocalizedError, Sendable, Equatable {
     case networkError(URLError)
     case authExpired
-    /// HTTP 403 from user APIs (e.g. Reflect) — treat like expired session and prompt sign-in.
     case sessionForbidden
     case apiLimitReached(retryAfter: TimeInterval?)
     case parsingError(String)

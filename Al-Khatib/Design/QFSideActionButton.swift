@@ -1,5 +1,5 @@
 //
-//  TikTokSideActionButton.swift
+//  QFSideActionButton.swift
 //  Al-Khatib
 //
 //  Created by Elmee on 25/04/2026.

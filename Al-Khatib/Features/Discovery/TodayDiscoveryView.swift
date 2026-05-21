@@ -82,6 +82,7 @@ struct TodayDiscoveryView: View {
             if dashboardViewModel == nil {
                 dashboardViewModel = PrayerDashboardViewModel(controller: prayer)
             }
+            Task { await verseState.syncFromCachedProfile(container: container) }
             guard let c = container, viewModel == nil else { return }
             let vm = TodayDiscoveryViewModel(content: c.content)
             viewModel = vm
@@ -148,14 +149,14 @@ struct TodayDiscoveryView: View {
     private func discoveryShell(vm: TodayDiscoveryViewModel?) -> some View {
         VStack(spacing: 0) {
             prayerHeader
-                .background(Color(hex: "#E8EBEF"))
+                .background(Color.Token.panelGrey)
 
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(hex: "#E8EBEF"),
-                        Color(hex: "#EEF2EE"),
-                        Color(hex: "#E7F0DF")
+                        Color.Token.panelGrey,
+                        Color.Token.panelGreyAlt,
+                        Color.Token.sageTint
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -300,7 +301,7 @@ struct TodayDiscoveryView: View {
                     Text(text)
                         .font(.system(size: 17, weight: .regular))
                         .lineSpacing(6)
-                        .foregroundStyle(Color(hex: "#1E293B"))
+                        .foregroundStyle(Color.Token.slate800)
                         .multilineTextAlignment(.leading)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 4)
@@ -333,7 +334,7 @@ struct TodayDiscoveryView: View {
                     LinearGradient(
                         colors: [
                             Color.white,
-                            Color(hex: "#F0FDF4")
+                            Color.Token.mintWash
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -425,7 +426,7 @@ struct TodayDiscoveryView: View {
             actionPill(
                 icon: "square.and.arrow.up",
                 text: "Share",
-                tint: Color(hex: "#2563EB"),
+                tint: Color.Token.blueLink,
                 accessibilityHint: AlKhatibAccessibility.VerseActions.shareHint
             ) {
                 guard !isGeneratingShare else { return }
@@ -449,7 +450,7 @@ struct TodayDiscoveryView: View {
             actionPill(
                 icon: "book.closed.fill",
                 text: "Tafsir",
-                tint: Color(hex: "#4F46E5"),
+                tint: Color.Token.indigoAccent,
                 accessibilityHint: AlKhatibAccessibility.VerseActions.tafsirHint
             ) {
                 openTafsir(for: d)
@@ -617,20 +618,21 @@ extension TodayDiscoveryView {
                 switch phase {
                 case .success(let image):
                     image.resizable().scaledToFill()
-                        .frame(width: 36, height: 36)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.Theme.deepEmerald.opacity(0.3), lineWidth: 1.5))
                 case .failure:
                     fallbackProfileIcon
                 case .empty:
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white)
-                        .frame(width: 40, height: 40)
-                        .overlay(ProgressView().tint(Color.Theme.deepEmerald))
+                    ProgressView().tint(Color.Theme.deepEmerald)
                 @unknown default:
                     fallbackProfileIcon
                 }
             }
+            .id(avatarURL)
+            .frame(width: 40, height: 40)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.Theme.deepEmerald.opacity(0.3), lineWidth: 1.5)
+            )
         } else {
             fallbackProfileIcon
         }

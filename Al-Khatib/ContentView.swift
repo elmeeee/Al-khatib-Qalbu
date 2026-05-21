@@ -54,6 +54,11 @@ struct ContentView: View {
                 await verseState.handleUserSessionDidChange(container: container)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .qfUserProfileDidUpdate)) { _ in
+            Task { @MainActor in
+                await verseState.syncFromCachedProfile(container: container)
+            }
+        }
     }
 }
 

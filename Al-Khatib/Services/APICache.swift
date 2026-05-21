@@ -61,12 +61,12 @@ enum APICache {
         private var feed: Entry?
         private var myPosts: Entry?
 
-        func cachedFeed(limit: Int) -> ReflectFeedEnvelope? {
-            cached(entry: feed, limit: limit)
+        func cachedFeed(limit: Int, ignoreTTL: Bool = false) -> ReflectFeedEnvelope? {
+            cached(entry: feed, limit: limit, ignoreTTL: ignoreTTL)
         }
 
-        func cachedMyPosts(limit: Int) -> ReflectFeedEnvelope? {
-            cached(entry: myPosts, limit: limit)
+        func cachedMyPosts(limit: Int, ignoreTTL: Bool = false) -> ReflectFeedEnvelope? {
+            cached(entry: myPosts, limit: limit, ignoreTTL: ignoreTTL)
         }
 
         func storeFeed(_ envelope: ReflectFeedEnvelope, limit: Int) {
@@ -82,10 +82,13 @@ enum APICache {
             myPosts = nil
         }
 
-        private func cached(entry: Entry?, limit: Int) -> ReflectFeedEnvelope? {
+        private func cached(entry: Entry?, limit: Int, ignoreTTL: Bool = false) -> ReflectFeedEnvelope? {
+            guard let entry, entry.limit == limit else { return nil }
+            if ignoreTTL {
+                // Allow up to 2 hours of stale data for immediate UI rendering (SWR)
+                return Date().timeIntervalSince(entry.fetchedAt) < 7200 ? entry.envelope : nil
+            }
             guard APICache.reflectFeedTTL > 0,
-                  let entry,
-                  entry.limit == limit,
                   Date().timeIntervalSince(entry.fetchedAt) < APICache.reflectFeedTTL else {
                 return nil
             }

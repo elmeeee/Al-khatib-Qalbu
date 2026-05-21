@@ -28,7 +28,6 @@ final class TafsirPresenter {
 
     private var activeAyahKey: String?
     private var cache: [String: CachedTafsir] = [:]
-    /// Full tafsir HTML is large; unbounded cache + prefetch caused OOM while scrolling long surahs.
     private var cacheAccessOrder: [String] = []
     private let maxCachedAyahs = 12
     private let content: QuranContentRepository

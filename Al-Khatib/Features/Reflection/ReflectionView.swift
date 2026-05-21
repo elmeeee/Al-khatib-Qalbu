@@ -27,9 +27,9 @@ struct ReflectionView: View {
                 if canShowReflectFeed || verseState.isLoggedIn {
                     LinearGradient(
                         colors: [
-                            Color(hex: "#0B3D34"),
+                            Color.Token.forestDark,
                             Color.Theme.deepEmerald,
-                            Color(hex: "#051F1A")
+                            Color.Token.forestDeeper
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -142,9 +142,9 @@ struct ReflectionView: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    Color(hex: "#0B3D34"),
+                    Color.Token.forestDark,
                     Color.Theme.deepEmerald,
-                    Color(hex: "#051F1A")
+                    Color.Token.forestDeeper
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -260,7 +260,7 @@ struct ShareReflectionSheet: View {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                                            colors: [Color.Theme.deepEmerald, Color.Token.tealDark],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         )

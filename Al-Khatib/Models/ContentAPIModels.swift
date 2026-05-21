@@ -13,6 +13,10 @@ struct RandomAyahResponse: Decodable, Sendable {
     let verse: RandomAyahPayload?
 }
 
+struct SingleVerseResponse: Decodable, Sendable {
+    let verse: RandomAyahPayload?
+}
+
 struct RandomAyahPayload: Decodable, Sendable {
     let id: Int?
     let verseNumber: Int?
@@ -145,6 +149,14 @@ private extension String {
         return out
     }
 
+    func normalizedForQuranRenderingPreservingResponse() -> String {
+        precomposedStringWithCanonicalMapping
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+    }
+}
+
+extension String {
     func strippingHTMLToPlainText() -> String {
         guard containsHTMLMarkup else { return self }
         guard let data = data(using: .utf8) else { return self }
@@ -156,12 +168,6 @@ private extension String {
             return attributed.string
         }
         return self
-    }
-
-    func normalizedForQuranRenderingPreservingResponse() -> String {
-        precomposedStringWithCanonicalMapping
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
     }
 }
 

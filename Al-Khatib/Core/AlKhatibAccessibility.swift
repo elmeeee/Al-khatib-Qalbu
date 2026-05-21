@@ -53,6 +53,7 @@ enum AlKhatibAccessibility {
             "\(title), \(isOn ? "on" : "off"). \(subtitle)"
         }
         static let fontSize = "Reading font size"
+        static let prayerCalculation = "Prayer time calculation method"
         static let translator = "Quran translation"
         static let signIn = "Sign in to Quran Reflect"
         static let signOut = "Log out"

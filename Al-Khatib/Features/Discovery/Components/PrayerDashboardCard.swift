@@ -52,7 +52,7 @@ struct PrayerDashboardCard: View {
                         lineWidth: 1.5
                     )
             )
-            .shadow(color: viewModel.activeTheme == .daylight ? Color(hex: "#064E3B").opacity(0.08) : Color.black.opacity(0.3), radius: 15, x: 0, y: 8)
+            .shadow(color: viewModel.activeTheme == .daylight ? Color.Token.deepEmerald.opacity(0.08) : Color.black.opacity(0.3), radius: 15, x: 0, y: 8)
             .padding(.top, 78)
         }
         .padding(.horizontal, 20)
@@ -116,7 +116,6 @@ struct PrayerDashboardCard: View {
     private var skeletonLayout: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 10) {
-                // Skeleton header bars
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.Theme.softGrey.opacity(0.6))
                     .frame(width: 140, height: 28)
@@ -135,7 +134,6 @@ struct PrayerDashboardCard: View {
             Divider()
                 .background(Color.Theme.softGrey.opacity(0.4))
             
-            // Skeleton timeline rows
             HStack(spacing: 8) {
                 ForEach(0..<6, id: \.self) { _ in
                     VStack(spacing: 8) {

@@ -205,7 +205,7 @@ private struct ContinueReadingCard: View {
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [Color.Theme.gold, Color(hex: "#D97706")],
+                        colors: [Color.Theme.gold, Color.Token.goldDeep],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -244,7 +244,7 @@ private struct ContinueReadingCard: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [Color.white, Color(hex: "#FFFBEB")],
+                        colors: [Color.white, Color.Token.amberWash],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -277,7 +277,7 @@ private struct QuranChapterRow: View {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                            colors: [Color.Theme.deepEmerald, Color.Token.tealDark],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )

@@ -49,7 +49,7 @@ struct RootTabView: View {
                     .navigationDestination(for: TodayNavigation.self) { destination in
                         switch destination {
                         case .account:
-                            ProfileView(preferSystemNavigationTitle: true)
+                            ProfileView(preferSystemNavigationTitle: true, verseState: verseState)
                                 .environment(\.appContainer, container)
                                 .navigationTitle("Account")
                                 .navigationBarTitleDisplayMode(.large)

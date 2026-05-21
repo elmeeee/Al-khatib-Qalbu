@@ -100,7 +100,6 @@ struct ChapterIntroPage: View {
 
                 Spacer()
 
-                // Swipe up hint with bounce animation
                 VStack(spacing: 6) {
                     Image(systemName: "chevron.up")
                         .font(.title2.weight(.semibold))
@@ -131,7 +130,6 @@ struct ChapterIntroPage: View {
                 }
             }
 
-            // Gradient play button
             ZStack {
                 Circle()
                     .fill(

@@ -12,9 +12,9 @@ struct ChapterReaderBackground: View {
     var body: some View {
         LinearGradient(
             colors: [
-                Color(hex: "#0A3D2E"),
-                Color.Theme.deepEmerald,
-                Color(hex: "#0F2A22")
+                Color.Token.readerMoss,
+                Color.Token.deepEmerald,
+                Color.Token.readerForest
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing

@@ -63,7 +63,6 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     private var scheduleAnchorDate: Date?
     private var tickerCancellable: AnyCancellable?
     private var methodChangeCancellable: AnyCancellable?
-    /// Skip duplicate Al-Adhan calls (appear + scene active + multiple GPS callbacks).
     private var lastSuccessfulTimingsKey: String?
     private var lastSuccessfulTimingsAt: Date?
 

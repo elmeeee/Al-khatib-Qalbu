@@ -41,9 +41,7 @@ final class ReflectionViewModel {
 
     private let reflect: ReflectRepository
     private let pageSize = 8
-    /// Cap in-memory post payloads (bodies + metadata) when users page deep in the reel.
     private let maxPostsKept = 72
-    /// Clears Reflect session (Keychain + caches) so UI returns to sign-in when API returns 401/403.
     var onSessionInvalidated: (@MainActor () -> Void)?
     private var loadTask: Task<Void, Never>?
     private var loadGeneration: UInt = 0
@@ -75,10 +73,25 @@ final class ReflectionViewModel {
         if Task.isCancelled { return }
         if let generation, generation != loadGeneration { return }
 
+        let segment = selectedSegment
+
         if refresh {
             if force == false, isLoading { return }
             if posts.isEmpty {
-                isLoading = true
+                let cachedEnvelope: ReflectFeedEnvelope?
+                switch segment {
+                case .feed:
+                    cachedEnvelope = await reflect.getCachedFeed(limit: pageSize)
+                case .myPosts:
+                    cachedEnvelope = await reflect.getCachedMyPosts(limit: pageSize)
+                }
+                
+                if let cached = cachedEnvelope, let data = cached.data, !data.isEmpty {
+                    posts = data
+                    isLoading = false // Instantly render cache
+                } else {
+                    isLoading = true
+                }
             }
             errorMessage = nil
             currentPage = 1
@@ -88,7 +101,6 @@ final class ReflectionViewModel {
         }
 
         let page = refresh ? 1 : currentPage + 1
-        let segment = selectedSegment
 
         defer {
             if generation == nil || generation == loadGeneration {
@@ -114,6 +126,16 @@ final class ReflectionViewModel {
             currentPage = envelope.currentPage ?? page
             if refresh {
                 posts = rows
+                
+                Task {
+                    do {
+                        if segment == .feed {
+                            _ = try await reflect.fetchMyPosts(page: 1, limit: pageSize, force: false)
+                        } else {
+                            _ = try await reflect.fetchFeed(page: 1, limit: pageSize, force: false)
+                        }
+                    } catch {}
+                }
             } else {
                 posts.append(contentsOf: rows)
                 trimPostsIfNeeded()
@@ -135,7 +157,6 @@ final class ReflectionViewModel {
         }
     }
 
-    /// Drop feed state and sign out locally so Reflect shows the login prompt (401 / 403 / expired token).
     private func handleReflectAuthenticationFailure() async {
         posts = []
         errorMessage = nil
@@ -216,7 +237,7 @@ final class ReflectionViewModel {
         guard isLoading == false, isLoadingMore == false else { return }
         guard currentPage < totalPages else { return }
         guard let index = posts.firstIndex(where: { $0.id == currentPost.id }) else { return }
-        guard index >= posts.count - 2 else { return }
+        guard index >= posts.count - 3 else { return }
         scheduleLoad(refresh: false)
     }
 

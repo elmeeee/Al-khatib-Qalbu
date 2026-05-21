@@ -56,7 +56,7 @@ struct VerseAudioBar: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.Theme.deepEmerald, Color(hex: "#0F766E")],
+                                    colors: [Color.Theme.deepEmerald, Color.Token.tealDark],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )

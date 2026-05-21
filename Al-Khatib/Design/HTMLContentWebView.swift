@@ -311,7 +311,6 @@ struct HTMLContentWebView: UIViewRepresentable {
 
         let (lang, dir) = htmlLocale(for: style)
         let prose = proseRules(for: style)
-        // Keep light color-scheme for verse cards so WKWebView does not paint a black page.
         let colorSchemeMeta: String =
             style.isVerseCard ? "light" : "light dark"
         let colorSchemeCSS: String =
@@ -383,7 +382,6 @@ struct HTMLContentWebView: UIViewRepresentable {
         let bodyColor = onDark ? "#FFFFFF" : "#1D1D1F"
         let endGold = onDark ? "rgba(212, 175, 55, 0.95)" : "rgba(148, 80, 5, 0.95)"
         let tajweed: String = {
-            // Verse cards always use Uthmani tajweed markup from the API.
             let base = """
                 tajweed, span[class*="tajweed"] {
                   display: inline;

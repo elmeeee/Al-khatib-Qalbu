@@ -21,7 +21,7 @@ struct TafsirReaderSheet: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.Theme.offWhite, Color(hex: "#F1F5F2")],
+                colors: [Color.Theme.offWhite, Color.Token.sageMist],
                 startPoint: .top,
                 endPoint: .bottom
             )

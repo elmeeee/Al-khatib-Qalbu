@@ -18,15 +18,15 @@ enum ThematicTheme: Equatable, Sendable {
         switch self {
         case .daylight:
             return [
-                Color(hex: "#FFF7ED"), // Warm amber tint
-                Color(hex: "#FEF3C7"), // Soft cream gold
-                Color(hex: "#F0FDFA")  // Minty daylight freshness
+                Color.Token.prayerCream,
+                Color.Token.prayerCreamWarm,
+                Color.Token.prayerMint
             ]
         case .night:
             return [
-                Color(hex: "#0F172A"), // Slate 900
-                Color(hex: "#1E293B"), // Slate 800
-                Color(hex: "#312E81")  // Deep indigo
+                Color.Token.slate900,
+                Color.Token.slate800,
+                Color.Token.indigoDeep
             ]
         }
     }
@@ -35,13 +35,13 @@ enum ThematicTheme: Equatable, Sendable {
         switch self {
         case .daylight:
             return [
-                Color(hex: "#064E3B"), // Deep emerald (matches app theme)
-                Color(hex: "#0F766E")  // Rich teal accent
+                Color.Token.deepEmerald,
+                Color.Token.tealDark
             ]
         case .night:
             return [
-                Color(hex: "#022C22"), // Ultra deep emerald night
-                Color(hex: "#064E3B")  // Deep emerald
+                Color.Token.emeraldNight,
+                Color.Token.deepEmerald
             ]
         }
     }

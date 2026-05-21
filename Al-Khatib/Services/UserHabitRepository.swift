@@ -47,6 +47,9 @@ struct UserHabitRepository: Sendable {
             }
             let profile: UserProfilePayload = try await self.client.send(ReflectEndpoint.profile)
             await APICache.Profile.shared.store(profile)
+            await MainActor.run {
+                NotificationCenter.default.post(name: .qfUserProfileDidUpdate, object: nil)
+            }
             return profile
         }
     }

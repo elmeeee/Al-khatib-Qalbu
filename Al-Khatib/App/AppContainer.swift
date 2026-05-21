@@ -57,8 +57,7 @@ final class AppContainer {
     func makeSyncService() -> ReflectionSyncService {
         ReflectionSyncService(store: reflectionStore, reflect: reflect, habits: habits)
     }
-
-    /// Logout or expired session — clears Keychain tokens, caches, and local Reflect data.
+    
     func clearUserSession() async {
         if isClearingUserSession { return }
         isClearingUserSession = true
@@ -68,7 +67,6 @@ final class AppContainer {
         reflectionStore.removeAll()
     }
 
-    /// Fire-and-forget sign-out after 401/403. Callers must not `await` this (e.g. Profile `.task`).
     func invalidateUserSession() {
         Task { @MainActor in
             await clearUserSession()

@@ -73,7 +73,6 @@ final class TodayVerseState {
         isLoggingIn = container?.oauth.isWebAuthInProgress ?? false
     }
 
-    /// Session notifications can fire while the OAuth sheet is still open; refresh after it closes.
     func handleOAuthFlowDidChange(container: AppContainer?) async {
         syncOAuthUIState(container: container)
         guard container?.oauth.isWebAuthInProgress != true else { return }
@@ -100,6 +99,22 @@ final class TodayVerseState {
         container.warmReflectDataIfSignedIn()
     }
 
+    func applyProfile(_ profile: UserProfilePayload) {
+        userAvatarURL = profile.preferredAvatarURL
+        userDisplayName = profile.displayTitle
+        userId = profile.id
+        isLoggedIn = profile.id.isEmpty == false
+        hasResolvedSession = true
+    }
+
+    func syncFromCachedProfile(container: AppContainer?) async {
+        guard let container else { return }
+        guard await container.userSession.hasUserAccessToken() else { return }
+        if let cached = await APICache.Profile.shared.cached() {
+            applyProfile(cached)
+        }
+    }
+
     private func applySignedOutProfile() {
         guard isLoggingIn == false else { return }
         profileRefreshTask?.cancel()
@@ -116,13 +131,11 @@ final class TodayVerseState {
         feedNeedsRefresh = false
     }
 
-    /// Fast session resolution for UI; profile network refresh continues in the background.
     func ensureProfileLoaded(container: AppContainer?) async {
         await applySessionSnapshot(container: container)
         enqueueProfileRefresh(container: container)
     }
 
-    /// Blocks until profile network refresh finishes (sign-in, publish reflection).
     func ensureProfileLoadedAndAwait(container: AppContainer?) async {
         await applySessionSnapshot(container: container)
         if let profileRefreshTask {
@@ -144,10 +157,7 @@ final class TodayVerseState {
         let hasToken = await container.userSession.hasUserAccessToken()
         if hasToken {
             if let cached = await APICache.Profile.shared.cached() {
-                userAvatarURL = cached.preferredAvatarURL
-                userDisplayName = cached.displayTitle
-                userId = cached.id
-                isLoggedIn = true
+                applyProfile(cached)
             } else {
                 isLoggedIn = false
             }
@@ -181,18 +191,12 @@ final class TodayVerseState {
         }
 
         if let cached = await APICache.Profile.shared.cached() {
-            userAvatarURL = cached.preferredAvatarURL
-            userDisplayName = cached.displayTitle
-            userId = cached.id
-            isLoggedIn = true
+            applyProfile(cached)
         }
 
         do {
             let profile = try await container.habits.fetchMyProfile()
-            userAvatarURL = profile.preferredAvatarURL
-            userDisplayName = profile.displayTitle
-            userId = profile.id
-            isLoggedIn = true
+            applyProfile(profile)
         } catch {
             if Self.isAuthenticationFailure(error) {
                 container.invalidateUserSession()

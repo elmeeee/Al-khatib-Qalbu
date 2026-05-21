@@ -23,12 +23,22 @@ final class ProfileViewModel {
         self.container = container
     }
 
+    func hydrateFromCacheIfNeeded() async {
+        guard profile == nil, let cached = await APICache.Profile.shared.cached() else { return }
+        profile = cached
+    }
+
     func fetchProfile(force: Bool = false) async {
-        guard await container.userSession.hasUserAccessToken() else {
-            profile = nil
-            isLoading = false
+        await hydrateFromCacheIfNeeded()
+
+        let hasToken = await container.userSession.hasUserAccessToken()
+        guard hasToken else {
+            if profile == nil {
+                isLoading = false
+            }
             return
         }
+
         if profile == nil {
             isLoading = true
         }
@@ -36,11 +46,11 @@ final class ProfileViewModel {
         do {
             profile = try await container.habits.fetchMyProfile(force: force)
         } catch {
-            profile = nil
             if TodayVerseState.isAuthenticationFailure(error) {
                 container.invalidateUserSession()
+                profile = nil
                 errorMessage = nil
-            } else {
+            } else if profile == nil {
                 errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             }
         }

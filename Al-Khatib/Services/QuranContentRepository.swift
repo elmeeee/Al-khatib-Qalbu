@@ -148,10 +148,15 @@ struct QuranContentRepository: Sendable {
             QuranContentEndpoint.resourcesTranslations(query: query)
         )
     }
+
+    func getVerseByKey(verseKey: String) async throws -> SingleVerseResponse {
+        let query = QuranVerseContentQuery.items()
+        return try await client.send(
+            QuranContentEndpoint.verseByKey(verseKey: verseKey, query: query)
+        )
+    }
 }
 
-/// One in-flight request + short in-memory cache so Today (prefetch + share + sheet) does not
-/// hit the tafsir endpoint multiple times for the same ayah.
 private actor TafsirByAyahCache {
     static let shared = TafsirByAyahCache()
 

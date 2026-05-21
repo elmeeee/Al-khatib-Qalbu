@@ -164,4 +164,5 @@ actor QFUserSession {
 extension Notification.Name {
     static let qfUserSessionDidChange = Notification.Name("qfUserSessionDidChange")
     static let qfOAuthWebAuthStateDidChange = Notification.Name("qfOAuthWebAuthStateDidChange")
+    static let qfUserProfileDidUpdate = Notification.Name("qfUserProfileDidUpdate")
 }

@@ -11,19 +11,38 @@ import SwiftUI
 private enum ReflectReelChrome {
     static let gradient = LinearGradient(
         colors: [
-            Color(hex: "#0B3D34"),
-            Color.Theme.deepEmerald,
-            Color(hex: "#051F1A")
+            Color.Token.forestDark,
+            Color.Token.deepEmerald,
+            Color.Token.forestDeeper
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
-    static let fillColor = Color(hex: "#051F1A")
+    static let fillColor = Color.Token.forestDeeper
+    static let ambientTeal = Color.Token.teal
+    static let ambientGold = Color.Token.goldBright
+    static let ambientEmerald = Color.Token.emeraldRich
+    static let cardBorderGradient = LinearGradient(
+        colors: [
+            Color.Token.goldBright.opacity(0.45),
+            Color.Token.gold.opacity(0.2),
+            Color.Token.goldBright.opacity(0.1),
+            Color.white.opacity(0.08)
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    static let cardShadowColor = Color.Token.goldBright.opacity(0.12)
 }
 
 struct ReflectReelFeedView: View {
     @Bindable var viewModel: ReflectionViewModel
+    @Environment(\.appContainer) private var container
+    @State private var selectedVerseItem: VerseSheetItem?
+    @State private var verseSheetData: SingleVerseResponse?
+    @State private var isLoadingVerse = false
 
     var body: some View {
         ZStack {
@@ -44,28 +63,28 @@ struct ReflectReelFeedView: View {
 
                     ZStack {
                         if viewModel.isLoading && viewModel.posts.isEmpty {
-                        reelLoadingStack(pageHeight: pageHeight)
-                    } else if let error = viewModel.errorMessage, viewModel.posts.isEmpty {
-                        reelErrorState(message: error, segment: viewModel.selectedSegment) {
-                            viewModel.onSegmentChanged(to: viewModel.selectedSegment)
+                            reelLoadingStack(pageHeight: pageHeight)
+                        } else if let error = viewModel.errorMessage, viewModel.posts.isEmpty {
+                            reelErrorState(message: error, segment: viewModel.selectedSegment) {
+                                viewModel.onSegmentChanged(to: viewModel.selectedSegment)
+                            }
+                        } else if viewModel.posts.isEmpty {
+                            reelEmptyState(segment: viewModel.selectedSegment)
+                        } else {
+                            reelPager(pageHeight: pageHeight, pageWidth: pageWidth)
                         }
-                    } else if viewModel.posts.isEmpty {
-                        reelEmptyState(segment: viewModel.selectedSegment)
-                    } else {
-                        reelPager(pageHeight: pageHeight, pageWidth: pageWidth)
-                    }
 
-                    if viewModel.isLoading && viewModel.posts.isEmpty == false {
-                        VStack {
-                            ProgressView()
-                                .tint(.white)
-                                .padding(10)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Capsule())
-                            Spacer()
+                        if viewModel.isLoading && viewModel.posts.isEmpty == false {
+                            VStack {
+                                ProgressView()
+                                    .tint(.white)
+                                    .padding(10)
+                                    .background(.ultraThinMaterial)
+                                    .clipShape(Capsule())
+                                Spacer()
+                            }
+                            .padding(.top, 8)
                         }
-                        .padding(.top, 8)
-                    }
 
                         if viewModel.isLoadingMore {
                             VStack {
@@ -79,6 +98,16 @@ struct ReflectReelFeedView: View {
                 }
             }
         }
+        .sheet(item: $selectedVerseItem) { item in
+            VerseDetailSheet(
+                verseKey: item.id,
+                response: verseSheetData,
+                isLoading: isLoadingVerse
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(28)
+        }
     }
 
     private func reelPager(pageHeight: CGFloat, pageWidth: CGFloat) -> some View {
@@ -91,6 +120,9 @@ struct ReflectReelFeedView: View {
                         isTogglingLike: viewModel.isTogglingLike(postId: post.id),
                         onToggleLike: {
                             Task { await viewModel.toggleLike(for: post) }
+                        },
+                        onTapVerse: { key in
+                            fetchAndShowVerse(key: key)
                         }
                     )
                     .frame(width: pageWidth, height: pageHeight)
@@ -108,6 +140,25 @@ struct ReflectReelFeedView: View {
         .clipped()
         .refreshable {
             await viewModel.loadPosts(refresh: true, force: true)
+        }
+    }
+
+    private func fetchAndShowVerse(key: String) {
+        isLoadingVerse = true
+        verseSheetData = nil
+        selectedVerseItem = VerseSheetItem(verseKey: key)
+
+        Task {
+            guard let content = container?.content else {
+                isLoadingVerse = false
+                return
+            }
+            do {
+                let response = try await content.getVerseByKey(verseKey: key)
+                verseSheetData = response
+            } catch {
+            }
+            isLoadingVerse = false
         }
     }
 
@@ -205,6 +256,11 @@ struct ReflectReelFeedView: View {
     }
 }
 
+private struct VerseSheetItem: Identifiable {
+    let id: String
+    init(verseKey: String) { self.id = verseKey }
+}
+
 private struct ReflectFeedTabBar: View {
     @Binding var selection: ReflectPostsSegment
     @Namespace private var tabNamespace
@@ -263,6 +319,12 @@ private struct ReflectReelPage: View {
     let pageHeight: CGFloat
     var isTogglingLike: Bool = false
     var onToggleLike: () -> Void = {}
+    var onTapVerse: (String) -> Void = { _ in }
+
+    @State private var heartScale: CGFloat = 1.0
+    @State private var heartBounce = false
+    @State private var showShareSheet = false
+    @State private var ambientPhase: CGFloat = 0
 
     private var verseKey: String? {
         post.references?.first?.verseKey
@@ -289,45 +351,18 @@ private struct ReflectReelPage: View {
             ZStack {
                 reelBackground
 
-                // Depth gradient overlay
-                VStack(spacing: 0) {
-                    LinearGradient(
-                        colors: [
-                            Color(hex: "#0B3D34").opacity(0.55),
-                            .clear
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 100)
-                    Spacer()
-                    LinearGradient(
-                        colors: [
-                            .clear,
-                            Color(hex: "#051F1A").opacity(0.5)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 120)
-                }
-                .allowsHitTesting(false)
-
                 VStack(alignment: .leading, spacing: 0) {
-                    profileSection
-                        .padding(.horizontal, 16)
-                        .padding(.top, 10)
-                        .padding(.bottom, 12)
+                    Spacer()
+                        .frame(height: 12)
 
-                    postContentSection
+                    glassmorphicCard
                         .padding(.horizontal, 16)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .padding(.bottom, 12)
+                        .padding(.trailing, 48)
+
+                    Spacer()
                 }
-                .padding(.trailing, 60)
                 .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
 
-                // Floating actions — lower right
                 VStack {
                     Spacer()
                     actionRail
@@ -340,6 +375,105 @@ private struct ReflectReelPage: View {
         .frame(height: pageHeight)
         .clipped()
         .accessibilityHint(AlKhatibAccessibility.Reflect.scrollPosts)
+        .sheet(isPresented: $showShareSheet) {
+            if let body = post.body {
+                let shareLabel = verseKey.map { VerseKeyFormat.humanLabel(for: $0) } ?? ""
+                let shareContent = shareLabel.isEmpty
+                    ? body
+                    : "\(body)\n\n— \(shareLabel)"
+                ShareActivityView(activityItems: [shareContent])
+            }
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
+                ambientPhase = 1
+            }
+        }
+    }
+
+    private var reelBackground: some View {
+        ZStack {
+            ReflectReelChrome.gradient
+                .ignoresSafeArea()
+
+            RadialGradient(
+                colors: [
+                    ReflectReelChrome.ambientTeal.opacity(0.15 + ambientPhase * 0.08),
+                    .clear
+                ],
+                center: .topLeading,
+                startRadius: 20,
+                endRadius: 350
+            )
+            .allowsHitTesting(false)
+
+            RadialGradient(
+                colors: [
+                    ReflectReelChrome.ambientGold.opacity(0.06 + ambientPhase * 0.04),
+                    .clear
+                ],
+                center: .bottomTrailing,
+                startRadius: 10,
+                endRadius: 280
+            )
+            .allowsHitTesting(false)
+
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [
+                        Color.Token.forestDark.opacity(0.55),
+                        .clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 100)
+                Spacer()
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        Color.Token.forestDeeper.opacity(0.5)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 120)
+            }
+            .allowsHitTesting(false)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+
+    private var glassmorphicCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            profileSection
+                .padding(.horizontal, 18)
+                .padding(.top, 18)
+                .padding(.bottom, 14)
+
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.0),
+                            Color.white.opacity(0.08),
+                            Color.Theme.gold.opacity(0.12),
+                            Color.white.opacity(0.08),
+                            Color.white.opacity(0.0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 0.5)
+                .padding(.horizontal, 18)
+
+            postContentSection
+                .padding(.horizontal, 18)
+                .padding(.top, 14)
+                .padding(.bottom, 18)
+        }
     }
 
     private var profileSection: some View {
@@ -347,31 +481,38 @@ private struct ReflectReelPage: View {
             authorRow
 
             if let key = verseKey {
-                HStack(spacing: 6) {
-                    Image(systemName: "book.closed.fill")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text(VerseKeyFormat.humanLabel(for: key))
-                        .font(.system(size: 13, weight: .bold))
-                }
-                .foregroundStyle(Color.Theme.gold)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(
-                    Capsule().fill(
-                        LinearGradient(
-                            colors: [
-                                Color.Theme.gold.opacity(0.2),
-                                Color.Theme.gold.opacity(0.1)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                Button {
+                    onTapVerse(key)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "book.closed.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text(VerseKeyFormat.humanLabel(for: key))
+                            .font(.system(size: 13, weight: .bold))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(Color.Theme.gold)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(
+                        Capsule().fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.Theme.gold.opacity(0.2),
+                                    Color.Theme.gold.opacity(0.1)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
                     )
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(Color.Theme.gold.opacity(0.25), lineWidth: 0.5)
-                )
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.Theme.gold.opacity(0.3), lineWidth: 0.5)
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -394,26 +535,26 @@ private struct ReflectReelPage: View {
 
     private var authorRow: some View {
         HStack(alignment: .center, spacing: 12) {
-            authorAvatar(size: 48)
+            authorAvatar(size: 44)
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 5) {
                     Text(post.author?.displayName ?? "Contributor")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
 
                     if post.author?.verified == true {
                         Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 13))
+                            .font(.system(size: 12))
                             .foregroundStyle(Color.Theme.gold)
                     }
                 }
 
                 if formattedDate.isEmpty == false {
                     Text(formattedDate)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.6))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.55))
                 }
             }
 
@@ -422,24 +563,106 @@ private struct ReflectReelPage: View {
     }
 
     private var actionRail: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 22) {
+            springHeartButton
             reelActionButton(
-                icon: post.isLiked == true ? "heart.fill" : "heart",
-                label: formatCount(post.likesCount),
-                accessibilityLabel: AlKhatibAccessibility.Reflect.like(
-                    isLiked: post.isLiked == true,
-                    count: post.likesCount ?? 0
-                ),
-                isHighlighted: post.isLiked == true,
-                isLoading: isTogglingLike,
-                action: onToggleLike
+                icon: "bubble.right.fill",
+                label: formatCount(post.commentsCount),
+                accessibilityLabel: "Comments, \(post.commentsCount ?? 0)",
+                isHighlighted: false,
+                action: nil
+            )
+            reelActionButton(
+                icon: "arrowshape.turn.up.right.fill",
+                label: "",
+                accessibilityLabel: "Share reflection",
+                isHighlighted: false,
+                action: { showShareSheet = true }
             )
         }
     }
 
-    private var reelBackground: some View {
-        ReflectReelChrome.gradient
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    private var springHeartButton: some View {
+        let isLiked = post.isLiked == true
+
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.1)) {
+                heartScale = 1.35
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                    heartScale = 1.0
+                }
+            }
+            onToggleLike()
+        } label: {
+            VStack(spacing: 5) {
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial.opacity(0.6))
+                        .frame(width: 48, height: 48)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    isLiked
+                                        ? LinearGradient(
+                                            colors: [
+                                                Color(red: 1, green: 0.35, blue: 0.45).opacity(0.4),
+                                                Color(red: 1, green: 0.2, blue: 0.4).opacity(0.15)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                        : LinearGradient(
+                                            colors: [.white.opacity(0.15), .white.opacity(0.08)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        ),
+                                    lineWidth: 0.8
+                                )
+                        )
+
+                    if isTogglingLike {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.85)
+                    } else {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(
+                                isLiked
+                                    ? AnyShapeStyle(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 1, green: 0.35, blue: 0.45),
+                                                Color(red: 1, green: 0.2, blue: 0.4)
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    : AnyShapeStyle(.white)
+                            )
+                            .scaleEffect(heartScale)
+                    }
+                }
+
+                if let count = post.likesCount, count > 0 {
+                    Text(formatCount(count))
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .frame(width: 52)
+        }
+        .buttonStyle(.plain)
+        .disabled(isTogglingLike)
+        .accessibilityLabel(
+            AlKhatibAccessibility.Reflect.like(
+                isLiked: isLiked,
+                count: post.likesCount ?? 0
+            )
+        )
     }
 
     private func reelActionButton(
@@ -457,10 +680,10 @@ private struct ReflectReelPage: View {
                 ZStack {
                     Circle()
                         .fill(.ultraThinMaterial.opacity(0.6))
-                        .frame(width: 46, height: 46)
+                        .frame(width: 48, height: 48)
                         .overlay(
                             Circle()
-                                .stroke(.white.opacity(0.15), lineWidth: 0.5)
+                                .stroke(.white.opacity(0.12), lineWidth: 0.5)
                         )
 
                     if isLoading {
@@ -469,21 +692,8 @@ private struct ReflectReelPage: View {
                             .scaleEffect(0.85)
                     } else {
                         Image(systemName: icon)
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(
-                                isHighlighted
-                                    ? AnyShapeStyle(
-                                        LinearGradient(
-                                            colors: [
-                                                Color(red: 1, green: 0.35, blue: 0.45),
-                                                Color(red: 1, green: 0.2, blue: 0.4)
-                                            ],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                                    : AnyShapeStyle(.white)
-                            )
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.9))
                     }
                 }
 
@@ -514,7 +724,10 @@ private struct ReflectReelPage: View {
                         .overlay(
                             Circle().stroke(
                                 LinearGradient(
-                                    colors: [Color.Theme.deepEmerald, Color.Theme.gold.opacity(0.6)],
+                                    colors: [
+                                        Color.Theme.deepEmerald,
+                                        Color.Theme.gold.opacity(0.6)
+                                    ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
@@ -542,7 +755,10 @@ private struct ReflectReelPage: View {
             .overlay(
                 Circle().stroke(
                     LinearGradient(
-                        colors: [Color.Theme.deepEmerald.opacity(0.5), Color.Theme.gold.opacity(0.3)],
+                        colors: [
+                            Color.Theme.deepEmerald.opacity(0.5),
+                            Color.Theme.gold.opacity(0.3)
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -563,6 +779,185 @@ private struct ReflectReelPage: View {
     }
 }
 
+private struct ShareActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+private struct VerseDetailSheet: View {
+    let verseKey: String
+    let response: SingleVerseResponse?
+    let isLoading: Bool
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color.Token.forestDeeper,
+                    Color.Token.forestDark,
+                    Color.Token.deepEmerald
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            if isLoading && response == nil {
+                verseLoadingState
+            } else if let verse = response?.verse {
+                verseContentView(verse: verse)
+            } else if !isLoading {
+                verseErrorState
+            }
+        }
+    }
+
+    private var verseLoadingState: some View {
+        VStack(spacing: 20) {
+            ProgressView()
+                .tint(Color.Theme.gold)
+                .scaleEffect(1.2)
+            Text("Loading verse…")
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.6))
+        }
+    }
+
+    private var verseErrorState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "book.closed")
+                .font(.system(size: 32, weight: .light))
+                .foregroundStyle(.white.opacity(0.5))
+            Text("Could not load verse")
+                .font(.subheadline.bold())
+                .foregroundStyle(.white.opacity(0.8))
+            Button {
+                dismiss()
+            } label: {
+                Text("Close")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                    .background(.white)
+                    .clipShape(Capsule())
+            }
+        }
+    }
+
+    private func verseContentView(verse: RandomAyahPayload) -> some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 24) {
+                HStack(spacing: 8) {
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text(VerseKeyFormat.humanLabel(for: verseKey))
+                        .font(.system(size: 16, weight: .bold))
+                }
+                .foregroundStyle(Color.Theme.gold)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule().fill(
+                        LinearGradient(
+                            colors: [
+                                Color.Theme.gold.opacity(0.2),
+                                Color.Theme.gold.opacity(0.08)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(Color.Theme.gold.opacity(0.3), lineWidth: 0.5)
+                )
+
+                ornamentalDivider
+
+                if let arabicText = verse.displayText, arabicText.isEmpty == false {
+                    VStack(spacing: 8) {
+                        Text(arabicText)
+                            .font(AlKhatibTypography.quranArabic(size: 28))
+                            .multilineTextAlignment(.center)
+                            .environment(\.layoutDirection, .rightToLeft)
+                            .lineSpacing(12)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                    }
+                }
+
+                ornamentalDivider
+
+                if let translations = verse.translations, translations.isEmpty == false {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(translations, id: \.id) { translation in
+                            VStack(alignment: .leading, spacing: 6) {
+                                if let name = translation.resourceName, name.isEmpty == false {
+                                    Text(name)
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundStyle(Color.Theme.gold.opacity(0.7))
+                                        .textCase(.uppercase)
+                                        .tracking(0.5)
+                                }
+
+                                if let text = translation.text {
+                                    let cleaned = text.strippingHTMLToPlainText()
+                                    Text(cleaned)
+                                        .font(.system(size: 15, weight: .regular))
+                                        .foregroundStyle(.white.opacity(0.85))
+                                        .lineSpacing(4)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Spacer(minLength: 32)
+            }
+            .padding(.top, 24)
+            .padding(.bottom, 20)
+        }
+    }
+
+    private var ornamentalDivider: some View {
+        HStack(spacing: 10) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [.clear, Color.Theme.gold.opacity(0.2)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 0.5)
+            Text("\u{2726}")
+                .font(.system(size: 10))
+                .foregroundStyle(Color.Theme.gold.opacity(0.5))
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.Theme.gold.opacity(0.2), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 0.5)
+        }
+        .padding(.horizontal, 32)
+    }
+}
+
 private struct ReflectReelSkeletonPage: View {
     let pageHeight: CGFloat
 
@@ -573,32 +968,52 @@ private struct ReflectReelSkeletonPage: View {
             ReflectReelChrome.gradient
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 12) {
-                    Circle().fill(.white.opacity(0.08)).frame(width: 48, height: 48)
-                    VStack(alignment: .leading, spacing: 6) {
-                        skeletonBar(width: 130, height: 14)
-                        skeletonBar(width: 80, height: 11)
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 12) {
+                        Circle().fill(.white.opacity(0.08)).frame(width: 44, height: 44)
+                        VStack(alignment: .leading, spacing: 6) {
+                            skeletonBar(width: 130, height: 14)
+                            skeletonBar(width: 80, height: 11)
+                        }
                     }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 18)
 
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(0..<4, id: \.self) { i in
-                        skeletonBar(width: i == 3 ? 200 : nil, height: 15)
+                    Rectangle()
+                        .fill(.white.opacity(0.04))
+                        .frame(height: 0.5)
+                        .padding(.horizontal, 18)
+                        .padding(.top, 14)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(0..<4, id: \.self) { i in
+                            skeletonBar(width: i == 3 ? 200 : nil, height: 15)
+                        }
                     }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 18)
                 }
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(.white.opacity(0.04))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(.white.opacity(0.06), lineWidth: 1)
+                )
                 .padding(.horizontal, 16)
-                .padding(.top, 20)
-                .frame(maxHeight: .infinity, alignment: .top)
+                .padding(.top, 12)
+                .padding(.trailing, 48)
+
+                Spacer()
             }
-            .padding(.trailing, 60)
 
             VStack {
                 Spacer()
                 VStack(spacing: 22) {
                     ForEach(0..<3, id: \.self) { _ in
-                        Circle().fill(.white.opacity(0.08)).frame(width: 46, height: 46)
+                        Circle().fill(.white.opacity(0.08)).frame(width: 48, height: 48)
                     }
                 }
             }
