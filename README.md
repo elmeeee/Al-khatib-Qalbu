@@ -7,7 +7,6 @@
 | **Platform** | iOS 26 · SwiftUI · Swift 6 concurrency |
 | **Repository** | [github.com/elmeeee/Al-khatib-Qalbu](https://github.com/elmeeee/Al-khatib-Qalbu) |
 | **QF environment** | Prelive (Debug) · Production (Release) |
-| **Demo video** | _Add your 2–3 minute link here before submission_ |
 
 ---
 
@@ -253,7 +252,7 @@ flowchart TB
 
 ## External services (non-QF)
 
-| Service | Purpose | Not part of QF hackathon API score |
+| Service | Purpose | Not part of QF API |
 |---------|---------|-------------------------------------|
 | **[Al-Adhan](https://aladhan.com/prayer-times-api)** | Daily prayer times from GPS + calculation method | Today prayer card |
 | **[Groq](https://groq.com)** (optional) | LLM draft for personal reflection text | Today “Reflect” assist when `API_KEY_GROQ` is set |
@@ -304,7 +303,7 @@ Al-Khatib/
 ### Requirements
 
 - Xcode 16+
-- iOS 17+ simulator or device
+- iOS 26 simulator or device
 - Quran Foundation OAuth client (Prelive for Debug, Production for Release)
 - Client secret for Content API (client credentials)
 
@@ -334,17 +333,6 @@ Al-Khatib/
 1. Open `Al-Khatib.xcodeproj` in Xcode.
 2. Select the **Al-Khatib** scheme and an iPhone simulator (e.g. iPhone 17).
 3. **Product → Run** (⌘R).
-
-## Known limitations
-
-- `GET /verses/by_key/{key}` — not implemented in UI
-- `PATCH /users/profile` — client method exists, no settings UI
-- `GET /oauth2/introspect` — not used
-- Reflect **comment / bookmark / share** — hidden (no API wiring yet)
-- **Streak** OAuth scope requested; streak UI and Auth v1 activity-days endpoints were removed from this build
-- **Groq** is optional third-party AI, not a QF API
-- Local `ReflectionSyncService` runs but no code enqueues offline posts today
-- Play-all-surah auto-scroll: test on device; layout may vary by iOS version
 
 ---
 
