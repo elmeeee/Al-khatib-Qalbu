@@ -14,7 +14,7 @@ struct ReflectReelLoadingStack: View {
     var body: some View {
         TabView {
             ForEach(0..<3, id: \.self) { _ in
-                ReflectReelSkeletonPageView(pageHeight: pageHeight)
+                ReflectReelSkeletonPage(pageHeight: pageHeight)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))

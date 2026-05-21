@@ -26,7 +26,7 @@ struct PrayerDashboardCard: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 if viewModel.mappedPrayers.isEmpty || viewModel.isLoading {
-                    skeletonLayout
+                    PrayerDashboardSkeleton()
                 } else {
                     activeCardLayout
                 }
@@ -66,7 +66,7 @@ struct PrayerDashboardCard: View {
         guard viewModel.mappedPrayers.isEmpty == false, viewModel.isLoading == false else {
             return "Loading prayer times"
         }
-        let city = viewModel.cityName ?? "your location"
+        let city = viewModel.cityName ?? ""
         return "Next prayer \(viewModel.nextPrayerDisplayName) in \(viewModel.countdownString). Location \(city)."
     }
     
@@ -112,45 +112,5 @@ struct PrayerDashboardCard: View {
         }
     }
     
-    @ViewBuilder
-    private var skeletonLayout: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading, spacing: 10) {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.Theme.softGrey.opacity(0.6))
-                    .frame(width: 140, height: 28)
-                
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.Theme.softGrey.opacity(0.4))
-                    .frame(width: 80, height: 14)
-                
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.Theme.softGrey.opacity(0.4))
-                    .frame(width: 180, height: 32)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 28)
-            
-            Divider()
-                .background(Color.Theme.softGrey.opacity(0.4))
-            
-            HStack(spacing: 8) {
-                ForEach(0..<6, id: \.self) { _ in
-                    VStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.Theme.softGrey.opacity(0.5))
-                            .frame(width: 38, height: 12)
-                        
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.Theme.softGrey.opacity(0.3))
-                            .frame(width: 44, height: 44)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 20)
-        }
-    }
 }
 
