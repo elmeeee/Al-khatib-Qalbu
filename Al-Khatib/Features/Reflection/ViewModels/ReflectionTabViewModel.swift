@@ -16,13 +16,17 @@ final class ReflectionTabViewModel {
     private(set) var feedViewModel: ReflectionViewModel?
 
     var screen: ReflectTabScreen {
-        if shouldShowSignInPrompt { return .signIn }
-        if canShowReflectFeed {
+        guard hasResolvedSession else { return .sessionLoading }
+
+        if isLoggedIn {
             return feedViewModel == nil ? .bootLoading : .feed
         }
-        if hasResolvedSession == false || isRefreshingProfile { return .sessionLoading }
-        if hasResolvedSession { return .signIn }
-        return .sessionLoading
+
+        if hasAccessToken || isRefreshingProfile {
+            return .sessionLoading
+        }
+
+        return .signIn
     }
 
     private var hasResolvedSession = false
@@ -35,12 +39,8 @@ final class ReflectionTabViewModel {
         isLoggedIn = verseState.isLoggedIn
     }
 
-    var shouldShowSignInPrompt: Bool {
-        hasResolvedSession && isLoggedIn == false && hasAccessToken == false
-    }
-
     var canShowReflectFeed: Bool {
-        hasAccessToken || isLoggedIn
+        isLoggedIn
     }
 
     func refreshAccessToken(using container: AppContainer?) async {
@@ -53,28 +53,36 @@ final class ReflectionTabViewModel {
 
     func openTab(container: AppContainer, verseState: TodayVerseState) async {
         sync(verseState: verseState)
-        hasAccessToken = await container.userSession.hasUserAccessToken()
-        guard hasAccessToken else {
-            await verseState.ensureProfileLoaded(container: container)
-            feedViewModel = nil
-            return
+        await refreshAccessToken(using: container)
+
+        if isLoggedIn == false {
+            if hasAccessToken {
+                await verseState.ensureProfileLoadedAndAwait(container: container)
+            } else {
+                await verseState.ensureProfileLoaded(container: container)
+            }
+            sync(verseState: verseState)
+            await refreshAccessToken(using: container)
+            guard isLoggedIn else {
+                feedViewModel = nil
+                return
+            }
         }
 
         ensureFeedViewModel(container: container)
         container.warmReflectDataIfSignedIn()
         feedViewModel?.scheduleLoad(refresh: true, force: false)
-
-        hasAccessToken = await container.userSession.hasUserAccessToken()
-        if hasAccessToken == false {
-            feedViewModel = nil
-        }
     }
 
     func bootstrapFeed(container: AppContainer, verseState: TodayVerseState, force: Bool) async {
         sync(verseState: verseState)
+        await refreshAccessToken(using: container)
+        guard isLoggedIn else {
+            feedViewModel = nil
+            return
+        }
         ensureFeedViewModel(container: container)
         feedViewModel?.scheduleLoad(refresh: true, force: force)
-        hasAccessToken = await container.userSession.hasUserAccessToken()
     }
 
     func handleSessionChange(
@@ -84,12 +92,22 @@ final class ReflectionTabViewModel {
     ) async {
         sync(verseState: verseState)
         guard let container else { return }
-        hasAccessToken = await container.userSession.hasUserAccessToken()
+        await refreshAccessToken(using: container)
         if hasAccessToken == false {
             feedViewModel = nil
             await verseState.ensureProfileLoaded(container: container)
+            sync(verseState: verseState)
         } else if isTabSelected {
-            await bootstrapFeed(container: container, verseState: verseState, force: true)
+            if isLoggedIn == false {
+                await verseState.ensureProfileLoadedAndAwait(container: container)
+                sync(verseState: verseState)
+                await refreshAccessToken(using: container)
+            }
+            if isLoggedIn {
+                await bootstrapFeed(container: container, verseState: verseState, force: true)
+            } else {
+                feedViewModel = nil
+            }
         } else {
             container.warmReflectDataIfSignedIn()
         }

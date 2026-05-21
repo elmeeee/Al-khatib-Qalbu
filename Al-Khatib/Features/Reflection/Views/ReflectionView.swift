@@ -24,6 +24,7 @@ struct ReflectionView: View {
                 .ignoresSafeArea()
 
             screenContent
+                .animation(nil, value: tabViewModel.screen)
 
             shareToastOverlay
         }
@@ -92,39 +93,50 @@ struct ReflectionView: View {
                 reelBootLoading
             }
         case .sessionLoading:
-            LoadingSkeleton()
+            sessionResolvingPlaceholder
         }
     }
 
     @ViewBuilder
     private var background: some View {
-        if tabViewModel.canShowReflectFeed || verseState.isLoggedIn {
-            LinearGradient(
-                colors: [
-                    Color.Token.forestDark,
-                    Color.Token.deepEmerald,
-                    Color.Token.forestDeeper
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        } else {
+        switch tabViewModel.screen {
+        case .feed, .bootLoading:
+            reflectReelGradient
+        case .signIn, .sessionLoading:
             Color.Token.offWhite
         }
     }
 
+    private var reflectReelGradient: some View {
+        LinearGradient(
+            colors: [
+                Color.Token.forestDark,
+                Color.Token.deepEmerald,
+                Color.Token.forestDeeper
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var sessionResolvingPlaceholder: some View {
+        VStack(spacing: 16) {
+            Spacer(minLength: 24)
+            ProgressView()
+                .tint(Color.Token.deepEmerald)
+                .scaleEffect(1.1)
+            Text("Loading…")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 24)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
     private var reelBootLoading: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color.Token.forestDark,
-                    Color.Token.deepEmerald,
-                    Color.Token.forestDeeper
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            reflectReelGradient
+                .ignoresSafeArea()
             ProgressView()
                 .tint(.white)
                 .scaleEffect(1.1)
