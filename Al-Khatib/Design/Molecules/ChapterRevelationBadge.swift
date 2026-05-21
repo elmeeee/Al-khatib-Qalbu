@@ -25,6 +25,6 @@ struct ChapterRevelationBadge: View {
     }
 
     private var foregroundColor: Color {
-        chapter.isMeccan ? Color.Theme.gold : Color.Token.blueLink
+        chapter.isMeccan ? Color.Token.gold : Color.Token.blueLink
     }
 }

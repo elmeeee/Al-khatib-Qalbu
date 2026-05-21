@@ -41,7 +41,7 @@ struct ChapterNowPlayingBar: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            Color.Theme.deepEmerald,
+                                            Color.Token.deepEmerald,
                                             Color.Token.tealDark
                                         ],
                                         startPoint: .topLeading,
@@ -99,8 +99,8 @@ struct ChapterNowPlayingBar: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.Theme.gold.opacity(0.45),
-                            Color.Theme.gold.opacity(0.15)
+                            Color.Token.gold.opacity(0.45),
+                            Color.Token.gold.opacity(0.15)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -108,11 +108,11 @@ struct ChapterNowPlayingBar: View {
                 )
                 .overlay(
                     Circle()
-                        .stroke(Color.Theme.gold.opacity(0.25), lineWidth: 0.5)
+                        .stroke(Color.Token.gold.opacity(0.25), lineWidth: 0.5)
                 )
             Image(systemName: audio.isPlaying ? "waveform" : "play.fill")
                 .font(.system(size: audio.isPlaying ? 14 : 12, weight: .semibold))
-                .foregroundStyle(Color.Theme.gold)
+                .foregroundStyle(Color.Token.gold)
                 .symbolEffect(.variableColor.iterative, isActive: audio.isPlaying)
         }
         .frame(width: 40, height: 40)

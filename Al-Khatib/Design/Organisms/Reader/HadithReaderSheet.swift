@@ -23,7 +23,7 @@ struct HadithReaderSheet: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.Theme.offWhite, Color.Token.sageMist],
+                colors: [Color.Token.offWhite, Color.Token.sageMist],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -58,11 +58,11 @@ struct HadithReaderSheet: View {
         HStack {
             Text("Hadith")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .foregroundStyle(Color.Token.deepEmerald)
             Spacer()
             Button("Done") { dismiss() }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .foregroundStyle(Color.Token.deepEmerald)
         }
         .padding(.horizontal, 20)
         .padding(.top, 10)
@@ -73,13 +73,13 @@ struct HadithReaderSheet: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "text.book.closed.fill")
                 .font(.title2)
-                .foregroundStyle(Color.Theme.deepEmerald.opacity(0.88))
+                .foregroundStyle(Color.Token.deepEmerald.opacity(0.88))
                 .frame(width: 36, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(verseReference)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                     .multilineTextAlignment(.leading)
 
                 if isLoading == false, items.isEmpty == false {
@@ -98,7 +98,7 @@ struct HadithReaderSheet: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.Theme.softGrey.opacity(0.65), lineWidth: 1)
+                .stroke(Color.Token.softGrey.opacity(0.65), lineWidth: 1)
         )
         .padding(.horizontal, 16)
         .padding(.top, 10)
@@ -138,7 +138,7 @@ struct HadithReaderSheet: View {
                         Group {
                             if isLoadingMore {
                                 ProgressView()
-                                    .tint(Color.Theme.deepEmerald)
+                                    .tint(Color.Token.deepEmerald)
                             } else {
                                 Text("Load more")
                                     .font(.subheadline.weight(.semibold))
@@ -148,7 +148,7 @@ struct HadithReaderSheet: View {
                         .padding(.vertical, 12)
                     }
                     .buttonStyle(.bordered)
-                    .tint(Color.Theme.deepEmerald)
+                    .tint(Color.Token.deepEmerald)
                     .disabled(isLoadingMore)
                 }
             }
@@ -162,7 +162,7 @@ struct HadithReaderSheet: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(item.sourceName)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                 Spacer(minLength: 8)
                 if let reference = item.referenceLabel {
                     Text(reference)
@@ -174,7 +174,7 @@ struct HadithReaderSheet: View {
             if let chapter = item.chapterTitle, chapter.isEmpty == false {
                 Text(chapter)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.Theme.gold)
+                    .foregroundStyle(Color.Token.gold)
             }
 
             Text(item.body)
@@ -188,7 +188,7 @@ struct HadithReaderSheet: View {
                     ForEach(item.gradeLines, id: \.self) { line in
                         Label(line, systemImage: "checkmark.seal.fill")
                             .font(.caption)
-                            .foregroundStyle(Color.Theme.deepEmerald.opacity(0.85))
+                            .foregroundStyle(Color.Token.deepEmerald.opacity(0.85))
                             .labelStyle(.titleAndIcon)
                     }
                 }
@@ -205,7 +205,7 @@ struct HadithReaderSheet: View {
             .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(Color.Theme.softGrey.opacity(0.65), lineWidth: 1)
+                    .stroke(Color.Token.softGrey.opacity(0.65), lineWidth: 1)
             )
     }
 
@@ -222,7 +222,7 @@ struct HadithReaderSheet: View {
             } actions: {
                 Button("Try again", action: reload)
                     .buttonStyle(.borderedProminent)
-                    .tint(Color.Theme.deepEmerald)
+                    .tint(Color.Token.deepEmerald)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

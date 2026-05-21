@@ -51,7 +51,7 @@ struct ReflectReelErrorStateView: View {
             Button(action: retry) {
                 Text("Try again")
                     .font(.subheadline.bold())
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 12)
                     .background(.white)
@@ -97,7 +97,7 @@ struct ReflectReelEmptyStateView: View {
             if segment == .myPosts {
                 Text("Start Reflecting")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 10)
                     .background(.white)

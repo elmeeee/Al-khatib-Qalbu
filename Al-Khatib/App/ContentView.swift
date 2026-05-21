@@ -35,7 +35,7 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(.light)
-        .tint(Color.Theme.deepEmerald)
+        .tint(Color.Token.deepEmerald)
         .task(id: hasCompletedOnboarding) {
             guard hasCompletedOnboarding else { return }
             await verseState.ensureProfileLoaded(container: container)

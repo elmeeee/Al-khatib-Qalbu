@@ -12,9 +12,9 @@ struct PrayerTimeColumn: View {
     let name: String
     let time: String
     let isActive: Bool
-    let theme: ThematicTheme
+    let theme: PrayerThematicTheme
     
-    init(name: String, time: String, isActive: Bool, theme: ThematicTheme) {
+    init(name: String, time: String, isActive: Bool, theme: PrayerThematicTheme) {
         self.name = name
         self.time = time
         self.isActive = isActive

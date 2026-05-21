@@ -8,81 +8,10 @@
 
 import Combine
 import Foundation
-import SwiftUI
-
-enum ThematicTheme: Equatable, Sendable {
-    case daylight
-    case night
-    
-    var gradientColors: [Color] {
-        switch self {
-        case .daylight:
-            return [
-                Color.Token.prayerCream,
-                Color.Token.prayerCreamWarm,
-                Color.Token.prayerMint
-            ]
-        case .night:
-            return [
-                Color.Token.slate900,
-                Color.Token.slate800,
-                Color.Token.indigoDeep
-            ]
-        }
-    }
-    
-    var cardGradientColors: [Color] {
-        switch self {
-        case .daylight:
-            return [
-                Color.Token.deepEmerald,
-                Color.Token.tealDark
-            ]
-        case .night:
-            return [
-                Color.Token.emeraldNight,
-                Color.Token.deepEmerald
-            ]
-        }
-    }
-    
-    var textColor: Color {
-        return .white
-    }
-    
-    var secondaryTextColor: Color {
-        return .white.opacity(0.7)
-    }
-    
-    var borderGradientColors: [Color] {
-        return [
-            Color.white.opacity(0.2),
-            Color.white.opacity(0.05)
-        ]
-    }
-    
-    var mascotImageName: String {
-        switch self {
-        case .daylight:
-            return "mascot_daylight"
-        case .night:
-            return "mascot_night"
-        }
-    }
-}
-
-struct MappedPrayerItem: Identifiable, Equatable, Sendable {
-    let id: String
-    let originalName: String
-    let displayName: String
-    let timeString: String
-    let date: Date
-    let isActive: Bool
-}
 
 @MainActor
 final class PrayerDashboardViewModel: ObservableObject {
-    @Published private(set) var activeTheme: ThematicTheme = .daylight
+    @Published private(set) var activeTheme: PrayerThematicTheme = .daylight
     @Published private(set) var mappedPrayers: [MappedPrayerItem] = []
     @Published private(set) var activePrayerDisplayName: String = ""
     @Published private(set) var activePrayerOriginalName: String = ""
@@ -140,7 +69,7 @@ final class PrayerDashboardViewModel: ObservableObject {
         self.activePrayerDisplayName = mapToSoutheastAsianName(activeName)
         
         // 2. Determine active theme context
-        self.activeTheme = determineTheme(for: activeName)
+        self.activeTheme = PrayerThematicTheme.forActivePrayer(activeName)
         
         // 3. Map prayers to timeline columns
         let formatter = DateFormatter()
@@ -160,7 +89,6 @@ final class PrayerDashboardViewModel: ObservableObject {
             )
         }
         
-        // 4. Determine next prayer display name
         if let next = controller.nextPrayer {
             self.nextPrayerDisplayName = mapToSoutheastAsianName(next.name)
         } else {
@@ -180,14 +108,6 @@ final class PrayerDashboardViewModel: ObservableObject {
             return lastActive.name
         } else {
             return "Isha"
-        }
-    }
-    
-    private func determineTheme(for activePrayer: String) -> ThematicTheme {
-        if activePrayer == "Maghrib" || activePrayer == "Isha" {
-            return .night
-        } else {
-            return .daylight
         }
     }
     

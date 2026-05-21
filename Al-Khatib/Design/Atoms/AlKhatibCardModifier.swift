@@ -11,11 +11,11 @@ import SwiftUI
 struct FlatCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(Color.Theme.pureWhite)
+            .background(Color.Token.pureWhite)
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.Theme.softGrey, lineWidth: 1)
+                    .stroke(Color.Token.softGrey, lineWidth: 1)
             )
     }
 }

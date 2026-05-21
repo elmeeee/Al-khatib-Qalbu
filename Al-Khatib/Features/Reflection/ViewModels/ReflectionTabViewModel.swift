@@ -12,17 +12,10 @@ import Observation
 @MainActor
 @Observable
 final class ReflectionTabViewModel {
-    enum Screen {
-        case signIn
-        case bootLoading
-        case feed
-        case sessionLoading
-    }
-
     private(set) var hasAccessToken = false
     private(set) var feedViewModel: ReflectionViewModel?
 
-    var screen: Screen {
+    var screen: ReflectTabScreen {
         if shouldShowSignInPrompt { return .signIn }
         if canShowReflectFeed {
             return feedViewModel == nil ? .bootLoading : .feed

@@ -27,11 +27,11 @@ struct OnboardingView: View {
                 VStack(spacing: 8) {
                     Text("Al Khatib")
                         .font(.system(size: 36, weight: .bold, design: .default))
-                        .foregroundColor(Color.Theme.deepEmerald)
+                        .foregroundColor(Color.Token.deepEmerald)
                     
                     Text("Reflect on the Quran daily.")
                         .font(.system(size: 18, weight: .medium, design: .default))
-                        .foregroundColor(Color.Theme.deepEmerald)
+                        .foregroundColor(Color.Token.deepEmerald)
                 }
                 
                 Spacer()

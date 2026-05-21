@@ -17,11 +17,11 @@ struct TodayBusyOverlayView: View {
 
         VStack(spacing: 12) {
             ProgressView()
-                .tint(Color.Theme.deepEmerald)
+                .tint(Color.Token.deepEmerald)
                 .scaleEffect(1.1)
             Text(isPosting ? "Publishing your reflection..." : "Preparing your share...")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color.Theme.deepEmerald)
+                .foregroundColor(Color.Token.deepEmerald)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -30,7 +30,7 @@ struct TodayBusyOverlayView: View {
                 .fill(Color.white.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.Theme.softGrey.opacity(0.8), lineWidth: 1)
+                        .stroke(Color.Token.softGrey.opacity(0.8), lineWidth: 1)
                 )
         )
         .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 4)
@@ -46,7 +46,7 @@ struct TodayStatusToastView: View {
             .font(.subheadline.bold())
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(isError ? Color.red : Color.Theme.deepEmerald)
+            .background(isError ? Color.red : Color.Token.deepEmerald)
             .foregroundColor(.white)
             .clipShape(Capsule())
             .shadow(color: Color.black.opacity(0.1), radius: 4, y: 2)

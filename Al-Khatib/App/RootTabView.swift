@@ -28,11 +28,11 @@ struct RootTabView: View {
         self.verseState = verseState
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(Color.Theme.pureWhite)
-        appearance.shadowColor = UIColor(Color.Theme.softGrey)
+        appearance.backgroundColor = UIColor(Color.Token.pureWhite)
+        appearance.shadowColor = UIColor(Color.Token.softGrey)
 
-        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color.Theme.deepEmerald)
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor(Color.Theme.deepEmerald)]
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color.Token.deepEmerald)
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor(Color.Token.deepEmerald)]
 
         appearance.stackedLayoutAppearance.normal.iconColor = .lightGray
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.lightGray]

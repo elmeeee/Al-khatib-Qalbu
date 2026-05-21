@@ -20,12 +20,12 @@ struct SignInPromptView: View {
 
             Image(systemName: "person.crop.circle.badge.plus")
                 .font(.system(size: 52, weight: .light))
-                .foregroundStyle(Color.Theme.deepEmerald.opacity(0.45))
+                .foregroundStyle(Color.Token.deepEmerald.opacity(0.45))
 
             VStack(spacing: 8) {
                 Text(title)
                     .font(.title3.bold())
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                     .multilineTextAlignment(.center)
 
                 Text(message)

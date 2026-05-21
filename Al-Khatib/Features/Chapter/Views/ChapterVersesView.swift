@@ -353,7 +353,7 @@ struct ChapterVersesView: View {
                 .padding(.horizontal, 32)
             Button("Try Again", action: retry)
                 .buttonStyle(.borderedProminent)
-                .tint(Color.Theme.deepEmerald)
+                .tint(Color.Token.deepEmerald)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

@@ -26,7 +26,7 @@ struct ChapterIntroPage: View {
             GeometryReader { geo in
                 RadialGradient(
                     colors: [
-                        Color.Theme.gold.opacity(0.08),
+                        Color.Token.gold.opacity(0.08),
                         Color.clear
                     ],
                     center: .center,
@@ -42,7 +42,7 @@ struct ChapterIntroPage: View {
 
                 Text("\u{FDFD}")
                     .font(.system(size: 32))
-                    .foregroundColor(Color.Theme.gold.opacity(0.75))
+                    .foregroundColor(Color.Token.gold.opacity(0.75))
                     .padding(.bottom, 24)
 
                 VStack(spacing: 16) {
@@ -50,7 +50,7 @@ struct ChapterIntroPage: View {
                         ornamentLine
                         Text("\u{2726}")
                             .font(.system(size: 10))
-                            .foregroundColor(Color.Theme.gold.opacity(0.6))
+                            .foregroundColor(Color.Token.gold.opacity(0.6))
                         ornamentLine
                     }
                     .frame(width: 160)
@@ -70,7 +70,7 @@ struct ChapterIntroPage: View {
                     if chapter.displayTranslatedName.isEmpty == false {
                         Text(chapter.displayTranslatedName)
                             .font(.title3.weight(.medium))
-                            .foregroundColor(Color.Theme.gold.opacity(0.95))
+                            .foregroundColor(Color.Token.gold.opacity(0.95))
                     }
 
                     ChapterRevelationBadge(chapter: chapter)
@@ -80,7 +80,7 @@ struct ChapterIntroPage: View {
                         ornamentLine
                         Text("\u{25C6}")
                             .font(.system(size: 6))
-                            .foregroundColor(Color.Theme.gold.opacity(0.6))
+                            .foregroundColor(Color.Token.gold.opacity(0.6))
                         ornamentLine
                     }
                     .frame(width: 160)
@@ -135,8 +135,8 @@ struct ChapterIntroPage: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.Theme.deepEmerald.opacity(0.6),
-                                Color.Theme.gold.opacity(0.4)
+                                Color.Token.deepEmerald.opacity(0.6),
+                                Color.Token.gold.opacity(0.4)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -161,7 +161,7 @@ struct ChapterIntroPage: View {
         Rectangle()
             .fill(
                 LinearGradient(
-                    colors: [Color.Theme.gold.opacity(0.1), Color.Theme.gold.opacity(0.35), Color.Theme.gold.opacity(0.1)],
+                    colors: [Color.Token.gold.opacity(0.1), Color.Token.gold.opacity(0.35), Color.Token.gold.opacity(0.1)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )

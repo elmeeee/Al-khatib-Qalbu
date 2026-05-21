@@ -15,12 +15,12 @@ struct VerseAudioBar: View {
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.Theme.deepEmerald.opacity(0.12))
+                .fill(Color.Token.deepEmerald.opacity(0.12))
                 .frame(width: 44, height: 44)
                 .overlay(
                     Image(systemName: "waveform")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color.Theme.deepEmerald)
+                        .foregroundColor(Color.Token.deepEmerald)
                         .scaleEffect(isPulsing ? 1.15 : 1.0)
                         .opacity(isPulsing ? 0.7 : 1.0)
                 )
@@ -56,13 +56,13 @@ struct VerseAudioBar: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.Theme.deepEmerald, Color.Token.tealDark],
+                                    colors: [Color.Token.deepEmerald, Color.Token.tealDark],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
                     )
-                    .shadow(color: Color.Theme.deepEmerald.opacity(0.25), radius: 4, y: 2)
+                    .shadow(color: Color.Token.deepEmerald.opacity(0.25), radius: 4, y: 2)
             }
 
             Button { audio.stop() } label: {
@@ -80,7 +80,7 @@ struct VerseAudioBar: View {
         )
         .overlay(
             Capsule()
-                .stroke(Color.Theme.deepEmerald.opacity(0.12), lineWidth: 0.5)
+                .stroke(Color.Token.deepEmerald.opacity(0.12), lineWidth: 0.5)
         )
         .shadow(color: Color.black.opacity(0.12), radius: 12, y: 6)
         .padding(.horizontal, 16)

@@ -2,13 +2,19 @@
 //  DesignTokens.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
+//  Design system palette (Atomic Design — tokens).
+//
+//  Layering:
+//  - `Color.Token` — raw semantic colors (single source of hex values).
+//  - `PrayerThematicTheme` — prayer dashboard day/night compositions.
+//  - `ReflectReelChrome` — reflect reel gradient/chrome compositions.
+//  - `TabBarLayout` — tab bar spacing metrics (layout tokens, not colors).
 //
 
 import SwiftUI
 
 extension Color {
+    /// App-wide color palette. Use this instead of `Color(hex:)` in features.
     enum Token {
         static let deepEmerald = Color(hex: "#064E3B")
         static let teal = Color(hex: "#0D9488")
@@ -43,15 +49,6 @@ extension Color {
         static let blueLink = Color(hex: "#2563EB")
         static let indigoAccent = Color(hex: "#4F46E5")
         static let danger = Color(hex: "#EF4444")
-    }
-
-    enum Theme {
-        static let deepEmerald = Token.deepEmerald
-        static let offWhite = Token.offWhite
-        static let pureWhite = Token.pureWhite
-        static let gold = Token.gold
-        static let softGrey = Token.softGrey
-        static let lightGrey = Token.lightGrey
     }
 }
 

@@ -9,9 +9,9 @@
 import SwiftUI
 
 struct MascotPopOutView: View {
-    let theme: ThematicTheme
+    let theme: PrayerThematicTheme
     
-    init(theme: ThematicTheme) {
+    init(theme: PrayerThematicTheme) {
         self.theme = theme
     }
     

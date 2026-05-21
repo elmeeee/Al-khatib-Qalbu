@@ -51,7 +51,7 @@ struct SkeletonBar: View {
         case .light:
             Color(.systemGray5)
         case .muted:
-            Color.Theme.softGrey.opacity(0.5)
+            Color.Token.softGrey.opacity(0.5)
         case .onDark:
             Color.white.opacity(0.06)
         }
@@ -83,7 +83,7 @@ struct SkeletonCircleDot: View {
         case .light:
             Color(.systemGray5)
         case .muted:
-            Color.Theme.softGrey.opacity(0.4)
+            Color.Token.softGrey.opacity(0.4)
         case .onDark:
             Color.white.opacity(0.08)
         }
@@ -160,7 +160,7 @@ struct LoadingSkeleton: View {
         .padding(.top, 24)
         .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.Theme.offWhite)
+        .background(Color.Token.offWhite)
     }
 }
 
@@ -177,7 +177,7 @@ struct PrayerDashboardSkeleton: View {
             .padding(.top, 28)
 
             Divider()
-                .background(Color.Theme.softGrey.opacity(0.4))
+                .background(Color.Token.softGrey.opacity(0.4))
 
             HStack(spacing: 8) {
                 ForEach(0..<6, id: \.self) { _ in

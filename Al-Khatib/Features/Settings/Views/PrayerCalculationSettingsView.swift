@@ -61,9 +61,9 @@ struct PrayerCalculationSettingsView: View {
         HStack(spacing: 14) {
             Image(systemName: "clock.badge.checkmark.fill")
                 .font(.title2)
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .foregroundStyle(Color.Token.deepEmerald)
                 .frame(width: 44, height: 44)
-                .background(Color.Theme.deepEmerald.opacity(0.12))
+                .background(Color.Token.deepEmerald.opacity(0.12))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             VStack(alignment: .leading, spacing: 4) {
@@ -111,7 +111,7 @@ struct PrayerCalculationSettingsView: View {
                 if method == selectedMethod {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
-                        .foregroundStyle(Color.Theme.deepEmerald)
+                        .foregroundStyle(Color.Token.deepEmerald)
                 }
             }
             .contentShape(Rectangle())

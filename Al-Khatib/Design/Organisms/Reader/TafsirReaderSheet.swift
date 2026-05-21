@@ -21,7 +21,7 @@ struct TafsirReaderSheet: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.Theme.offWhite, Color.Token.sageMist],
+                colors: [Color.Token.offWhite, Color.Token.sageMist],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -60,11 +60,11 @@ struct TafsirReaderSheet: View {
         HStack {
             Text("Tafsir")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .foregroundStyle(Color.Token.deepEmerald)
             Spacer()
             Button("Done") { dismiss() }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.Theme.deepEmerald)
+                .foregroundStyle(Color.Token.deepEmerald)
         }
         .padding(.horizontal, 20)
         .padding(.top, 10)
@@ -75,13 +75,13 @@ struct TafsirReaderSheet: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "text.alignleft")
                 .font(.title2)
-                .foregroundStyle(Color.Theme.deepEmerald.opacity(0.88))
+                .foregroundStyle(Color.Token.deepEmerald.opacity(0.88))
                 .frame(width: 36, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(verseReference)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                     .multilineTextAlignment(.leading)
 
                 Group {
@@ -111,7 +111,7 @@ struct TafsirReaderSheet: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.Theme.softGrey.opacity(0.65), lineWidth: 1)
+                .stroke(Color.Token.softGrey.opacity(0.65), lineWidth: 1)
         )
         .padding(.horizontal, 16)
         .padding(.top, 10)
@@ -155,7 +155,7 @@ struct TafsirReaderSheet: View {
             } actions: {
                 Button("Try again", action: reload)
                     .buttonStyle(.borderedProminent)
-                    .tint(Color.Theme.deepEmerald)
+                    .tint(Color.Token.deepEmerald)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

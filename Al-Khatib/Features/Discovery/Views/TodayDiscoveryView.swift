@@ -87,7 +87,7 @@ struct TodayDiscoveryView: View {
                 }
             }
         }
-        .background(Color.Theme.deepEmerald.ignoresSafeArea(edges: .top))
+        .background(Color.Token.deepEmerald.ignoresSafeArea(edges: .top))
         .animation(nil, value: audio.currentURL)
         .safeAreaInset(edge: .bottom) {
             if audio.currentURL != nil {
@@ -136,14 +136,14 @@ struct TodayDiscoveryView: View {
                     onAudio: { playAudio(for: detail, vm: vm) },
                     onShare: {
                         guard actionsViewModel.isGeneratingShare == false else { return }
-                        Task { await actionsViewModel.presentShare(for: detail, discovery: vm) }
+                        Task { await actionsViewModel.presentShare(for: detail, shareProvider: vm) }
                     },
                     onReflect: {
                         guard let container else { return }
                         Task {
                             await actionsViewModel.publishReflection(
                                 for: detail,
-                                discovery: vm,
+                                shareProvider: vm,
                                 verseState: verseState,
                                 container: container
                             )
@@ -153,7 +153,7 @@ struct TodayDiscoveryView: View {
                         actionsViewModel.openTafsir(
                             for: detail,
                             presenter: coordinator?.tafsirPresenter,
-                            discovery: vm
+                            shareProvider: vm
                         )
                     },
                     audioAccessibilityHint: audioHint(vm: vm)
@@ -181,7 +181,7 @@ struct TodayDiscoveryView: View {
                 PrayerDashboardCard(viewModel: dashboard)
             } else {
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.Theme.softGrey.opacity(0.4))
+                    .fill(Color.Token.softGrey.opacity(0.4))
                     .frame(height: 220)
                     .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
                     .padding(.top, 40)

@@ -19,8 +19,8 @@ struct ProfileRowView: View {
         HStack(spacing: 16) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.Theme.softGrey.opacity(0.7), lineWidth: 1)
-                    .background(Color.Theme.pureWhite)
+                    .stroke(Color.Token.softGrey.opacity(0.7), lineWidth: 1)
+                    .background(Color.Token.pureWhite)
                     .frame(width: 42, height: 42)
 
                 Image(systemName: icon)
@@ -56,7 +56,7 @@ struct ProfileRowView: View {
             } else {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Color.Theme.softGrey)
+                    .foregroundColor(Color.Token.softGrey)
             }
         }
         .padding(.horizontal, 16)

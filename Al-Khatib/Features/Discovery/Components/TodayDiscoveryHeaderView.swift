@@ -30,7 +30,7 @@ struct TodayDiscoveryHeaderView: View {
                         .font(.system(size: 12))
                         .padding(.leading, 2)
                 }
-                .foregroundColor(Color.Theme.deepEmerald)
+                .foregroundColor(Color.Token.deepEmerald)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("\(AlKhatibAccessibility.Today.location), \(cityName ?? "")")
             }
@@ -61,7 +61,7 @@ struct TodayProfileAvatarButton: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white)
                     .frame(width: 40, height: 40)
-                    .overlay(ProgressView().tint(Color.Theme.deepEmerald))
+                    .overlay(ProgressView().tint(Color.Token.deepEmerald))
             } else if let url {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -70,7 +70,7 @@ struct TodayProfileAvatarButton: View {
                     case .failure:
                         fallbackIcon
                     case .empty:
-                        ProgressView().tint(Color.Theme.deepEmerald)
+                        ProgressView().tint(Color.Token.deepEmerald)
                     @unknown default:
                         fallbackIcon
                     }
@@ -80,7 +80,7 @@ struct TodayProfileAvatarButton: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color.Theme.deepEmerald.opacity(0.3), lineWidth: 1.5)
+                        .stroke(Color.Token.deepEmerald.opacity(0.3), lineWidth: 1.5)
                 )
             } else {
                 fallbackIcon
@@ -95,11 +95,7 @@ struct TodayProfileAvatarButton: View {
             .overlay(
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(Color.Theme.deepEmerald)
+                    .foregroundColor(Color.Token.deepEmerald)
             )
     }
-}
-
-enum TodayDiscoveryLayout {
-    static let horizontalInset: CGFloat = 20
 }

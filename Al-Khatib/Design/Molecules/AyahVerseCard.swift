@@ -25,7 +25,7 @@ struct AyahVerseCard: View {
                     HStack {
                         Text(ShareVerseCard.humanLabel(for: key))
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Color.Theme.deepEmerald)
+                            .foregroundStyle(Color.Token.deepEmerald)
                         Spacer()
                     }
                     .padding(.horizontal, 16)
@@ -51,11 +51,11 @@ struct AyahVerseCard: View {
                         .padding(.bottom, 14)
                 }
             }
-            .background(Color.Theme.pureWhite)
+            .background(Color.Token.pureWhite)
 
             if hasActions {
                 Rectangle()
-                    .fill(Color.Theme.deepEmerald)
+                    .fill(Color.Token.deepEmerald)
                     .frame(height: 4)
 
                 HStack(spacing: 0) {
@@ -70,11 +70,11 @@ struct AyahVerseCard: View {
             }
         }
         .transaction { txn in txn.animation = nil }
-        .background(Color.Theme.pureWhite.opacity(0.96))
+        .background(Color.Token.pureWhite.opacity(0.96))
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.Theme.softGrey, lineWidth: 1)
+                .stroke(Color.Token.softGrey, lineWidth: 1)
         )
         .accessibilityElement(children: .contain)
     }
@@ -87,7 +87,7 @@ struct AyahVerseCard: View {
                 Text(text)
                     .font(.caption)
             }
-            .foregroundColor(Color.Theme.deepEmerald)
+            .foregroundColor(Color.Token.deepEmerald)
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)

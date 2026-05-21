@@ -17,15 +17,9 @@ final class TodayReflectionPublishViewModel {
     var statusIsError = false
     var showStatus = false
 
-    enum PublishOutcome: Sendable {
-        case published
-        case failed(message: String)
-        case needsSignIn
-    }
-
     func publish(
         verse: RandomAyahPayload,
-        discovery: TodayDiscoveryViewModel,
+        shareProvider: TodayShareProviding,
         verseState: TodayVerseState,
         container: AppContainer
     ) async -> PublishOutcome {
@@ -41,7 +35,7 @@ final class TodayReflectionPublishViewModel {
             return .needsSignIn
         }
 
-        let body = discovery.cachedShareText(for: verse) ?? discovery.quickReflectionText(for: verse)
+        let body = shareProvider.cachedShareText(for: verse) ?? shareProvider.quickReflectionText(for: verse)
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count >= 6 else {
             return .failed(message: "Reflection is too short to publish.")

@@ -2,6 +2,8 @@
 //  ReflectReelChrome.swift
 //  Al-Khatib
 //
+//  Reflect reel screen chrome — composes `Color.Token` into gradients and accents.
+//
 
 import SwiftUI
 

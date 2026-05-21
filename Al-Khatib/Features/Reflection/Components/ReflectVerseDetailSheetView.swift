@@ -41,7 +41,7 @@ struct ReflectVerseDetailSheetView: View {
     private var verseLoadingState: some View {
         VStack(spacing: 20) {
             ProgressView()
-                .tint(Color.Theme.gold)
+                .tint(Color.Token.gold)
                 .scaleEffect(1.2)
             Text("Loading verse…")
                 .font(.subheadline)
@@ -62,7 +62,7 @@ struct ReflectVerseDetailSheetView: View {
             } label: {
                 Text("Close")
                     .font(.subheadline.bold())
-                    .foregroundStyle(Color.Theme.deepEmerald)
+                    .foregroundStyle(Color.Token.deepEmerald)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 10)
                     .background(.white)
@@ -80,15 +80,15 @@ struct ReflectVerseDetailSheetView: View {
                     Text(VerseKeyFormat.humanLabel(for: verseKey))
                         .font(.system(size: 16, weight: .bold))
                 }
-                .foregroundStyle(Color.Theme.gold)
+                .foregroundStyle(Color.Token.gold)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
                     Capsule().fill(
                         LinearGradient(
                             colors: [
-                                Color.Theme.gold.opacity(0.2),
-                                Color.Theme.gold.opacity(0.08)
+                                Color.Token.gold.opacity(0.2),
+                                Color.Token.gold.opacity(0.08)
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -97,7 +97,7 @@ struct ReflectVerseDetailSheetView: View {
                 )
                 .overlay(
                     Capsule()
-                        .stroke(Color.Theme.gold.opacity(0.3), lineWidth: 0.5)
+                        .stroke(Color.Token.gold.opacity(0.3), lineWidth: 0.5)
                 )
 
                 ornamentalDivider
@@ -123,7 +123,7 @@ struct ReflectVerseDetailSheetView: View {
                                 if let name = translation.resourceName, name.isEmpty == false {
                                     Text(name)
                                         .font(.system(size: 11, weight: .semibold))
-                                        .foregroundStyle(Color.Theme.gold.opacity(0.7))
+                                        .foregroundStyle(Color.Token.gold.opacity(0.7))
                                         .textCase(.uppercase)
                                         .tracking(0.5)
                                 }
@@ -154,7 +154,7 @@ struct ReflectVerseDetailSheetView: View {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [.clear, Color.Theme.gold.opacity(0.2)],
+                        colors: [.clear, Color.Token.gold.opacity(0.2)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -162,11 +162,11 @@ struct ReflectVerseDetailSheetView: View {
                 .frame(height: 0.5)
             Text("\u{2726}")
                 .font(.system(size: 10))
-                .foregroundStyle(Color.Theme.gold.opacity(0.5))
+                .foregroundStyle(Color.Token.gold.opacity(0.5))
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.Theme.gold.opacity(0.2), .clear],
+                        colors: [Color.Token.gold.opacity(0.2), .clear],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

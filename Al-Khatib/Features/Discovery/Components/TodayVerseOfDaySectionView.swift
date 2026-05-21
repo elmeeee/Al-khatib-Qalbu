@@ -16,11 +16,11 @@ struct TodayVerseOfDaySectionHeaderView: View {
             HStack(spacing: 8) {
                 Text("✦")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color.Theme.gold)
+                    .foregroundColor(Color.Token.gold)
 
                 Text("Verse of the Day")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(Color.Theme.deepEmerald)
+                    .foregroundColor(Color.Token.deepEmerald)
                     .accessibilityAddTraits(.isHeader)
 
                 Spacer()
@@ -29,7 +29,7 @@ struct TodayVerseOfDaySectionHeaderView: View {
             if let key = verseKey {
                 Text(ShareVerseCard.humanLabel(for: key))
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.Theme.deepEmerald.opacity(0.6))
+                    .foregroundColor(Color.Token.deepEmerald.opacity(0.6))
                     .padding(.leading, 22)
                     .accessibilityAddTraits(.isHeader)
             }
@@ -38,7 +38,7 @@ struct TodayVerseOfDaySectionHeaderView: View {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(
                         LinearGradient(
-                            colors: [Color.Theme.gold, Color.Theme.gold.opacity(0.2)],
+                            colors: [Color.Token.gold, Color.Token.gold.opacity(0.2)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -70,7 +70,7 @@ struct TodayVerseOfDayCardView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 6)
-                        .background(Capsule().fill(Color.Theme.deepEmerald))
+                        .background(Capsule().fill(Color.Token.deepEmerald))
                     Spacer()
                 }
                 .padding(.horizontal, 20)
@@ -95,7 +95,7 @@ struct TodayVerseOfDayCardView: View {
             .frame(maxWidth: .infinity, alignment: .topTrailing)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.Theme.deepEmerald.opacity(0.03))
+                    .fill(Color.Token.deepEmerald.opacity(0.03))
                     .padding(.horizontal, 12)
                     .padding(.top, 8)
             )
@@ -138,21 +138,21 @@ struct TodayVerseOfDayCardView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.Theme.deepEmerald.opacity(0.15), Color.Theme.softGrey.opacity(0.5)],
+                        colors: [Color.Token.deepEmerald.opacity(0.15), Color.Token.softGrey.opacity(0.5)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
                 )
         )
-        .shadow(color: Color.Theme.deepEmerald.opacity(0.06), radius: 12, x: 0, y: 6)
+        .shadow(color: Color.Token.deepEmerald.opacity(0.06), radius: 12, x: 0, y: 6)
     }
 
     private func translationBlock(_ text: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("\u{201C}")
                 .font(.system(size: 32, weight: .light))
-                .foregroundStyle(Color.Theme.gold.opacity(0.5))
+                .foregroundStyle(Color.Token.gold.opacity(0.5))
                 .padding(.leading, 16)
                 .offset(y: 8)
 
@@ -168,7 +168,7 @@ struct TodayVerseOfDayCardView: View {
                 Spacer()
                 Text("\u{201D}")
                     .font(.system(size: 32, weight: .light))
-                    .foregroundStyle(Color.Theme.gold.opacity(0.5))
+                    .foregroundStyle(Color.Token.gold.opacity(0.5))
                     .padding(.trailing, 16)
                     .offset(y: -8)
             }
@@ -187,9 +187,9 @@ struct TodayVerseActionGrid: View {
     var body: some View {
         let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
         LazyVGrid(columns: columns, spacing: 8) {
-            TodayActionPill(icon: "speaker.wave.2.fill", text: "Audio", tint: Color.Theme.deepEmerald, hint: audioAccessibilityHint, action: onAudio)
+            TodayActionPill(icon: "speaker.wave.2.fill", text: "Audio", tint: Color.Token.deepEmerald, hint: audioAccessibilityHint, action: onAudio)
             TodayActionPill(icon: "square.and.arrow.up", text: "Share", tint: Color.Token.blueLink, hint: AlKhatibAccessibility.VerseActions.shareHint, action: onShare)
-            TodayActionPill(icon: "lightbulb.fill", text: "Reflect", tint: Color.Theme.gold, hint: AlKhatibAccessibility.VerseActions.reflectHint, action: onReflect)
+            TodayActionPill(icon: "lightbulb.fill", text: "Reflect", tint: Color.Token.gold, hint: AlKhatibAccessibility.VerseActions.reflectHint, action: onReflect)
             TodayActionPill(icon: "book.closed.fill", text: "Tafsir", tint: Color.Token.indigoAccent, hint: AlKhatibAccessibility.VerseActions.tafsirHint, action: onTafsir)
         }
     }

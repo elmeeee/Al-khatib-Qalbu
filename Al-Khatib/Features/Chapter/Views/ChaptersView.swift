@@ -16,7 +16,7 @@ struct ChaptersView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
-                Color.Theme.offWhite.ignoresSafeArea()
+                Color.Token.offWhite.ignoresSafeArea()
 
                 if let vm {
                     quranContent(vm)
@@ -71,10 +71,10 @@ struct ChaptersView: View {
                 HStack(spacing: 8) {
                     Text("\u{2726}")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(Color.Theme.gold)
+                        .foregroundColor(Color.Token.gold)
                     Text("Quran")
                         .font(.largeTitle.bold())
-                        .foregroundColor(Color.Theme.deepEmerald)
+                        .foregroundColor(Color.Token.deepEmerald)
                 }
 
                 Spacer()
@@ -85,11 +85,11 @@ struct ChaptersView: View {
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Color.Theme.deepEmerald)
+                            .foregroundColor(Color.Token.deepEmerald)
                             .frame(width: 36, height: 36)
                             .background(
                                 Circle()
-                                    .fill(Color.Theme.deepEmerald.opacity(0.08))
+                                    .fill(Color.Token.deepEmerald.opacity(0.08))
                             )
                     }
                     .accessibilityLabel("Refresh chapters")
@@ -98,14 +98,14 @@ struct ChaptersView: View {
 
             Text("114 Surahs \u{2022} The Noble Quran")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.Theme.deepEmerald.opacity(0.55))
+                .foregroundColor(Color.Token.deepEmerald.opacity(0.55))
                 .padding(.leading, 22)
 
             HStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(
                         LinearGradient(
-                            colors: [Color.Theme.gold, Color.Theme.gold.opacity(0.15)],
+                            colors: [Color.Token.gold, Color.Token.gold.opacity(0.15)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -125,7 +125,7 @@ struct ChaptersView: View {
             VStack(spacing: 10) {
                 ForEach(0..<8, id: \.self) { _ in
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.Theme.softGrey.opacity(0.25))
+                        .fill(Color.Token.softGrey.opacity(0.25))
                         .frame(height: 80)
                 }
             }
@@ -140,7 +140,7 @@ struct ChaptersView: View {
             Spacer()
             Image(systemName: "wifi.exclamationmark")
                 .font(.system(size: 40))
-                .foregroundColor(Color.Theme.deepEmerald.opacity(0.5))
+                .foregroundColor(Color.Token.deepEmerald.opacity(0.5))
             Text(message)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -148,7 +148,7 @@ struct ChaptersView: View {
                 .padding(.horizontal, 32)
             Button("Try Again", action: retry)
                 .buttonStyle(.borderedProminent)
-                .tint(Color.Theme.deepEmerald)
+                .tint(Color.Token.deepEmerald)
             Spacer()
         }
     }
@@ -158,7 +158,7 @@ struct ChaptersView: View {
             Spacer()
             Image(systemName: "book.closed")
                 .font(.system(size: 40))
-                .foregroundColor(Color.Theme.deepEmerald.opacity(0.5))
+                .foregroundColor(Color.Token.deepEmerald.opacity(0.5))
             Text("No chapters found")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -205,7 +205,7 @@ private struct ContinueReadingCard: View {
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [Color.Theme.gold, Color.Token.goldDeep],
+                        colors: [Color.Token.gold, Color.Token.goldDeep],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -213,13 +213,13 @@ private struct ContinueReadingCard: View {
                 .frame(width: 48, height: 48)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.Theme.gold.opacity(0.12))
+                        .fill(Color.Token.gold.opacity(0.12))
                 )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Continue reading")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(Color.Theme.gold)
+                    .foregroundStyle(Color.Token.gold)
                     .textCase(.uppercase)
                     .tracking(0.5)
 
@@ -237,7 +237,7 @@ private struct ContinueReadingCard: View {
 
             Image(systemName: "arrow.right.circle.fill")
                 .font(.system(size: 24))
-                .foregroundStyle(Color.Theme.gold)
+                .foregroundStyle(Color.Token.gold)
         }
         .padding(16)
         .background(
@@ -254,14 +254,14 @@ private struct ContinueReadingCard: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.Theme.gold.opacity(0.4), Color.Theme.gold.opacity(0.15)],
+                        colors: [Color.Token.gold.opacity(0.4), Color.Token.gold.opacity(0.15)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1.5
                 )
         )
-        .shadow(color: Color.Theme.gold.opacity(0.08), radius: 8, y: 4)
+        .shadow(color: Color.Token.gold.opacity(0.08), radius: 8, y: 4)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Continue reading \(chapter.displayComplexName), ayah \(verseNumber)")
         .accessibilityHint("Resume where you left off")
@@ -277,7 +277,7 @@ private struct QuranChapterRow: View {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color.Theme.deepEmerald, Color.Token.tealDark],
+                            colors: [Color.Token.deepEmerald, Color.Token.tealDark],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -302,7 +302,7 @@ private struct QuranChapterRow: View {
                         if chapter.displayTranslatedName.isEmpty == false {
                             Text(chapter.displayTranslatedName)
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(Color.Theme.deepEmerald.opacity(0.75))
+                                .foregroundColor(Color.Token.deepEmerald.opacity(0.75))
                                 .fixedSize(horizontal: false, vertical: true)
                                 .lineLimit(2)
                         }
@@ -312,7 +312,7 @@ private struct QuranChapterRow: View {
                     if let arabic = chapter.nameArabic, arabic.isEmpty == false {
                         Text(arabic)
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(Color.Theme.deepEmerald)
+                            .foregroundColor(Color.Token.deepEmerald)
                             .multilineTextAlignment(.trailing)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
@@ -322,7 +322,7 @@ private struct QuranChapterRow: View {
                             .padding(.vertical, 5)
                             .background(
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(Color.Theme.deepEmerald.opacity(0.05))
+                                    .fill(Color.Token.deepEmerald.opacity(0.05))
                             )
                     }
                 }
@@ -349,7 +349,7 @@ private struct QuranChapterRow: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.Theme.deepEmerald.opacity(0.1), Color.Theme.softGrey.opacity(0.4)],
+                        colors: [Color.Token.deepEmerald.opacity(0.1), Color.Token.softGrey.opacity(0.4)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),

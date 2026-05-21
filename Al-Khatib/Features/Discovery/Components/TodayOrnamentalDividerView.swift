@@ -14,7 +14,7 @@ struct TodayOrnamentalDividerView: View {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.Theme.softGrey.opacity(0.1), Color.Theme.gold.opacity(0.3)],
+                        colors: [Color.Token.softGrey.opacity(0.1), Color.Token.gold.opacity(0.3)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -23,12 +23,12 @@ struct TodayOrnamentalDividerView: View {
 
             Text("◆")
                 .font(.system(size: 6))
-                .foregroundColor(Color.Theme.gold.opacity(0.6))
+                .foregroundColor(Color.Token.gold.opacity(0.6))
 
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.Theme.gold.opacity(0.3), Color.Theme.softGrey.opacity(0.1)],
+                        colors: [Color.Token.gold.opacity(0.3), Color.Token.softGrey.opacity(0.1)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

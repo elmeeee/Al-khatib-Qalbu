@@ -102,14 +102,14 @@ struct ReflectionView: View {
             LinearGradient(
                 colors: [
                     Color.Token.forestDark,
-                    Color.Theme.deepEmerald,
+                    Color.Token.deepEmerald,
                     Color.Token.forestDeeper
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         } else {
-            Color.Theme.offWhite
+            Color.Token.offWhite
         }
     }
 
@@ -118,7 +118,7 @@ struct ReflectionView: View {
             LinearGradient(
                 colors: [
                     Color.Token.forestDark,
-                    Color.Theme.deepEmerald,
+                    Color.Token.deepEmerald,
                     Color.Token.forestDeeper
                 ],
                 startPoint: .topLeading,
@@ -143,7 +143,7 @@ struct ReflectionView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 11)
             .background(.ultraThinMaterial)
-            .background(shareToastIsError ? Color.red.opacity(0.3) : Color.Theme.deepEmerald.opacity(0.3))
+            .background(shareToastIsError ? Color.red.opacity(0.3) : Color.Token.deepEmerald.opacity(0.3))
             .foregroundColor(.white)
             .clipShape(Capsule())
             .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 0.5))
@@ -170,7 +170,7 @@ struct ShareReflectionSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.Theme.offWhite.ignoresSafeArea()
+                Color.Token.offWhite.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 16) {
@@ -199,7 +199,7 @@ struct ShareReflectionSheet: View {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.Theme.deepEmerald, Color.Token.tealDark],
+                                            colors: [Color.Token.deepEmerald, Color.Token.tealDark],
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         )
@@ -222,7 +222,7 @@ struct ShareReflectionSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .toolbarBackground(Color.Theme.pureWhite, for: .navigationBar)
+            .toolbarBackground(Color.Token.pureWhite, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
         .onAppear {
@@ -245,17 +245,17 @@ struct ShareReflectionSheet: View {
             HStack(spacing: 8) {
                 Image(systemName: "book.closed.fill")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color.Theme.gold)
+                    .foregroundColor(Color.Token.gold)
                 Text(verseLabel.isEmpty ? "Quran verse" : verseLabel)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundColor(Color.Theme.deepEmerald)
+                    .foregroundColor(Color.Token.deepEmerald)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.Theme.deepEmerald.opacity(0.15))
+                    .fill(Color.Token.deepEmerald.opacity(0.15))
             )
         }
     }
@@ -270,11 +270,11 @@ struct ShareReflectionSheet: View {
                 .frame(minHeight: 160)
                 .padding(10)
                 .scrollContentBackground(.hidden)
-                .background(Color.Theme.pureWhite)
+                .background(Color.Token.pureWhite)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color.Theme.deepEmerald.opacity(0.15), lineWidth: 1)
+                        .stroke(Color.Token.deepEmerald.opacity(0.15), lineWidth: 1)
                 )
         }
     }

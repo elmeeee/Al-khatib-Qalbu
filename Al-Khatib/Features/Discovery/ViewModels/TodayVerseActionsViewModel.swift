@@ -15,31 +15,31 @@ final class TodayVerseActionsViewModel {
     var isGeneratingShare = false
     let publishViewModel = TodayReflectionPublishViewModel()
 
-    func presentShare(for verse: RandomAyahPayload, discovery: TodayDiscoveryViewModel) async {
+    func presentShare(for verse: RandomAyahPayload, shareProvider: TodayShareProviding) async {
         isGeneratingShare = true
         defer { isGeneratingShare = false }
-        let text = await discovery.prepareShareText(for: verse)
+        let text = await shareProvider.prepareShareText(for: verse)
         ShareVerseCard.presentPrepared(text: text)
     }
 
     func openTafsir(
         for verse: RandomAyahPayload,
         presenter: TafsirPresenter?,
-        discovery: TodayDiscoveryViewModel
+        shareProvider: TodayShareProviding
     ) {
         presenter?.open(for: verse)
-        Task { await discovery.prefetchShareTextIfNeeded(for: verse) }
+        Task { await shareProvider.prefetchShareTextIfNeeded(for: verse) }
     }
 
     func publishReflection(
         for verse: RandomAyahPayload,
-        discovery: TodayDiscoveryViewModel,
+        shareProvider: TodayShareProviding,
         verseState: TodayVerseState,
         container: AppContainer
     ) async {
         let outcome = await publishViewModel.publish(
             verse: verse,
-            discovery: discovery,
+            shareProvider: shareProvider,
             verseState: verseState,
             container: container
         )

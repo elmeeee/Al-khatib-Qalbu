@@ -25,7 +25,7 @@ struct FontScaleSheetView: View {
                 VStack(spacing: 12) {
                     Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ")
                         .font(.system(size: 26 * fontScale, weight: .semibold, design: .serif))
-                        .foregroundColor(Color.Theme.deepEmerald)
+                        .foregroundColor(Color.Token.deepEmerald)
                         .multilineTextAlignment(.center)
 
                     Text("In the name of Allah, the Entirely Merciful, the Especially Merciful.")
@@ -36,7 +36,7 @@ struct FontScaleSheetView: View {
                 .padding()
                 .frame(maxWidth: .infinity)
                 .frame(height: 140)
-                .background(Color.Theme.lightGrey, in: RoundedRectangle(cornerRadius: 16))
+                .background(Color.Token.lightGrey, in: RoundedRectangle(cornerRadius: 16))
 
                 HStack(spacing: 16) {
                     Text("A")

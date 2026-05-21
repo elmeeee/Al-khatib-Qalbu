@@ -65,21 +65,21 @@ struct ProfileHeaderView: View {
     private var loadingHeader: some View {
         HStack(spacing: 16) {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.Theme.softGrey.opacity(0.35))
+                .fill(Color.Token.softGrey.opacity(0.35))
                 .frame(width: 52, height: 52)
             VStack(alignment: .leading, spacing: 8) {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Theme.softGrey.opacity(0.35))
+                    .fill(Color.Token.softGrey.opacity(0.35))
                     .frame(width: 140, height: 14)
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Theme.softGrey.opacity(0.25))
+                    .fill(Color.Token.softGrey.opacity(0.25))
                     .frame(width: 90, height: 10)
             }
             Spacer()
             ProgressView().tint(Color.Token.teal)
         }
         .padding(16)
-        .background(Color.Theme.pureWhite)
+        .background(Color.Token.pureWhite)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
     }
@@ -127,7 +127,7 @@ struct ProfileHeaderView: View {
             )
         }
         .padding(16)
-        .background(Color.Theme.pureWhite)
+        .background(Color.Token.pureWhite)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
     }

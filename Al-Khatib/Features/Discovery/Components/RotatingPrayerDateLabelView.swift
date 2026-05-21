@@ -44,7 +44,7 @@ struct RotatingPrayerDateLabelView: View {
             if let displayedText {
                 Text(displayedText)
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(Color.Theme.deepEmerald.opacity(0.9))
+                    .foregroundColor(Color.Token.deepEmerald.opacity(0.9))
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
                     .contentTransition(.opacity)

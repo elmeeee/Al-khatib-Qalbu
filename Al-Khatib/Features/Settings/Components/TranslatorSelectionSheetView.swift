@@ -78,7 +78,7 @@ struct TranslatorSelectionSheetView: View {
             }
         }
         .padding(12)
-        .background(Color.Theme.pureWhite)
+        .background(Color.Token.pureWhite)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.horizontal, 20)
         .padding(.top, 12)
@@ -111,7 +111,7 @@ struct TranslatorSelectionSheetView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .listRowBackground(Color.Theme.pureWhite)
+            .listRowBackground(Color.Token.pureWhite)
         }
         .scrollContentBackground(.hidden)
     }

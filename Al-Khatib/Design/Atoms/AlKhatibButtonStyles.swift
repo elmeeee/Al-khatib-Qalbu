@@ -16,7 +16,7 @@ struct PrimaryFlatButtonStyle: ButtonStyle {
             .padding(.vertical, 16)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
-            .background(Color.Theme.deepEmerald.opacity(configuration.isPressed ? 0.85 : 1.0))
+            .background(Color.Token.deepEmerald.opacity(configuration.isPressed ? 0.85 : 1.0))
             .cornerRadius(12)
             .animation(.none, value: configuration.isPressed)
     }
@@ -26,14 +26,14 @@ struct GhostFlatButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline.bold())
-            .foregroundColor(Color.Theme.deepEmerald)
+            .foregroundColor(Color.Token.deepEmerald)
             .padding(.vertical, 16)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
-            .background(Color.Theme.pureWhite)
+            .background(Color.Token.pureWhite)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.Theme.softGrey, lineWidth: 1)
+                    .stroke(Color.Token.softGrey, lineWidth: 1)
             )
             .opacity(configuration.isPressed ? 0.7 : 1.0)
             .animation(.none, value: configuration.isPressed)

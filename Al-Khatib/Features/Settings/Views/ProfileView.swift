@@ -314,7 +314,7 @@ struct ProfileView: View {
 
 private extension View {
     func profileCardStyle() -> some View {
-        background(Color.Theme.pureWhite)
+        background(Color.Token.pureWhite)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
     }
