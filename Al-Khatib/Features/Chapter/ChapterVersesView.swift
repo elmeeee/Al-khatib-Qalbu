@@ -2,19 +2,13 @@
 //  ChapterVersesView.swift
 //  Al-Khatib
 //
-//  Created by Elmee on 25/04/2026.
-//  Copyright © 2026 Elmee. All rights reserved.
-//
 
 import SwiftUI
 
 struct ChapterVersesView: View {
-    private enum ScrollID {
-        static let intro = "chapter-intro"
-    }
-
     @Environment(\.appContainer) private var container
     @Environment(\.dismiss) private var dismiss
+
     let chapter: QuranChapter
     var initialVerseNumber: Int? = nil
 
@@ -22,30 +16,15 @@ struct ChapterVersesView: View {
     @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
     @AppStorage(ChapterReaderPreferences.translationIdKey) private var chapterTranslationId = ChapterReaderPreferences.defaultTranslationId
 
-    @State private var vm: ChapterVersesViewModel?
-    @State private var lastAppliedTranslationId = ChapterReaderPreferences.defaultTranslationId
-    @State private var tafsirPresenter: TafsirPresenter?
-    @State private var hadithPresenter: HadithPresenter?
     @StateObject private var audio = AudioPlayerController()
-    @State private var scrollPosition: String? = ScrollID.intro
+    @State private var readerCoordinator: ChapterReaderCoordinator?
+    @State private var vm: ChapterVersesViewModel?
     @State private var showReadingSettings = false
-    @State private var readingTracker: ReadingSessionTracker?
-    @State private var reservesReaderChromeForAudio = false
 
-    private var isOnIntroPage: Bool {
-        scrollPosition == ScrollID.intro || scrollPosition == nil
-    }
-
-    private var showsLoadingContent: Bool {
-        vm == nil || (vm?.isLoading == true && vm?.verses.isEmpty == true)
-    }
-
-    private var showsNowPlaying: Bool {
-        audio.currentURL != nil
-    }
+    private var showsNowPlaying: Bool { audio.currentURL != nil }
 
     private var readerChromeShowsNowPlaying: Bool {
-        showsNowPlaying || reservesReaderChromeForAudio
+        showsNowPlaying || (readerCoordinator?.reservesReaderChromeForAudio == true)
     }
 
     private var floatingPlayerBottomPadding: CGFloat {
@@ -68,109 +47,89 @@ struct ChapterVersesView: View {
             )
 
             ZStack {
-            Group {
-                if let vm {
-                    versePager(vm)
-                } else {
-                    ChapterReaderBackground()
+                Group {
+                    if let vm {
+                        versePager(vm)
+                    } else {
+                        ChapterReaderBackground()
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .environment(\.chapterReaderChromeInsets, chromeInsets)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .environment(\.chapterReaderChromeInsets, chromeInsets)
 
-            VStack(spacing: 0) {
-                chapterHeader
-                Spacer()
-            }
-
-            VStack(spacing: 0) {
-                Spacer()
-                if showsNowPlaying {
-                    floatingNowPlayingBar
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
-            .safeAreaPadding(.horizontal)
-            .safeAreaPadding(.bottom, floatingPlayerBottomPadding)
-
-            if isOnIntroPage == false {
-                VStack {
+                VStack(spacing: 0) {
+                    chapterHeader
                     Spacer()
-                    HStack {
-                        Spacer()
-                        sideActionButtons
+                }
+
+                VStack(spacing: 0) {
+                    Spacer()
+                    if showsNowPlaying {
+                        floatingNowPlayingBar
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-                .padding(.trailing, 12)
-                .safeAreaPadding(.bottom, floatingActionsBottomPadding)
-            }
+                .safeAreaPadding(.horizontal)
+                .safeAreaPadding(.bottom, floatingPlayerBottomPadding)
 
-            if showsLoadingContent {
-                ProgressView()
-                    .tint(.white)
-                    .allowsHitTesting(false)
-            }
-
-            if let vm, vm.isLoadingMore {
-                ProgressView()
-                    .tint(.white)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .safeAreaPadding(.bottom, floatingActionsBottomPadding)
-                    .allowsHitTesting(false)
-            }
-
-            if let vm, vm.isReloadingContent {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
-                    .overlay {
-                        VStack(spacing: 12) {
-                            ProgressView()
-                                .tint(.white)
-                            Text("Updating verses…")
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.white)
+                if readerCoordinator?.isOnIntroPage == false {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            sideActionButtons
                         }
-                        .padding(20)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
-                    .allowsHitTesting(true)
-            }
+                    .padding(.trailing, 12)
+                    .safeAreaPadding(.bottom, floatingActionsBottomPadding)
+                }
+
+                if vm == nil || (vm?.isLoading == true && vm?.verses.isEmpty == true) {
+                    ProgressView()
+                        .tint(.white)
+                        .allowsHitTesting(false)
+                }
+
+                if let vm, vm.isLoadingMore {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .safeAreaPadding(.bottom, floatingActionsBottomPadding)
+                        .allowsHitTesting(false)
+                }
+
+                if let vm, vm.isReloadingContent {
+                    reloadingOverlay
+                }
             }
         }
         .chapterReaderScreenBackground()
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            if readerCoordinator == nil {
+                readerCoordinator = ChapterReaderCoordinator(chapter: chapter, audio: audio)
+            }
+        }
         .task {
-            guard let c = container, vm == nil else { return }
-            let model = ChapterVersesViewModel(chapter: chapter, content: c.content)
+            guard let container, vm == nil, let readerCoordinator else { return }
+            let model = readerCoordinator.bootstrap(container: container)
             vm = model
-            if tafsirPresenter == nil {
-                tafsirPresenter = TafsirPresenter(content: c.content)
-            }
-            if hadithPresenter == nil {
-                hadithPresenter = HadithPresenter(content: c.content)
-            }
-            if readingTracker == nil {
-                readingTracker = ReadingSessionTracker(
-                    repository: c.readingSessions,
-                    userSession: c.userSession
-                )
-            }
             await model.loadInitial()
-            applyInitialScrollIfNeeded(vm: model)
-            lastAppliedTranslationId = chapterTranslationId
+            readerCoordinator.applyInitialScrollIfNeeded(vm: model, initialVerseNumber: initialVerseNumber)
+            readerCoordinator.lastAppliedTranslationId = chapterTranslationId
         }
         .onChange(of: chapterTranslationId) { _, newId in
-            guard lastAppliedTranslationId != newId else { return }
-            lastAppliedTranslationId = newId
+            guard let readerCoordinator, readerCoordinator.lastAppliedTranslationId != newId else { return }
+            readerCoordinator.lastAppliedTranslationId = newId
             guard let vm else { return }
             audio.stop()
             Task { await vm.applyContentPreferencesChange() }
         }
         .onReceive(NotificationCenter.default.publisher(for: ChapterReaderPreferences.translationDidChangeNotification)) { _ in
             let selected = ChapterReaderPreferences.selectedTranslationId()
-            guard lastAppliedTranslationId != selected else { return }
-            lastAppliedTranslationId = selected
+            guard let readerCoordinator, readerCoordinator.lastAppliedTranslationId != selected else { return }
+            readerCoordinator.lastAppliedTranslationId = selected
             guard let vm else { return }
             audio.stop()
             Task { await vm.applyContentPreferencesChange() }
@@ -189,140 +148,60 @@ struct ChapterVersesView: View {
             }
         }
         .sheet(isPresented: tafsirSheetBinding) {
-            if let tafsirPresenter {
+            if let presenter = readerCoordinator?.tafsirPresenter {
                 TafsirReaderSheet(
-                    verseReference: tafsirPresenter.verseReference,
-                    commentarySource: tafsirPresenter.commentarySource,
-                    isLoading: tafsirPresenter.isLoading,
-                    loadErrorDescription: tafsirPresenter.loadErrorDescription,
-                    commentaryUnavailable: tafsirPresenter.commentaryUnavailable,
-                    htmlFragment: tafsirPresenter.htmlFragment,
-                    reload: { Task { await tafsirPresenter.reload() } }
+                    verseReference: presenter.verseReference,
+                    commentarySource: presenter.commentarySource,
+                    isLoading: presenter.isLoading,
+                    loadErrorDescription: presenter.loadErrorDescription,
+                    commentaryUnavailable: presenter.commentaryUnavailable,
+                    htmlFragment: presenter.htmlFragment,
+                    reload: { Task { await presenter.reload() } }
                 )
             }
         }
         .sheet(isPresented: hadithSheetBinding) {
-            if let hadithPresenter {
+            if let presenter = readerCoordinator?.hadithPresenter {
                 HadithReaderSheet(
-                    verseReference: hadithPresenter.verseReference,
-                    items: hadithPresenter.items,
-                    isLoading: hadithPresenter.isLoading,
-                    isLoadingMore: hadithPresenter.isLoadingMore,
-                    hasMore: hadithPresenter.hasMore,
-                    loadErrorDescription: hadithPresenter.loadErrorDescription,
-                    contentUnavailable: hadithPresenter.contentUnavailable,
-                    reload: { Task { await hadithPresenter.reload() } },
-                    loadMore: { Task { await hadithPresenter.loadMore() } }
+                    verseReference: presenter.verseReference,
+                    items: presenter.items,
+                    isLoading: presenter.isLoading,
+                    isLoadingMore: presenter.isLoadingMore,
+                    hasMore: presenter.hasMore,
+                    loadErrorDescription: presenter.loadErrorDescription,
+                    contentUnavailable: presenter.contentUnavailable,
+                    reload: { Task { await presenter.reload() } },
+                    loadMore: { Task { await presenter.loadMore() } }
                 )
             }
         }
-        .onChange(of: scrollPosition) { _, newID in
-            guard let vm, let newID, newID != ScrollID.intro else { return }
-            guard let verse = vm.verses.first(where: { $0.listIdentity == newID }) else { return }
-            trackReadingSession(for: verse)
-            Task {
-                if let key = verse.verseKey {
-                    await withTaskGroup(of: Void.self) { group in
-                        group.addTask { await self.tafsirPresenter?.prefetch(ayahKey: key) }
-                        group.addTask { await self.hadithPresenter?.prefetch(ayahKey: key) }
-                    }
-                }
-                await vm.loadMoreIfNeeded(currentVerse: verse)
-            }
-        }
         .onChange(of: audio.activeSequenceIndex) { _, _ in
-            guard let vm, audio.isPlayingSequence else { return }
-            Task { @MainActor in
-                await Task.yield()
-                syncScrollToPlayingVerse(vm: vm)
-            }
+            guard let vm, let readerCoordinator else { return }
+            readerCoordinator.onActiveSequenceIndexChanged(vm: vm)
         }
         .onChange(of: audio.currentURL) { _, url in
-            if url == nil {
-                reservesReaderChromeForAudio = false
-                return
-            }
-            guard let vm, audio.isPlayingSequence == false else { return }
-            Task { @MainActor in
-                await Task.yield()
-                syncScrollToPlayingVerse(vm: vm)
-            }
+            guard let vm, let readerCoordinator else { return }
+            readerCoordinator.onAudioURLChanged(url, vm: vm)
         }
         .onDisappear {
-            reservesReaderChromeForAudio = false
-            Task { await readingTracker?.flush() }
-            audio.stop()
+            readerCoordinator?.onDisappear()
         }
     }
 
-    private func trackReadingSession(for verse: RandomAyahPayload) {
-        guard let verseNumber = verse.resolvedVerseNumber else { return }
-        readingTracker?.updateVisibleAyah(chapterNumber: chapter.id, verseNumber: verseNumber)
-    }
-
-    private func applyInitialScrollIfNeeded(vm: ChapterVersesViewModel) {
-        guard let target = initialVerseNumber, target >= 1 else { return }
-        guard let verse = vm.verses.first(where: { $0.resolvedVerseNumber == target }) else {
-            return
-        }
-        scrollToVerse(identity: verse.listIdentity)
-    }
-
-    @MainActor
-    private func syncScrollToPlayingVerse(vm: ChapterVersesViewModel) {
-        guard let verse = verseMatchingPlayback(in: vm) else { return }
-        scrollToVerse(identity: verse.listIdentity)
-    }
-
-    private func verseMatchingPlayback(in vm: ChapterVersesViewModel) -> RandomAyahPayload? {
-        if let index = audio.activeSequenceIndex,
-           let item = audio.queueItem(at: index) {
-            let target = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: item.url)
-            return vm.verses.first { verse in
-                guard let url = verse.audio?.url else { return false }
-                return AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: url) == target
+    private var reloadingOverlay: some View {
+        Color.black.opacity(0.35)
+            .ignoresSafeArea()
+            .overlay {
+                VStack(spacing: 12) {
+                    ProgressView().tint(.white)
+                    Text("Updating verses…")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+                }
+                .padding(20)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-        }
-        return vm.verses.first { audio.isPlayingURL($0.audio?.url) }
-    }
-    
-    private func scrollToVerse(identity: String) {
-        guard scrollPosition != identity else { return }
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
-            scrollPosition = identity
-        }
-        Task { @MainActor in
-            await Task.yield()
-            guard scrollPosition != identity else { return }
-            var retry = Transaction()
-            retry.disablesAnimations = true
-            withTransaction(retry) {
-                scrollPosition = identity
-            }
-        }
-    }
-
-    private var floatingNowPlayingBar: some View {
-        ChapterNowPlayingBar(audio: audio)
-            .padding(.horizontal, TabBarLayout.nowPlayingHorizontalInset)
-            .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
-    }
-
-    private var sideActionButtons: some View {
-        VStack(spacing: 18) {
-            QFSideActionButton(
-                icon: "text.book.closed.fill",
-                label: "Hadith",
-                action: openHadithForCurrentAyah
-            )
-            QFSideActionButton(
-                icon: "book.closed.fill",
-                label: "Tafsir",
-                action: openTafsirForCurrentAyah
-            )
-        }
+            .allowsHitTesting(true)
     }
 
     private var chapterHeader: some View {
@@ -338,7 +217,7 @@ struct ChapterVersesView: View {
                     .foregroundColor(.white)
                     .lineLimit(1)
 
-                Text(positionLabel)
+                Text(readerCoordinator?.positionLabel(in: vm) ?? chapter.versesCountLabel ?? "")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.72))
             }
@@ -370,48 +249,37 @@ struct ChapterVersesView: View {
         .alKhatibAccessibility(label: label, hint: hint)
     }
 
+    private var sideActionButtons: some View {
+        VStack(spacing: 18) {
+            QFSideActionButton(icon: "text.book.closed.fill", label: "Hadith") {
+                guard let readerCoordinator, let vm else { return }
+                readerCoordinator.openHadithForCurrentAyah(in: vm)
+            }
+            QFSideActionButton(icon: "book.closed.fill", label: "Tafsir") {
+                guard let readerCoordinator, let vm else { return }
+                readerCoordinator.openTafsirForCurrentAyah(in: vm)
+            }
+        }
+    }
+
+    private var floatingNowPlayingBar: some View {
+        ChapterNowPlayingBar(audio: audio)
+            .padding(.horizontal, TabBarLayout.nowPlayingHorizontalInset)
+            .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
+    }
+
     private var tafsirSheetBinding: Binding<Bool> {
         Binding(
-            get: { tafsirPresenter?.isSheetPresented ?? false },
-            set: { tafsirPresenter?.isSheetPresented = $0 }
+            get: { readerCoordinator?.tafsirPresenter?.isSheetPresented ?? false },
+            set: { readerCoordinator?.tafsirPresenter?.isSheetPresented = $0 }
         )
     }
 
     private var hadithSheetBinding: Binding<Bool> {
         Binding(
-            get: { hadithPresenter?.isSheetPresented ?? false },
-            set: { hadithPresenter?.isSheetPresented = $0 }
+            get: { readerCoordinator?.hadithPresenter?.isSheetPresented ?? false },
+            set: { readerCoordinator?.hadithPresenter?.isSheetPresented = $0 }
         )
-    }
-
-    private var positionLabel: String {
-        guard let vm, let scrollPosition, scrollPosition != ScrollID.intro else {
-            return chapter.versesCountLabel ?? ""
-        }
-        if let index = vm.verses.firstIndex(where: { $0.listIdentity == scrollPosition }) {
-            let total = chapter.versesCount ?? vm.verses.count
-            return "Ayah \(index + 1) / \(total)"
-        }
-        return chapter.versesCountLabel ?? ""
-    }
-
-    private func openTafsirForCurrentAyah() {
-        guard let verse = currentVerse else { return }
-        tafsirPresenter?.open(for: verse)
-    }
-
-    private func openHadithForCurrentAyah() {
-        guard let verse = currentVerse else { return }
-        hadithPresenter?.open(for: verse)
-    }
-
-    private var currentVerse: RandomAyahPayload? {
-        guard let vm,
-              let scrollPosition,
-              scrollPosition != ScrollID.intro else {
-            return nil
-        }
-        return vm.verses.first(where: { $0.listIdentity == scrollPosition })
     }
 
     @ViewBuilder
@@ -428,7 +296,8 @@ struct ChapterVersesView: View {
             Text("No verses found")
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
+        } else if let readerCoordinator {
+            @Bindable var readerCoordinator = readerCoordinator
             GeometryReader { pagerGeo in
                 let pageHeight = pagerGeo.size.height
 
@@ -437,12 +306,12 @@ struct ChapterVersesView: View {
                         ChapterIntroPage(
                             chapter: chapter,
                             isPreparingPlayAll: bindable.isPreparingPlayAll,
-                            onPlayAll: { Task { await playEntireSurah(vm: bindable) } },
-                            onTapScreen: { Task { await playEntireSurah(vm: bindable) } }
+                            onPlayAll: { Task { await readerCoordinator.playEntireSurah(vm: bindable) } },
+                            onTapScreen: { Task { await readerCoordinator.playEntireSurah(vm: bindable) } }
                         )
                         .frame(width: pagerGeo.size.width, height: pageHeight)
                         .clipped()
-                        .id(ScrollID.intro)
+                        .id(ChapterReaderCoordinator.ScrollID.intro)
 
                         ForEach(bindable.verses, id: \.listIdentity) { verse in
                             ChapterAyahPage(
@@ -450,7 +319,7 @@ struct ChapterVersesView: View {
                                 showTranslation: showTranslation,
                                 fontScale: fontScale,
                                 isPlaying: audio.isPlayingURL(verse.audio?.url) && audio.isPlaying,
-                                onTapScreen: { handleTap(for: verse, vm: bindable) }
+                                onTapScreen: { readerCoordinator.handleTap(for: verse, vm: bindable) }
                             )
                             .frame(width: pagerGeo.size.width, height: pageHeight)
                             .clipped()
@@ -461,11 +330,14 @@ struct ChapterVersesView: View {
                 }
                 .scrollTargetBehavior(.paging)
                 .scrollBounceBehavior(.basedOnSize, axes: .vertical)
-                .scrollPosition(id: $scrollPosition, anchor: .top)
+                .scrollPosition(id: $readerCoordinator.scrollPosition, anchor: .top)
                 .scrollIndicators(.hidden)
                 .scrollContentBackground(.hidden)
             }
             .ignoresSafeArea(edges: .top)
+            .onChange(of: readerCoordinator.scrollPosition) { _, newID in
+                readerCoordinator.onScrollPositionChanged(newID, vm: bindable)
+            }
         }
     }
 
@@ -481,58 +353,5 @@ struct ChapterVersesView: View {
                 .tint(Color.Theme.deepEmerald)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    @MainActor
-    private func handleTap(for verse: RandomAyahPayload, vm: ChapterVersesViewModel) {
-        guard let url = verse.audio?.url else { return }
-        let reciter = vm.reciterDisplayName
-        let ayah = vm.ayahSubtitle(for: verse)
-
-        if audio.isPlayingURL(url) {
-            audio.toggle()
-            return
-        }
-
-        scrollToVerse(identity: verse.listIdentity)
-
-        audio.playVerse(
-            url: url,
-            surahTitle: vm.surahDisplayTitle,
-            ayahLabel: ayah,
-            reciterName: reciter
-        )
-    }
-
-    @MainActor
-    private func playEntireSurah(vm: ChapterVersesViewModel) async {
-        vm.isPreparingPlayAll = true
-        defer { vm.isPreparingPlayAll = false }
-
-        await vm.ensureAllVersesLoaded()
-        let items = vm.audioQueueItems()
-        guard items.isEmpty == false else { return }
-
-        reservesReaderChromeForAudio = true
-
-        if let firstItem = items.first {
-            let targetURL = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: firstItem.url)
-            if let first = vm.verses.first(where: { verse in
-                guard let url = verse.audio?.url else { return false }
-                return AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: url) == targetURL
-            }) {
-                scrollToVerse(identity: first.listIdentity)
-                await Task.yield()
-                try? await Task.sleep(nanoseconds: 80_000_000)
-            }
-        }
-
-        let reciter = vm.reciterDisplayName
-        audio.playSequence(
-            items: items,
-            surahTitle: vm.surahDisplayTitle,
-            reciterName: reciter,
-            startIndex: 0
-        )
     }
 }

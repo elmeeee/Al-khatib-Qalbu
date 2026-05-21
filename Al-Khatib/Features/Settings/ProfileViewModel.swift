@@ -76,4 +76,37 @@ final class ProfileViewModel {
         await container.signOut()
         profile = nil
     }
+
+    func reloadIfNeeded() async {
+        await hydrateFromCacheIfNeeded()
+        await fetchProfile()
+    }
+
+    func reload(force: Bool = false) async {
+        await fetchProfile(force: force)
+    }
+
+    func handleOAuthDidChange(isInProgress: Bool) async {
+        guard isInProgress == false else { return }
+        if await container.userSession.hasUserAccessToken() {
+            await fetchProfile(force: true)
+        } else {
+            profile = nil
+        }
+    }
+
+    func handleSessionDidChange() async {
+        guard container.oauth.isWebAuthInProgress != true else { return }
+        if await container.userSession.hasUserAccessToken() {
+            await fetchProfile(force: true)
+        } else {
+            profile = nil
+            isLoading = false
+        }
+    }
+
+    func sync(to verseState: TodayVerseState?) {
+        guard let profile else { return }
+        verseState?.applyProfile(profile)
+    }
 }
