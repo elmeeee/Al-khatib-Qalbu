@@ -21,17 +21,16 @@ struct QFSideActionButton: View {
                     .frame(width: 48, height: 48)
                     .background(
                         Circle()
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.Token.lightGrey)
                     )
                     .overlay(
                         Circle()
-                            .stroke(.white.opacity(0.2), lineWidth: 0.5)
+                            .stroke(Color.Token.softGrey, lineWidth: 0.5)
                     )
                 Text(label)
                     .font(.caption2.weight(.semibold))
-                    .shadow(color: .black.opacity(0.4), radius: 2, y: 1)
             }
-            .foregroundColor(.white)
+            .foregroundColor(Color.Token.slate800)
         }
         .buttonStyle(PillPressStyle())
         .alKhatibAccessibility(

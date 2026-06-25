@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct SpiritualToolsView: View {
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
@@ -17,13 +19,13 @@ struct SpiritualToolsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Spiritual Tools")
+                Text(languageManager.localize("tools_title"))
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(Color.Token.deepEmerald)
                     .padding(.horizontal)
                     .padding(.top, 10)
                 
-                Text("Enhance your daily worship with these local tools and calculators.")
+                Text(languageManager.localize("tools_desc"))
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color.Token.slate500)
                     .padding(.horizontal)
@@ -31,8 +33,8 @@ struct SpiritualToolsView: View {
                 LazyVGrid(columns: columns, spacing: 16) {
                     NavigationLink(destination: DhikrTasbihView()) {
                         ToolCard(
-                            title: "Dhikr & Tasbih",
-                            subtitle: "Tasbih counter",
+                            title: languageManager.localize("tool_tasbih"),
+                            subtitle: languageManager.localize("tool_tasbih_sub"),
                             iconName: "circle.circle",
                             color: Color.Token.deepEmerald
                         )
@@ -40,8 +42,8 @@ struct SpiritualToolsView: View {
                     
                     NavigationLink(destination: DoaZikirView()) {
                         ToolCard(
-                            title: "Doa & Zikir",
-                            subtitle: "Collection of prayers",
+                            title: languageManager.localize("tool_doa_zikir"),
+                            subtitle: languageManager.localize("tool_doa_zikir_sub"),
                             iconName: "book.pages",
                             color: Color.Token.teal
                         )
@@ -49,8 +51,8 @@ struct SpiritualToolsView: View {
                     
                     NavigationLink(destination: QiblaFinderView()) {
                         ToolCard(
-                            title: "Qibla Finder",
-                            subtitle: "Locate Kaaba direction",
+                            title: languageManager.localize("tool_qibla"),
+                            subtitle: languageManager.localize("tool_qibla_sub"),
                             iconName: "safari",
                             color: Color.Token.goldDeep
                         )
@@ -58,8 +60,8 @@ struct SpiritualToolsView: View {
                     
                     NavigationLink(destination: ZakatCalculatorView()) {
                         ToolCard(
-                            title: "Zakat Calculator",
-                            subtitle: "Calculate your zakat",
+                            title: languageManager.localize("tool_zakat"),
+                            subtitle: languageManager.localize("tool_zakat_sub"),
                             iconName: "percent",
                             color: Color.Token.indigoAccent
                         )
@@ -67,8 +69,8 @@ struct SpiritualToolsView: View {
                     
                     NavigationLink(destination: QiyamTrackerView()) {
                         ToolCard(
-                            title: "Qiyam Tracker",
-                            subtitle: "Tahajjud logging & guide",
+                            title: languageManager.localize("tool_qiyam"),
+                            subtitle: languageManager.localize("tool_qiyam_sub"),
                             iconName: "moon.stars",
                             color: Color.Token.indigoDeep
                         )
@@ -76,8 +78,8 @@ struct SpiritualToolsView: View {
                     
                     NavigationLink(destination: FaraidhCalculatorView()) {
                         ToolCard(
-                            title: "Faraidh",
-                            subtitle: "Islamic inheritance",
+                            title: languageManager.localize("tool_faraidh"),
+                            subtitle: languageManager.localize("tool_faraidh_sub"),
                             iconName: "doc.text",
                             color: Color.Token.slate900
                         )
@@ -85,8 +87,8 @@ struct SpiritualToolsView: View {
 
                     NavigationLink(destination: ManzilView()) {
                         ToolCard(
-                            title: "Manzil",
-                            subtitle: "Quranic protection verses",
+                            title: languageManager.localize("tool_manzil"),
+                            subtitle: languageManager.localize("tool_manzil_sub"),
                             iconName: "shield.checkerboard",
                             color: Color.Token.deepEmerald
                         )

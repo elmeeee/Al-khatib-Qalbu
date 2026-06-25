@@ -13,6 +13,7 @@ struct ChaptersView: View {
     @State private var vm: QuranChaptersViewModel?
     @State private var navigationPath = NavigationPath()
     @State private var selectedTab: Int = 0
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -53,8 +54,8 @@ struct ChaptersView: View {
             header
             
             Picker("Quran Sections", selection: $selectedTab) {
-                Text("Surah").tag(0)
-                Text("Juz").tag(1)
+                Text(languageManager.localize("surah")).tag(0)
+                Text(languageManager.localize("juz")).tag(1)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
@@ -96,7 +97,7 @@ struct ChaptersView: View {
                     Text("\u{2726}")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(Color.Token.gold)
-                    Text("Quran")
+                    Text(languageManager.localize("quran_title"))
                         .font(.largeTitle.bold())
                         .foregroundColor(Color.Token.deepEmerald)
                 }
@@ -152,7 +153,7 @@ struct ChaptersView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
-            Button("Try Again", action: retry)
+            Button(languageManager.localize("try_again"), action: retry)
                 .buttonStyle(.borderedProminent)
                 .tint(Color.Token.deepEmerald)
             Spacer()
@@ -165,7 +166,7 @@ struct ChaptersView: View {
             Image(systemName: "book.closed")
                 .font(.system(size: 40))
                 .foregroundColor(Color.Token.deepEmerald.opacity(0.5))
-            Text("No chapters found")
+            Text(languageManager.localize("no_chapters"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Spacer()
@@ -244,7 +245,7 @@ private struct ContinueReadingCard: View {
                 )
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Continue reading")
+                Text(AppLanguageManager.shared.localize("continue_reading"))
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(Color.Token.gold)
                     .textCase(.uppercase)
@@ -423,7 +424,7 @@ private struct JuzRow: View {
 
                         if let start = juz.startChapterAndAyah() {
                             let surahName = chapter?.displayComplexName ?? "Surah \(start.0)"
-                            Text("Starts at \(surahName) \u{2022} Ayah \(start.1)")
+                            Text("\(AppLanguageManager.shared.localize("starts_at")) \(surahName) \u{2022} Ayah \(start.1)")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.secondary)
                         }
@@ -432,7 +433,7 @@ private struct JuzRow: View {
                 }
 
                 if let count = juz.versesCount {
-                    Text("\(count) Verses")
+                    Text("\(count) \(AppLanguageManager.shared.localize("verses"))")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.secondary)
                 }

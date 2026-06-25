@@ -18,13 +18,13 @@ struct ChapterNowPlayingBar: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(trackLine)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.Token.slate800)
                     .lineLimit(1)
 
                 if audio.reciterName.isEmpty == false {
                     Text(audio.reciterName)
                         .font(.caption)
-                        .foregroundStyle(.white.opacity(0.72))
+                        .foregroundStyle(Color.Token.slate500)
                         .lineLimit(1)
                 }
             }
@@ -58,7 +58,7 @@ struct ChapterNowPlayingBar: View {
                 Button { audio.stop() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.55))
+                        .foregroundStyle(Color.Token.slate500)
                         .frame(width: 32, height: 40)
                         .contentShape(Rectangle())
                 }
@@ -72,14 +72,11 @@ struct ChapterNowPlayingBar: View {
         .padding(.vertical, 10)
         .background {
             RoundedRectangle(cornerRadius: TabBarLayout.chromeCornerRadius, style: .continuous)
-                .fill(.ultraThinMaterial.opacity(0.35))
-                .background {
-                    RoundedRectangle(cornerRadius: TabBarLayout.chromeCornerRadius, style: .continuous)
-                        .fill(Color.white.opacity(0.12))
-                }
+                .fill(Color.Token.pureWhite)
+                .shadow(color: Color.black.opacity(0.06), radius: 10, y: 5)
                 .overlay {
                     RoundedRectangle(cornerRadius: TabBarLayout.chromeCornerRadius, style: .continuous)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                        .stroke(Color.Token.softGrey, lineWidth: 0.5)
                 }
         }
     }

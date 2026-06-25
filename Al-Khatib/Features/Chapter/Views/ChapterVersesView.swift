@@ -208,6 +208,28 @@ struct ChapterVersesView: View {
             .allowsHitTesting(true)
     }
 
+    private var currentSurahName: String {
+        if let vm,
+           let currentVerse = readerCoordinator?.currentVerse(in: vm),
+           let chapterNum = currentVerse.chapterNumber,
+           let name = vm.chapterLookup[chapterNum] {
+            return name
+        }
+        return chapter?.displayComplexName ?? vm?.surahDisplayTitle ?? ""
+    }
+
+    private var currentPositionLabel: String {
+        if let vm,
+           let currentVerse = readerCoordinator?.currentVerse(in: vm) {
+            let verseNum = currentVerse.resolvedVerseNumber
+            if let juz = currentVerse.juzNumber {
+                return "Ayah \(verseNum) · Juz \(juz)"
+            }
+            return "Ayah \(verseNum)"
+        }
+        return readerCoordinator?.positionLabel(in: vm) ?? chapter?.versesCountLabel ?? ""
+    }
+
     private var chapterHeader: some View {
         HStack(alignment: .center, spacing: 12) {
             headerIconButton(systemName: "chevron.left") {
@@ -216,14 +238,14 @@ struct ChapterVersesView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(chapter?.displayComplexName ?? "")
+                Text(currentSurahName)
                     .font(.subheadline.weight(.bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.Token.slate900)
                     .lineLimit(1)
 
-                Text(readerCoordinator?.positionLabel(in: vm) ?? chapter?.versesCountLabel ?? "")
+                Text(currentPositionLabel)
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.72))
+                    .foregroundColor(Color.Token.slate500)
             }
 
             Spacer(minLength: 8)
@@ -236,6 +258,7 @@ struct ChapterVersesView: View {
         .padding(.top, 6)
         .padding(.bottom, 10)
         .safeAreaPadding(.top, 4)
+        .background(Color.Token.screenBackground.opacity(0.95))
     }
 
     private func headerIconButton(systemName: String, action: @escaping () -> Void) -> some View {
@@ -246,9 +269,9 @@ struct ChapterVersesView: View {
         return Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(Color.Token.slate900)
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(Color.white.opacity(0.12)))
+                .background(Circle().fill(Color.Token.lightGrey))
         }
         .alKhatibAccessibility(label: label, hint: hint)
     }

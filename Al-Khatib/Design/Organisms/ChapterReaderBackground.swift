@@ -10,15 +10,7 @@ import SwiftUI
 
 struct ChapterReaderBackground: View {
     var body: some View {
-        LinearGradient(
-            colors: [
-                Color.Token.readerMoss,
-                Color.Token.deepEmerald,
-                Color.Token.readerForest
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        Color.Token.screenBackground
     }
 }
 

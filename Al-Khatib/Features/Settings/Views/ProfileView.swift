@@ -39,6 +39,9 @@ struct ProfileView: View {
     @State private var showingTranslatorSheet = false
     @AppStorage("selected_adhan_sound") private var selectedAdhanSound = "default"
     @State private var showingAdhanVoiceSheet = false
+    
+    @ObservedObject var languageManager = AppLanguageManager.shared
+    @State private var showingAppLanguageSheet = false
 
     var body: some View {
         ZStack {
@@ -60,7 +63,7 @@ struct ProfileView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle(preferSystemNavigationTitle ? "Profile" : "")
+        .navigationTitle(preferSystemNavigationTitle ? languageManager.localize("tab_profile") : "")
         .navigationBarTitleDisplayMode(preferSystemNavigationTitle ? .large : .inline)
         .onAppear {
             guard let container, viewModel == nil else { return }
@@ -85,6 +88,9 @@ struct ProfileView: View {
         .sheet(isPresented: $showingFontScaleSheet) {
             FontScaleSheetView(fontScale: $fontScale)
         }
+        .sheet(isPresented: $showingAppLanguageSheet) {
+            AppLanguageSelectionSheet(selectedLanguage: $languageManager.currentLanguage)
+        }
         .sheet(isPresented: $showingTranslatorSheet) {
             if let container {
                 TranslatorSelectionSheetView(
@@ -106,13 +112,13 @@ struct ProfileView: View {
                 }
             )
         }
-        .alert("Notifications disabled", isPresented: $showNotificationDeniedAlert) {
-            Button("Open Settings") {
+        .alert(languageManager.localize("notif_disabled_title"), isPresented: $showNotificationDeniedAlert) {
+            Button(languageManager.localize("open_settings")) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
             }
-            Button("OK", role: .cancel) {}
+            Button(languageManager.localize("close"), role: .cancel) {}
         } message: {
             Text(notificationAlertMessage)
         }
@@ -186,12 +192,12 @@ struct ProfileView: View {
 
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            ProfileSectionHeaderView(title: "General")
+            ProfileSectionHeaderView(title: languageManager.localize("general"))
             VStack(spacing: 0) {
                 Button { showingFontScaleSheet = true } label: {
                     ProfileRowView(
                         icon: "textformat.size",
-                        title: "Font Size",
+                        title: languageManager.localize("font_size"),
                         subtitle: fontScaleLabel,
                         hasToggle: false,
                         isOn: .constant(false)
@@ -202,6 +208,19 @@ struct ProfileView: View {
                     label: AlKhatibAccessibility.Profile.fontSize,
                     hint: "Current size \(fontScaleLabel). Opens font size picker"
                 )
+                
+                Divider().padding(.leading, 64)
+                
+                Button { showingAppLanguageSheet = true } label: {
+                    ProfileRowView(
+                        icon: "globe",
+                        title: languageManager.localize("app_language"),
+                        subtitle: languageManager.currentLanguage.displayName,
+                        hasToggle: false,
+                        isOn: .constant(false)
+                    )
+                }
+                .buttonStyle(.plain)
             }
             .profileCardStyle()
         }
@@ -209,14 +228,14 @@ struct ProfileView: View {
 
     private var prayerSettingsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            ProfileSectionHeaderView(title: "Prayer Setting")
+            ProfileSectionHeaderView(title: languageManager.localize("prayer_setting"))
             VStack(spacing: 0) {
                 NavigationLink {
                     PrayerCalculationSettingsView()
                 } label: {
                     ProfileRowView(
                         icon: "clock.badge.checkmark",
-                        title: "Prayer calculation",
+                        title: languageManager.localize("prayer_calc"),
                         subtitle: selectedPrayerMethod.displayName,
                         hasToggle: false,
                         isOn: .constant(false)
@@ -232,7 +251,7 @@ struct ProfileView: View {
 
                 ProfileRowView(
                     icon: "book.pages",
-                    title: "Show Translation",
+                    title: languageManager.localize("show_translation"),
                     subtitle: "English",
                     hasToggle: true,
                     isOn: $showTranslation
@@ -243,7 +262,7 @@ struct ProfileView: View {
                 Button { showingTranslatorSheet = true } label: {
                     ProfileRowView(
                         icon: "person.text.rectangle",
-                        title: "Translator",
+                        title: languageManager.localize("translator"),
                         subtitle: selectedTranslationName,
                         hasToggle: false,
                         isOn: .constant(false)
@@ -262,14 +281,14 @@ struct ProfileView: View {
                 Button { showingAdhanVoiceSheet = true } label: {
                     ProfileRowView(
                         icon: "waveform",
-                        title: "Adhan Voice",
+                        title: languageManager.localize("adhan_voice"),
                         subtitle: adhanVoiceDisplayName,
                         hasToggle: false,
                         isOn: .constant(false)
                     )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Adhan Voice")
+                .accessibilityLabel(languageManager.localize("adhan_voice"))
                 .accessibilityHint("Current voice: \(adhanVoiceDisplayName). Choose the voice for Adhan notifications")
             }
             .profileCardStyle()
@@ -278,18 +297,18 @@ struct ProfileView: View {
 
     private var adhanVoiceDisplayName: String {
         switch selectedAdhanSound {
-        case "default": return "System Default"
+        case "default": return languageManager.localize("system_default")
         case "adhan_ust_daeng_syawal_indonesia": return "Ust. Daeng Syawal (ID)"
         case "adhan_ustaz_sadid_ahmad_dahri_singapore": return "Ust. Sadid Ahmad Dahri (SG)"
         case "adhan_omar_hisham_al_arabi": return "Omar Hisham Al Arabi"
         case "adhan_sheikh_abdul_karim_malaysia": return "Sheikh Abdul Karim (MY)"
         case "adhan_fajr_mishary_alafasy": return "Mishary Alafasy (Fajr)"
-        default: return "System Default"
+        default: return languageManager.localize("system_default")
         }
     }
 
     private var dailyVerseNotificationSubtitle: String {
-        "Today’s surah & translation in your notification"
+        languageManager.localize("daily_verse_sub")
     }
 
     private var dailyVerseTimeRowSubtitle: String {
@@ -313,8 +332,7 @@ struct ProfileView: View {
         case .scheduled, .disabled:
             break
         case .authorizationDenied:
-            notificationAlertMessage =
-                "Allow notifications for Al-Khatib in Settings to receive your daily verse reminder."
+            notificationAlertMessage = languageManager.localize("notif_disabled_msg")
             showNotificationDeniedAlert = true
         case .failed(let message):
             notificationAlertMessage = message
@@ -324,11 +342,11 @@ struct ProfileView: View {
 
     private var notificationsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            ProfileSectionHeaderView(title: "Notifications")
+            ProfileSectionHeaderView(title: languageManager.localize("notifications"))
             VStack(spacing: 0) {
                 ProfileRowView(
                     icon: "book.closed.fill",
-                    title: "Verse of the day",
+                    title: languageManager.localize("verse_of_the_day"),
                     subtitle: dailyVerseNotificationSubtitle,
                     hasToggle: true,
                     isOn: $dailyVerseEnabled
@@ -340,7 +358,7 @@ struct ProfileView: View {
                     } label: {
                         ProfileRowView(
                             icon: "clock.fill",
-                            title: "Morning time",
+                            title: languageManager.localize("morning_time"),
                             subtitle: dailyVerseTimeRowSubtitle,
                             hasToggle: false,
                             isOn: .constant(false)
@@ -355,8 +373,8 @@ struct ProfileView: View {
                 Divider().padding(.leading, 64)
                 ProfileRowView(
                     icon: "bell",
-                    title: "Prayer times",
-                    subtitle: "Fajr, Dhuhr, Asr, Maghrib & Isha",
+                    title: languageManager.localize("prayer_times"),
+                    subtitle: languageManager.localize("prayer_times_sub"),
                     hasToggle: true,
                     isOn: $adzanEnabled
                 )
@@ -364,7 +382,7 @@ struct ProfileView: View {
                 ProfileRowView(
                     icon: "bell.badge",
                     title: "Imsak",
-                    subtitle: "Reminder before Fajr while fasting",
+                    subtitle: languageManager.localize("imsak_sub"),
                     hasToggle: true,
                     isOn: $imsakEnabled
                 )
@@ -372,7 +390,7 @@ struct ProfileView: View {
                 ProfileRowView(
                     icon: "moon",
                     title: "Midnight",
-                    subtitle: "Halfway through the night",
+                    subtitle: languageManager.localize("midnight_sub"),
                     hasToggle: true,
                     isOn: $midnightEnabled
                 )
@@ -380,7 +398,7 @@ struct ProfileView: View {
                 ProfileRowView(
                     icon: "moon.stars",
                     title: "First third of night",
-                    subtitle: "Early night rest reminder",
+                    subtitle: languageManager.localize("first_third_sub"),
                     hasToggle: true,
                     isOn: $firstThirdEnabled
                 )
@@ -388,7 +406,7 @@ struct ProfileView: View {
                 ProfileRowView(
                     icon: "sparkles",
                     title: "Last third (Tahajud)",
-                    subtitle: "Best time for night prayer",
+                    subtitle: languageManager.localize("tahajud_sub"),
                     hasToggle: true,
                     isOn: $tahajudEnabled
                 )
@@ -407,7 +425,7 @@ struct ProfileView: View {
             HStack(spacing: 8) {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
                     .font(.system(size: 16, weight: .bold))
-                Text("Log Out")
+                Text(languageManager.localize("sign_out"))
                     .font(.system(size: 16, weight: .bold))
             }
             .foregroundColor(.white)
@@ -433,10 +451,48 @@ struct ProfileView: View {
 
     private var fontScaleLabel: String {
         switch fontScale {
-        case ..<0.95: "Small"
-        case 0.95 ..< 1.1: "Medium"
-        case 1.1 ..< 1.22: "Large"
-        default: "Extra large"
+        case ..<0.95: return languageManager.localize("font_small")
+        case 0.95 ..< 1.1: return languageManager.localize("font_medium")
+        case 1.1 ..< 1.22: return languageManager.localize("font_large")
+        default: return languageManager.localize("font_extra_large")
+        }
+    }
+}
+
+struct AppLanguageSelectionSheet: View {
+    @Binding var selectedLanguage: AppLanguage
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(AppLanguage.allCases) { lang in
+                    Button {
+                        selectedLanguage = lang
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Text(lang.displayName)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            if selectedLanguage == lang {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color.Token.deepEmerald)
+                                    .fontWeight(.bold)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(AppLanguageManager.shared.localize("app_language"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(AppLanguageManager.shared.localize("close")) {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

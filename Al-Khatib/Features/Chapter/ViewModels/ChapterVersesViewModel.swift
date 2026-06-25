@@ -26,6 +26,7 @@ final class ChapterVersesViewModel {
     var errorMessage: String?
     var recitations: [RecitationPayload] = []
     var selectedRecitationId: Int
+    var chapterLookup: [Int: String] = [:]
 
     var surahDisplayTitle: String {
         if let j = juzNumber {
@@ -57,6 +58,14 @@ final class ChapterVersesViewModel {
         nextPage = 1
         hasMorePages = true
         defer { isLoading = false }
+
+        if let allChapters = try? await content.getChapters() {
+            var lookup: [Int: String] = [:]
+            for ch in allChapters {
+                lookup[ch.id] = ch.displayComplexName
+            }
+            self.chapterLookup = lookup
+        }
 
         await fetchPage(1, append: false)
         await loadRecitationsIfNeeded()

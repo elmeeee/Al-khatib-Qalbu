@@ -22,6 +22,7 @@ struct RootTabView: View {
     @State private var selectedTab: Tab = .today
     @State private var todayNavigationPath: [TodayNavigation] = []
     @State private var vm = RootTabViewModel()
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     let verseState: TodayVerseState
 
     init(verseState: TodayVerseState) {
@@ -48,26 +49,26 @@ struct RootTabView: View {
                     .toolbar(.hidden, for: .navigationBar)
             }
             .tag(Tab.today)
-            .tabItem { Label("Today", systemImage: "sun.max.fill") }
+            .tabItem { Label(languageManager.localize("tab_today"), systemImage: "sun.max.fill") }
             .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.today, hint: AlKhatibAccessibility.Tab.todayHint)
 
             ChaptersView()
                 .tag(Tab.journey)
-                .tabItem { Label("Quran", systemImage: "book.fill") }
+                .tabItem { Label(languageManager.localize("tab_quran"), systemImage: "book.fill") }
                 .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.quran, hint: AlKhatibAccessibility.Tab.quranHint)
 
             NavigationStack {
                 SpiritualToolsView()
             }
             .tag(Tab.tools)
-            .tabItem { Label("Tools", systemImage: "grid") }
+            .tabItem { Label(languageManager.localize("tab_tools"), systemImage: "grid") }
 
             ReflectionView(
                 verseState: verseState,
                 isTabSelected: selectedTab == .reflect
             )
             .tag(Tab.reflect)
-            .tabItem { Label("Reflect", systemImage: "square.and.pencil") }
+            .tabItem { Label(languageManager.localize("tab_reflections"), systemImage: "square.and.pencil") }
             .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.reflect, hint: AlKhatibAccessibility.Tab.reflectHint)
 
             NavigationStack {
@@ -75,7 +76,7 @@ struct RootTabView: View {
                     .environment(\.appContainer, container)
             }
             .tag(Tab.account)
-            .tabItem { Label("Account", systemImage: "person.crop.circle") }
+            .tabItem { Label(languageManager.localize("tab_profile"), systemImage: "person.crop.circle") }
         }
         .onChangeWithFallback(of: verseState.shouldNavigateToReflect) { shouldNavigate in
             if shouldNavigate {

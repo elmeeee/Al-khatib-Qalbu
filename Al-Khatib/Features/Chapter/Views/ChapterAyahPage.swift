@@ -58,12 +58,25 @@ struct ChapterAyahPage: View {
                     VStack(spacing: contentSpacing) {
                         AyahArabicWebBlock(
                             payload: verse,
-                            style: .verseCardOnDark,
+                            style: .verseCard,
                             fontScale: effectiveFontScale,
                             measuredHeight: $arabicMeasuredHeight,
                             includeTranslationInAccessibility: showTranslation
                         )
                         .padding(.horizontal, 8)
+
+                        if let latinText = verse.transliteration, latinText.isEmpty == false {
+                            Text(latinText)
+                                .font(.system(size: CGFloat(15 * effectiveFontScale), weight: .medium, design: .serif))
+                                .foregroundColor(Color.Token.gold)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.Token.lightGrey.opacity(0.6))
+                                )
+                        }
 
                         if let translationText {
                             Text(justifiedTranslation(translationText))
@@ -142,7 +155,7 @@ struct ChapterAyahPage: View {
             if hasAudio {
                 Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 64))
-                    .foregroundColor(.white.opacity(showTapFeedback ? 0.85 : 0))
+                    .foregroundColor(Color.Token.deepEmerald.opacity(showTapFeedback ? 0.85 : 0))
                     .scaleEffect(showTapFeedback ? 1.0 : 0.85)
                     .animation(.easeOut(duration: 0.2), value: showTapFeedback)
                     .allowsHitTesting(false)
@@ -175,7 +188,7 @@ struct ChapterAyahPage: View {
             string: text,
             attributes: [
                 .font: UIFont.systemFont(ofSize: translationFontSize),
-                .foregroundColor: UIColor.white.withAlphaComponent(0.9),
+                .foregroundColor: UIColor(Color.Token.slate800),
                 .paragraphStyle: paragraph
             ]
         )

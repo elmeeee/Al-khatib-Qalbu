@@ -458,6 +458,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Al-Khatib/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Sāat";
 				INFOPLIST_KEY_CFBundleURLTypes_0_CFBundleTypeRole = Editor;
 				INFOPLIST_KEY_CFBundleURLTypes_0_CFBundleURLName = "co.kamy.Al-Khatib.oauth";
 				INFOPLIST_KEY_CFBundleURLTypes_0_CFBundleURLSchemes_0 = alkhatib;
@@ -522,6 +523,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Al-Khatib/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Sāat";
 				INFOPLIST_KEY_CFBundleURLTypes_0_CFBundleTypeRole = Editor;
 				INFOPLIST_KEY_CFBundleURLTypes_0_CFBundleURLName = "co.kamy.Al-Khatib.oauth";
 				INFOPLIST_KEY_CFBundleURLTypes_0_CFBundleURLSchemes_0 = alkhatib;
