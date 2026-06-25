@@ -35,6 +35,7 @@ struct RandomAyahPayload: Decodable, Sendable {
     let juzNumber: Int?
     let audio: AudioPayload?
     let translations: [InlineTranslation]?
+    let transliteration: String?
     
     var displayText: String? {
         guard let raw = textUthmaniTajweed?

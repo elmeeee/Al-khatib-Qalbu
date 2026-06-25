@@ -42,7 +42,6 @@ struct TodayDiscoveryHeaderView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 14) {
-                avatarButton
 
                 VStack(alignment: .leading, spacing: 4) {
                     greetingRow
@@ -112,17 +111,6 @@ struct TodayDiscoveryHeaderView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(AlKhatibAccessibility.Today.location), \(cityName ?? "")")
-    }
-
-    private var avatarButton: some View {
-        Button(action: onAccountTap) {
-            TodayProfileAvatarButton(url: avatarURL, isLoggingIn: isLoggingIn)
-        }
-        .disabled(isLoggingIn)
-        .alKhatibAccessibility(
-            label: AlKhatibAccessibility.Today.account,
-            hint: AlKhatibAccessibility.Today.accountHint
-        )
     }
 
     private var todayBadge: some View {

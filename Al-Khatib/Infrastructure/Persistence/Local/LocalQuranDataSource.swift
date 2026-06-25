@@ -409,13 +409,15 @@ internal final class LocalQuranDataSource: Sendable {
         // Map translation
         var translationText = ""
         switch translationId {
-        case 131: // English
+        case 2, 131, 20, 84: // English (Sahih International)
             translationText = row["translation_en"] as? String ?? ""
-        case 39: // Malay
+        case 3, 39: // Malay
             translationText = row["malay"] as? String ?? ""
-        case 33: // Kemenag
+        case 4, 33: // Kemenag Latin / kemenag
             translationText = row["kemenag"] as? String ?? ""
-        default: // Indonesian (33)
+        case 1, 22: // Indonesian
+            translationText = row["indonesian"] as? String ?? ""
+        default: // Default to Indonesian
             translationText = row["indonesian"] as? String ?? ""
         }
 
@@ -425,6 +427,12 @@ internal final class LocalQuranDataSource: Sendable {
             text: translationText,
             resourceName: translationResourceName(translationId)
         )
+
+        // Map transliteration
+        let isEnglish = (translationId == 2 || translationId == 20 || translationId == 84)
+        let translit = isEnglish ?
+            (row["transliteration_en"] as? String ?? row["transliteration_id"] as? String) :
+            (row["transliteration_id"] as? String ?? row["transliteration_en"] as? String)
 
         return RandomAyahPayload(
             id: row["index"] as? Int,
@@ -443,7 +451,8 @@ internal final class LocalQuranDataSource: Sendable {
             pageNumber: page,
             juzNumber: juz,
             audio: AudioPayload(url: audioUrl),
-            translations: [inlineTranslation]
+            translations: [inlineTranslation],
+            transliteration: translit
         )
     }
 

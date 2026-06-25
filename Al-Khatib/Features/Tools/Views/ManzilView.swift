@@ -422,6 +422,17 @@ struct SectionCard: View {
                                 )
                                 .padding(.vertical, 4)
                                 
+                                // Transliteration (Latin)
+                                if let translit = verse.transliteration, !translit.isEmpty {
+                                    Text(translit)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .italic()
+                                        .foregroundColor(Color.Token.indigoAccent)
+                                        .lineSpacing(4)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.top, 4)
+                                }
+                                
                                 // Translation
                                 if let translation = verse.translations?.first?.text {
                                     Text(translation)

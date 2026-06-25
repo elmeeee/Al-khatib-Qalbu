@@ -39,24 +39,25 @@ struct FaraidhGraphBuilder {
             edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .marriage))
         }
         
-        for i in 1...input.wifeCount {
-            if i <= 0 { continue }
-            let id = "wife_\(i)"
-            let share = activeShares.first { $0.type == .wife }
-            let wifePct = Double(truncating: ((share?.percentage ?? .zero) / Decimal(input.wifeCount)) as NSNumber)
-            let wifeCash = (share?.cashAmount ?? .zero) / Decimal(input.wifeCount)
-            nodes[id] = FaraidhGraphNode(
-                id: id,
-                displayName: "Wife \(i)",
-                generationLevel: 0,
-                relationType: .wife,
-                status: share != nil ? .active : .mahjubHirman,
-                baseShareFraction: share?.fraction.toDisplayString(),
-                finalPercentage: wifePct,
-                cashValue: wifeCash,
-                visualColorHex: share != nil ? "#10B981" : "#EF4444"
-            )
-            edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .marriage))
+        if input.wifeCount > 0 {
+            for i in 1...input.wifeCount {
+                let id = "wife_\(i)"
+                let share = activeShares.first { $0.type == .wife }
+                let wifePct = Double(truncating: ((share?.percentage ?? .zero) / Decimal(input.wifeCount)) as NSNumber)
+                let wifeCash = (share?.cashAmount ?? .zero) / Decimal(input.wifeCount)
+                nodes[id] = FaraidhGraphNode(
+                    id: id,
+                    displayName: "Wife \(i)",
+                    generationLevel: 0,
+                    relationType: .wife,
+                    status: share != nil ? .active : .mahjubHirman,
+                    baseShareFraction: share?.fraction.toDisplayString(),
+                    finalPercentage: wifePct,
+                    cashValue: wifeCash,
+                    visualColorHex: share != nil ? "#10B981" : "#EF4444"
+                )
+                edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .marriage))
+            }
         }
         
         // 2. Parents (Generation +1)
@@ -127,44 +128,46 @@ struct FaraidhGraphBuilder {
         }
         
         // 3. Children (Generation -1)
-        for i in 1...input.sonCount {
-            if i <= 0 { continue }
-            let id = "son_\(i)"
-            let share = activeShares.first { $0.type == .son }
-            let sonPct = Double(truncating: ((share?.percentage ?? .zero) / Decimal(input.sonCount)) as NSNumber)
-            let sonCash = (share?.cashAmount ?? .zero) / Decimal(input.sonCount)
-            nodes[id] = FaraidhGraphNode(
-                id: id,
-                displayName: "Son \(i)",
-                generationLevel: -1,
-                relationType: .son,
-                status: share != nil ? .active : .mahjubHirman,
-                baseShareFraction: share?.fraction.toDisplayString(),
-                finalPercentage: sonPct,
-                cashValue: sonCash,
-                visualColorHex: share != nil ? "#10B981" : "#EF4444"
-            )
-            edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .parentChild))
+        if input.sonCount > 0 {
+            for i in 1...input.sonCount {
+                let id = "son_\(i)"
+                let share = activeShares.first { $0.type == .son }
+                let sonPct = Double(truncating: ((share?.percentage ?? .zero) / Decimal(input.sonCount)) as NSNumber)
+                let sonCash = (share?.cashAmount ?? .zero) / Decimal(input.sonCount)
+                nodes[id] = FaraidhGraphNode(
+                    id: id,
+                    displayName: "Son \(i)",
+                    generationLevel: -1,
+                    relationType: .son,
+                    status: share != nil ? .active : .mahjubHirman,
+                    baseShareFraction: share?.fraction.toDisplayString(),
+                    finalPercentage: sonPct,
+                    cashValue: sonCash,
+                    visualColorHex: share != nil ? "#10B981" : "#EF4444"
+                )
+                edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .parentChild))
+            }
         }
         
-        for i in 1...input.daughterCount {
-            if i <= 0 { continue }
-            let id = "daughter_\(i)"
-            let share = activeShares.first { $0.type == .daughter }
-            let daughterPct = Double(truncating: ((share?.percentage ?? .zero) / Decimal(input.daughterCount)) as NSNumber)
-            let daughterCash = (share?.cashAmount ?? .zero) / Decimal(input.daughterCount)
-            nodes[id] = FaraidhGraphNode(
-                id: id,
-                displayName: "Daughter \(i)",
-                generationLevel: -1,
-                relationType: .daughter,
-                status: share != nil ? .active : .mahjubHirman,
-                baseShareFraction: share?.fraction.toDisplayString(),
-                finalPercentage: daughterPct,
-                cashValue: daughterCash,
-                visualColorHex: share != nil ? "#10B981" : "#EF4444"
-            )
-            edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .parentChild))
+        if input.daughterCount > 0 {
+            for i in 1...input.daughterCount {
+                let id = "daughter_\(i)"
+                let share = activeShares.first { $0.type == .daughter }
+                let daughterPct = Double(truncating: ((share?.percentage ?? .zero) / Decimal(input.daughterCount)) as NSNumber)
+                let daughterCash = (share?.cashAmount ?? .zero) / Decimal(input.daughterCount)
+                nodes[id] = FaraidhGraphNode(
+                    id: id,
+                    displayName: "Daughter \(i)",
+                    generationLevel: -1,
+                    relationType: .daughter,
+                    status: share != nil ? .active : .mahjubHirman,
+                    baseShareFraction: share?.fraction.toDisplayString(),
+                    finalPercentage: daughterPct,
+                    cashValue: daughterCash,
+                    visualColorHex: share != nil ? "#10B981" : "#EF4444"
+                )
+                edges.append(FaraidhGraphEdge(fromId: rootId, toId: id, type: .parentChild))
+            }
         }
         
         // 4. Disqualified heirs
