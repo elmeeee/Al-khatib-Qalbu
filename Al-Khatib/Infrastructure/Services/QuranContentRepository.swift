@@ -81,7 +81,7 @@ struct QuranContentRepository: Sendable {
     ) async throws -> RandomAyahResponse {
         let normalizedTranslationId = normalizeTranslationId(ChapterReaderPreferences.selectedTranslationId())
         let normalizedRecitationId = normalizeRecitationId(recitationId)
-        if let payload = try await local.getRandomAyah(translationId: normalizedTranslationId, recitationId: normalizedRecitationId) {
+        if let payload = try await local.getThematicDailyAyah(translationId: normalizedTranslationId, recitationId: normalizedRecitationId) {
             return RandomAyahResponse(verse: payload)
         }
         throw NSError(domain: "LocalQuran", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load random Ayah."])

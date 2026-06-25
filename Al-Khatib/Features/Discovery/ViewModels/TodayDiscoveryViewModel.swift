@@ -127,7 +127,8 @@ final class TodayDiscoveryViewModel {
         DailyAyahRefreshPolicy.shouldRefresh(
             lastFetchTimestamp: DailyAyahRefreshPolicy.lastFetchTimestamp(defaults: defaults),
             forceIfNoData: forceIfNoData,
-            hasDetail: detail != nil
+            hasDetail: detail != nil,
+            defaults: defaults
         )
     }
 }

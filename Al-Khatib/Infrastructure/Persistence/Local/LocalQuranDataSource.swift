@@ -213,6 +213,50 @@ internal final class LocalQuranDataSource: Sendable {
         return try await loadAyahAtOffset(offset, translationId: translationId, recitationId: recitationId)
     }
 
+    internal func getThematicDailyAyah(translationId: Int, recitationId: Int) async throws -> RandomAyahPayload? {
+        let now = Date()
+        let calendar = Calendar.current
+        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: now) ?? 1
+        let periodIndex = DailyAyahRefreshPolicy.currentPeriodIndex(for: now, calendar: calendar)
+
+        // 1. Check if there is an Islamic event today
+        if let todayInfo = LocalKhgtCalendar.shared.infoForDate(now),
+           let event = todayInfo.eventTitle {
+            let eventLower = event.lowercased()
+            var verseKeys: [String] = []
+
+            if eventLower.contains("tahun baru") || eventLower.contains("hijriah") {
+                verseKeys = ["1:1", "2:201", "2:197"]
+            } else if eventLower.contains("tasua") || eventLower.contains("asyuro") || eventLower.contains("asyura") {
+                verseKeys = ["2:183", "2:184", "2:185"]
+            } else if eventLower.contains("maulid") {
+                verseKeys = ["33:56", "3:144", "48:29"]
+            } else if eventLower.contains("isra") || eventLower.contains("mi'raj") || eventLower.contains("miraj") {
+                verseKeys = ["17:1", "53:12", "53:18"]
+            } else if eventLower.contains("ramadhan") || eventLower.contains("ramadan") || eventLower.contains("nuzulul") {
+                verseKeys = ["2:185", "97:1", "97:5"]
+            } else if eventLower.contains("fitri") || eventLower.contains("adha") {
+                verseKeys = ["108:2", "22:37", "87:14"]
+            } else if eventLower.contains("ayyamul") || eventLower.contains("bidh") {
+                verseKeys = ["13:28", "3:191", "39:53"]
+            }
+
+            if !verseKeys.isEmpty {
+                let chosenKey = verseKeys[periodIndex % verseKeys.count]
+                if let payload = try await getVerseByKey(chosenKey, translationId: translationId, recitationId: recitationId) {
+                    return payload
+                }
+            }
+        }
+
+        // 2. Deterministic fallback based on day of year + time of day
+        let total = try await totalAyahCount()
+        guard total > 0 else { return nil }
+        let seed = (dayOfYear * 3) + periodIndex
+        let offset = seed % total
+        return try await loadAyahAtOffset(offset, translationId: translationId, recitationId: recitationId)
+    }
+
     private func totalAyahCount() async throws -> Int {
         let db = try database.openReadable()
         defer { db.close() }
