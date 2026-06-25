@@ -358,33 +358,43 @@ struct PrayerCalendarView: View {
         
         let method = prayerController.calculationMethod
         
-        guard let url = AppEndpoints.URLBuilder.alAdhanCalendar(
-            year: currentYear,
-            month: currentMonth,
-            latitude: lat,
-            longitude: lon,
-            method: method
-        ) else {
-            errorMessage = "Invalid URL endpoint."
+        let calendar = Calendar.current
+        var comps = DateComponents(year: currentYear, month: currentMonth)
+        guard let monthDate = calendar.date(from: comps),
+              let range = calendar.range(of: .day, in: .month, for: monthDate) else {
+            errorMessage = "Invalid month/year specifications."
             isLoading = false
             return
         }
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode(AlAdhanCalendarResponse.self, from: data)
+
+        let tzOffset = Double(TimeZone.current.secondsFromGMT(for: Date())) / 3600.0
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+        timeFormatter.timeZone = .current
+
+        var mapped: [Int: [String: String]] = [:]
+        for day in range {
+            var dayComps = comps
+            dayComps.day = day
+            guard let dayDate = calendar.date(from: dayComps) else { continue }
             
-            var mapped: [Int: [String: String]] = [:]
-            for dayData in response.data {
-                if let dayInt = Int(dayData.date.gregorian.day) {
-                    mapped[dayInt] = dayData.timings
-                }
+            let dayTimings = LocalPrayerTimesCalculator.calculate(
+                date: dayDate,
+                latitude: lat,
+                longitude: lon,
+                timezoneOffset: tzOffset,
+                method: method
+            )
+            
+            var dayTimingStrings: [String: String] = [:]
+            for (key, dateValue) in dayTimings {
+                dayTimingStrings[key] = timeFormatter.string(from: dateValue)
             }
-            calendarTimings = mapped
-        } catch {
-            errorMessage = "Failed to load monthly timings: \(error.localizedDescription)"
+            mapped[day] = dayTimingStrings
         }
-        
+
+        calendarTimings = mapped
+        errorMessage = nil
         isLoading = false
     }
 }

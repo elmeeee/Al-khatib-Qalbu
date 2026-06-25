@@ -256,100 +256,66 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
 
         let lat = location.coordinate.latitude
         let lon = location.coordinate.longitude
-        let timestamp = Int(Date().timeIntervalSince1970)
 
-        guard let url = AppEndpoints.URLBuilder.alAdhanTimings(
-            timestamp: timestamp,
-            latitude: lat,
-            longitude: lon,
-            method: calculationMethod
-        ) else {
-            isLoading = false
-            return
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let envelope = try JSONDecoder().decode(AladhanTimingsEnvelope.self, from: data)
-            errorMessage = nil
-            let applied = applyTimings(envelope.data)
-            if applied {
-                lastSuccessfulTimingsKey = key
-                lastSuccessfulTimingsAt = Date()
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-
-        isLoading = false
-    }
-
-    @discardableResult
-    private func applyTimings(_ data: AladhanTimingsData) -> Bool {
-        let timings = data.timings
         let now = Date()
         let calendar = Calendar.current
-        let scheduleDay = data.date.gregorian.referenceDate ?? now
+        let tzOffset = Double(TimeZone.current.secondsFromGMT(for: now)) / 3600.0
 
-        hijriDateLabel = data.date.hijri.displayDayMonthYear
-        gregorianDateLabel = data.date.gregorian.displayDayMonthYear
+        let localTimings = LocalPrayerTimesCalculator.calculate(
+            date: now,
+            latitude: lat,
+            longitude: lon,
+            timezoneOffset: tzOffset,
+            method: calculationMethod
+        )
 
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "HH:mm"
-        formatter.timeZone = .current
+        // Set date labels locally
+        let hijriCalendar = Calendar(identifier: .islamicUmmAlQura)
+        let hijriDay = hijriCalendar.component(.day, from: now)
+        let hijriYear = hijriCalendar.component(.year, from: now)
+        let monthNum = hijriCalendar.component(.month, from: now)
+        let hijriMonths = [
+            1: "Muharram", 2: "Safar", 3: "Rabi' al-Awwal", 4: "Rabi' al-Thani",
+            5: "Jumada al-Awwal", 6: "Jumada al-Thani", 7: "Rajab", 8: "Sha'ban",
+            9: "Ramadan", 10: "Shawwal", 11: "Dhu al-Qadah", 12: "Dhu al-Hijjah"
+        ]
+        let hijriMonthName = hijriMonths[monthNum] ?? "Ramadan"
+        hijriDateLabel = "\(hijriDay) \(hijriMonthName) \(hijriYear)"
 
-        func resolve(_ key: String) -> Date? {
-            guard let raw = timings[key] else { return nil }
-            let clean = raw.split(separator: " ").first.map(String.init) ?? raw
-            guard let timeOnly = formatter.date(from: clean) else { return nil }
-            var comps = calendar.dateComponents([.year, .month, .day], from: scheduleDay)
-            let hm = calendar.dateComponents([.hour, .minute], from: timeOnly)
-            comps.hour = hm.hour
-            comps.minute = hm.minute
-            return calendar.date(from: comps)
-        }
+        let gregFormatter = DateFormatter()
+        gregFormatter.locale = Locale(identifier: "en_US")
+        gregFormatter.dateFormat = "d MMM yyyy"
+        gregorianDateLabel = gregFormatter.string(from: now)
 
-        func resolveNightDivision(_ key: String) -> Date? {
-            guard var date = resolve(key) else { return nil }
-            let fajr = resolve("Fajr")
-            let fajrHour = fajr.map { calendar.component(.hour, from: $0) } ?? 5
-            let hour = calendar.component(.hour, from: date)
-            if hour < fajrHour {
-                date = calendar.date(byAdding: .day, value: 1, to: date) ?? date
-            }
-            return date
-        }
-
-        imsakTime = resolve("Imsak").map { shortTime($0) }
-        sunriseTime = resolve("Sunrise").map { shortTime($0) }
-        sunriseDate = resolve("Sunrise")
+        // Resolve timings
+        imsakTime = localTimings["Imsak"].map { shortTime($0) }
+        sunriseTime = localTimings["Sunrise"].map { shortTime($0) }
+        sunriseDate = localTimings["Sunrise"]
 
         let prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         todaySchedule = prayerKeys.compactMap { key in
-            resolve(key).map { PrayerEntry(name: key, date: $0) }
+            localTimings[key].map { PrayerEntry(name: key, date: $0) }
         }.sorted { $0.date < $1.date }
 
         let timelineKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
         dailyPrayers = timelineKeys.compactMap { key in
-            resolve(key).map { PrayerEntry(name: key, date: $0) }
+            localTimings[key].map { PrayerEntry(name: key, date: $0) }
         }.sorted { $0.date < $1.date }
 
-        guard !todaySchedule.isEmpty else {
-            errorMessage = "Unable to resolve prayer schedule from the timetable response."
-            return false
-        }
+        errorMessage = nil
+        lastSuccessfulTimingsKey = key
+        lastSuccessfulTimingsAt = now
 
         let nightDivisions = NightDivisionEntry.Kind.allCases.compactMap { kind -> NightDivisionEntry? in
-            guard let date = resolveNightDivision(kind.aladhanKey) else { return nil }
+            guard let date = localTimings[kind.aladhanKey] else { return nil }
             return NightDivisionEntry(kind: kind, date: date)
         }
 
-        scheduleAnchorDate = calendar.startOfDay(for: scheduleDay)
+        scheduleAnchorDate = calendar.startOfDay(for: now)
         refreshPublishedPrayerState(at: now)
 
         cachedNightDivisions = nightDivisions
-        cachedImsakEntry = resolve("Imsak").map { PrayerEntry(name: "Imsak", date: $0) }
+        cachedImsakEntry = localTimings["Imsak"].map { PrayerEntry(name: "Imsak", date: $0) }
 
         let prayerSnapshot = todaySchedule
         let imsakSnapshot = cachedImsakEntry
@@ -364,7 +330,8 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
                 options: options
             )
         }
-        return true
+
+        isLoading = false
     }
 
     private func handleTick(at now: Date) {

@@ -313,12 +313,12 @@ struct ARCameraPreviewContainer: View {
             if permissionGranted {
                 CameraPreviewView(session: session)
                     .onAppear {
-                        Task { @MainActor in
+                        DispatchQueue.global(qos: .userInitiated).async {
                             session.startRunning()
                         }
                     }
                     .onDisappear {
-                        Task { @MainActor in
+                        DispatchQueue.global(qos: .userInitiated).async {
                             session.stopRunning()
                         }
                     }
