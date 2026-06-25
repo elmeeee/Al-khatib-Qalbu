@@ -67,6 +67,11 @@ struct RandomAyahPayload: Decodable, Sendable {
         return "<div dir=\"rtl\" lang=\"ar\">\(body)\(spacer)\(markerHtml)</div>"
     }
 
+    var chapterNumber: Int? {
+        guard let vk = verseKey?.split(separator: ":").first else { return nil }
+        return Int(String(vk))
+    }
+
     var resolvedVerseNumber: Int? {
         if let n = verseNumber, n > 0 { return n }
         guard let vk = verseKey?.split(separator: ":").last else { return nil }

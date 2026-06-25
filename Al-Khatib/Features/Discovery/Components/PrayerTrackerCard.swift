@@ -135,7 +135,7 @@ struct PrayerCheckChip: View {
                         .frame(width: 40, height: 40)
                     
                     if completed {
-                        Image(systemName: "check")
+                        Image(systemName: "checkmark")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.white)
                     }
