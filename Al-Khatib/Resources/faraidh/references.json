@@ -1,0 +1,104 @@
+{
+  "verses": [
+    {
+      "id": "quran_4_7",
+      "surah": 4,
+      "ayah": 7,
+      "arabic": "لِلرِّجَالِ نَصِيبٌ مِّمَّا تَرَكَ الْوَالِدَانِ وَالْأَقْرَبُونَ وَلِلنِّسَاءِ نَصِيبٌ مِّمَّا تَرَكَ الْوَالِدَانِ وَالْأَقْرَبُونَ مِمَّا قَلَّ مِنْهُ أَوْ كَثُرَ نَصِيبًا مَّفْرُوضًا",
+      "textEn": "For men is a share of what the parents and close relatives leave, and for women is a share of what the parents and close relatives leave—be it little or much—a mandated share.",
+      "textId": "Bagi laki-laki ada bagian dari harta peninggalan kedua orang tua dan kerabatnya, dan bagi perempuan ada bagian dari harta peninggalan kedua orang tua dan kerabatnya, baik sedikit maupun banyak menurut bagian yang telah ditetapkan.",
+      "textMs": "Bagi lelaki ada bahagian dari harta pusaka ibu bapa dan kerabat, dan bagi perempuan ada bahagian dari harta pusaka ibu bapa dan kerabat, sama ada sedikit atau banyak—bahagian yang ditetapkan.",
+      "topicKeys": ["general", "fixed_shares"]
+    },
+    {
+      "id": "quran_4_11",
+      "surah": 4,
+      "ayah": 11,
+      "arabic": "يُوصِيكُمُ اللَّهُ فِي أَوْلَادِكُمْ ۖ لِلذَّكَرِ مِثْلُ حَظِّ الْأُنثَيَيْنِ",
+      "textEn": "Allah instructs you concerning your children: for the male, what is equal to the share of two females.",
+      "textId": "Allah mensyariatkan kepadamu tentang (pembagian pusaka untuk) anak-anakmu: bahagian seorang anak laki-laki sama dengan bagian dua orang anak perempuan.",
+      "textMs": "Allah mewasiatkan kamu tentang anak-anak kamu: bahagian seorang anak lelaki bersamaan dengan bahagian dua orang anak perempuan.",
+      "topicKeys": ["children", "asabah", "ratio_2_1"]
+    },
+    {
+      "id": "quran_4_12",
+      "surah": 4,
+      "ayah": 12,
+      "arabic": "وَلَكُمْ نِصْفُ مَا تَرَكَ أَزْوَاجُكُمْ إِن لَّمْ يَكُن لَّهُنَّ وَلَدٌ ۚ فَإِن كَانَ لَهُنَّ وَلَدٌ فَلَكُمُ الرُّبُعُ مِمَّا تَرَكْنَ",
+      "textEn": "And for you is half of what your wives leave if they have no child. But if they have a child, for you is the fourth of what they leave.",
+      "textId": "Dan bagianmu adalah seperdua dari harta yang ditinggalkan istri-istrimu jika mereka tidak mempunyai anak. Jika mereka mempunyai anak, maka bagianmu seperempat dari harta yang mereka tinggalkan.",
+      "textMs": "Dan bahagian kamu ialah separuh dari harta yang ditinggalkan isteri-isteri kamu jika mereka tiada anak. Jika mereka ada anak, maka bahagian kamu seperempat dari harta yang mereka tinggalkan.",
+      "topicKeys": ["spouse", "husband"]
+    },
+    {
+      "id": "quran_4_12b",
+      "surah": 4,
+      "ayah": 12,
+      "arabic": "وَلَهُنَّ الرُّبُعُ مِمَّا تَرَكْتُمْ إِن لَّمْ يَكُن لَّكُمْ وَلَدٌ ۚ فَإِن كَانَ لَكُمْ وَلَدٌ فَلَهُنَّ الثُّمُنُ مِمَّا تَرَكْتُم",
+      "textEn": "And for them is the fourth of what you leave if you have no child. But if you have a child, for them is the eighth of what you leave.",
+      "textId": "Dan bagi mereka seperempat dari harta yang kamu tinggalkan jika kamu tidak mempunyai anak. Jika kamu mempunyai anak, maka bagi mereka seperdelapan dari harta yang kamu tinggalkan.",
+      "textMs": "Dan bagi mereka seperempat dari harta yang kamu tinggalkan jika kamu tiada anak. Jika kamu ada anak, maka bagi mereka seperlapan dari harta yang kamu tinggalkan.",
+      "topicKeys": ["spouse", "wife"]
+    },
+    {
+      "id": "quran_4_176",
+      "surah": 4,
+      "ayah": 176,
+      "arabic": "يَسْتَفْتُونَكَ قُلِ اللَّهُ يُفْتِيكُمْ فِي الْكَلَالَةِ",
+      "textEn": "They request from you a legal ruling. Say, 'Allah gives you a ruling concerning al-kalālah (those who leave neither ascendants nor descendants as heirs).'",
+      "textId": "Mereka meminta fatwa kepadamu. Katakanlah: 'Allah memberi fatwa kepadamu tentang kalalah (orang yang meninggal tidak meninggalkan ayah dan tidak pula anak).'",
+      "textMs": "Mereka meminta fatwa kepadamu. Katakanlah: 'Allah memberi fatwa kepada kamu tentang kalalah (orang yang meninggal tidak meninggalkan bapa dan tidak pula anak).'",
+      "topicKeys": ["siblings", "kalalah"]
+    }
+  ],
+  "hadiths": [
+    {
+      "id": "hadith_bukhari_6732",
+      "collection": "Sahih al-Bukhari",
+      "number": 6732,
+      "textEn": "The Prophet (ﷺ) said: 'Learn fara'id (inheritance laws) and teach them to people, for they are half of knowledge.'",
+      "textId": "Nabi ﷺ bersabda: 'Pelajarilah ilmu faraidh dan ajarkanlah kepada manusia, karena sesungguhnya ia adalah separuh ilmu.'",
+      "textMs": "Nabi ﷺ bersabda: 'Pelajarilah ilmu faraidh dan ajarkanlah kepada manusia, kerana sesungguhnya ia adalah separuh ilmu.'",
+      "externalUrl": "https://sunnah.com/bukhari:6732",
+      "topicKeys": ["general"]
+    },
+    {
+      "id": "hadith_muslim_1615",
+      "collection": "Sahih Muslim",
+      "number": 1615,
+      "textEn": "The Messenger of Allah (ﷺ) decided the share of a daughter as half, and two daughters as two-thirds, and what was left to the male heir.",
+      "textId": "Rasulullah ﷺ menetapkan bagian seorang anak perempuan seperdua, dua orang anak perempuan dua pertiga, dan sisanya untuk ahli waris laki-laki.",
+      "textMs": "Rasulullah ﷺ menetapkan bahagian seorang anak perempuan separuh, dua orang anak perempuan dua pertiga, dan selebihnya untuk waris lelaki.",
+      "externalUrl": "https://sunnah.com/muslim:1615",
+      "topicKeys": ["children", "daughters"]
+    },
+    {
+      "id": "hadith_bukhari_2053",
+      "collection": "Sahih al-Bukhari",
+      "number": 2053,
+      "arabic": "الْوَلَدُ لِلْفِرَاشِ وَلِلْعَاهِرِ الْحَجَرُ",
+      "textEn": "The Messenger of Allah (ﷺ) said: 'The child belongs to the bed (i.e. marriage), and for the adulterer is the stone (deprivation).'",
+      "textId": "Rasulullah ﷺ bersabda: 'Anak itu bagi pemilik tempat tidur (suami dari pernikahan yang sah), dan bagi pelaku zina adalah batu (terhalang dari nasab dan waris).'",
+      "textMs": "Rasulullah ﷺ bersabda: 'Anak itu bagi pemilik tempat tidur (suami), dan bagi penzina mendapat kerugian (batu - terhalang dari nasab dan waris).'",
+      "externalUrl": "https://sunnah.com/bukhari:2053",
+      "topicKeys": ["out_of_wedlock"]
+    }
+  ],
+  "proofMappings": {
+    "proof_husband_half": ["quran_4_12"],
+    "proof_husband_quarter": ["quran_4_12"],
+    "proof_wife_quarter": ["quran_4_12b"],
+    "proof_wife_eighth": ["quran_4_12b"],
+    "proof_father_sixth": ["quran_4_11", "quran_4_176"],
+    "proof_father_residue": ["quran_4_11"],
+    "proof_mother_third": ["quran_4_11"],
+    "proof_mother_sixth": ["quran_4_11"],
+    "proof_daughter_half": ["quran_4_11", "hadith_muslim_1615"],
+    "proof_daughters_two_thirds": ["quran_4_11", "hadith_muslim_1615"],
+    "proof_maternal_siblings": ["quran_4_176"],
+    "proof_sisters_fixed": ["quran_4_176"],
+    "proof_asabah": ["quran_4_11", "quran_4_7"],
+    "proof_awl_radd": ["quran_4_7", "hadith_bukhari_6732"],
+    "proof_out_of_wedlock": ["hadith_bukhari_2053"]
+  }
+}

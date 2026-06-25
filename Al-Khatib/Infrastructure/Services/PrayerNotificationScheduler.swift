@@ -192,7 +192,12 @@ final class PrayerNotificationScheduler {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.sound = .default
+        let soundName = UserDefaults.standard.string(forKey: "selected_adhan_sound") ?? "default"
+        if soundName == "default" {
+            content.sound = .default
+        } else {
+            content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "\(soundName).mp3"))
+        }
 
         var comps = Calendar.current.dateComponents(
             [.year, .month, .day, .hour, .minute],

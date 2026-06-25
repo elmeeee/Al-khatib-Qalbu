@@ -37,6 +37,8 @@ struct ProfileView: View {
     @State private var isOAuthPresenting = false
     @State private var showingFontScaleSheet = false
     @State private var showingTranslatorSheet = false
+    @AppStorage("selected_adhan_sound") private var selectedAdhanSound = "default"
+    @State private var showingAdhanVoiceSheet = false
 
     var body: some View {
         ZStack {
@@ -91,6 +93,9 @@ struct ProfileView: View {
                     contentRepository: container.content
                 )
             }
+        }
+        .sheet(isPresented: $showingAdhanVoiceSheet) {
+            AdhanVoiceSelectionSheet()
         }
         .sheet(isPresented: $showingDailyVerseTimeSheet) {
             DailyVerseNotificationTimeSheetView(

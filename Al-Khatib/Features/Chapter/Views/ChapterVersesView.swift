@@ -12,7 +12,8 @@ struct ChapterVersesView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.dismiss) private var dismiss
 
-    let chapter: QuranChapter
+    let chapter: QuranChapter?
+    var juzNumber: Int? = nil
     var initialVerseNumber: Int? = nil
 
     @AppStorage("chapterReaderFontScale") private var fontScale = 1.0
@@ -111,7 +112,7 @@ struct ChapterVersesView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             if readerCoordinator == nil {
-                readerCoordinator = ChapterReaderCoordinator(chapter: chapter, audio: audio)
+                readerCoordinator = ChapterReaderCoordinator(chapter: chapter, juzNumber: juzNumber, audio: audio)
             }
         }
         .task {
@@ -215,12 +216,12 @@ struct ChapterVersesView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(chapter.displayComplexName)
+                Text(chapter?.displayComplexName ?? "")
                     .font(.subheadline.weight(.bold))
                     .foregroundColor(.white)
                     .lineLimit(1)
 
-                Text(readerCoordinator?.positionLabel(in: vm) ?? chapter.versesCountLabel ?? "")
+                Text(readerCoordinator?.positionLabel(in: vm) ?? chapter?.versesCountLabel ?? "")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.72))
             }
@@ -306,15 +307,17 @@ struct ChapterVersesView: View {
 
                 ScrollView(.vertical) {
                     LazyVStack(spacing: 0) {
-                        ChapterIntroPage(
-                            chapter: chapter,
-                            isPreparingPlayAll: bindable.isPreparingPlayAll,
-                            onPlayAll: { Task { await readerCoordinator.playEntireSurah(vm: bindable) } },
-                            onTapScreen: { Task { await readerCoordinator.playEntireSurah(vm: bindable) } }
-                        )
-                        .frame(width: pagerGeo.size.width, height: pageHeight)
-                        .clipped()
-                        .id(ChapterReaderCoordinator.ScrollID.intro)
+                        if let ch = chapter {
+                            ChapterIntroPage(
+                                chapter: ch,
+                                isPreparingPlayAll: bindable.isPreparingPlayAll,
+                                onPlayAll: { Task { await readerCoordinator.playEntireSurah(vm: bindable) } },
+                                onTapScreen: { Task { await readerCoordinator.playEntireSurah(vm: bindable) } }
+                            )
+                            .frame(width: pagerGeo.size.width, height: pageHeight)
+                            .clipped()
+                            .id(ChapterReaderCoordinator.ScrollID.intro)
+                        }
 
                         ForEach(bindable.verses, id: \.listIdentity) { verse in
                             ChapterAyahPage(

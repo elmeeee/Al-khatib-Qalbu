@@ -1,0 +1,290 @@
+{
+  "standard_heirs": {
+    "husband": {
+      "id": "husband",
+      "arabic_term": "Zawj (زوج)",
+      "display_name": {
+        "en": "Husband",
+        "id": "Suami",
+        "ms": "Suami"
+      },
+      "glossary_definition": {
+        "en": "Surviving male spouse. Inherits 1/2 if the deceased left no child/descendant, or 1/4 if a child/descendant exists.",
+        "id": "Suami pewaris. Mendapatkan bagian 1/2 jika pewaris tidak memiliki anak/cucu, atau 1/4 jika memiliki anak/cucu.",
+        "ms": "Suami si mati. Mewarisi 1/2 jika si mati tiada anak/cucu, atau 1/4 jika mempunyai anak/cucu."
+      },
+      "dalil": [
+        {
+          "source": "QURAN",
+          "reference_citation": {
+            "en": "Surah An-Nisa (4:12)",
+            "id": "Surah An-Nisa (4:12)",
+            "ms": "Surah An-Nisa (4:12)"
+          },
+          "arabic_text": "وَلَكُمْ نِصْفُ مَا تَرَكَ أَزْوَاجُكُمْ إِن لَّمْ يَكُن لَّهُنَّ وَلَدٌ ۚ فَإِن كَانَ لَهُنَّ وَلَدٌ فَلَكُمُ الرُّبُعُ مِمَّا تَرَكْنَ",
+          "transliteration": {
+            "en": "Wa lakum nisfu ma taraka azwajukum il-lam yakul-lahunna walad, fa-in kana lahunna waladun fa-lakumur-rubu'u mimma tarakn.",
+            "id": "Wa lakum nisfu ma taraka azwajukum il-lam yakul-lahunna walad, fa-in kana lahunna waladun fa-lakumur-rubu'u mimma tarakn.",
+            "ms": "Wa lakum nisfu ma taraka azwajukum il-lam yakul-lahunna walad, fa-in kana lahunna waladun fa-lakumur-rubu'u mimma tarakn."
+          },
+          "translation": {
+            "en": "And for you is half of what your wives leave if they have no child. But if they have a child, for you is one-fourth of what they leave.",
+            "id": "Dan bagimu (suami-suami) seperdua dari harta yang ditinggalkan oleh istri-istrimu, jika mereka tidak mempunyai anak. Jika mereka mempunyai anak, maka kamu mendapat seperempat dari harta yang ditinggalkannya.",
+            "ms": "Dan bagi kamu setengah daripada harta yang ditinggalkan oleh isteri-isteri kamu jika mereka tidak mempunyai anak. Tetapi jika mereka mempunyai anak maka kamu mendapat seperempat dari harta yang mereka tinggalkan."
+          }
+        }
+      ]
+    },
+    "wife": {
+      "id": "wife",
+      "arabic_term": "Zawjah (زوجة)",
+      "display_name": {
+        "en": "Wife",
+        "id": "Istri",
+        "ms": "Isteri"
+      },
+      "glossary_definition": {
+        "en": "Surviving female spouse. Inherits 1/4 if the deceased left no child/descendant, or 1/8 if a child/descendant exists. Shared equally if multiple wives exist.",
+        "id": "Istri pewaris. Mendapatkan bagian 1/4 jika pewaris tidak memiliki anak/cucu, atau 1/8 jika memiliki anak/cucu. Dibagi rata jika istri lebih dari satu.",
+        "ms": "Isteri si mati. Mewarisi 1/4 jika si mati tiada anak/cucu, atau 1/8 jika mempunyai anak/cucu. Dibahagi sama rata jika isteri lebih daripada seorang."
+      },
+      "dalil": [
+        {
+          "source": "QURAN",
+          "reference_citation": {
+            "en": "Surah An-Nisa (4:12)",
+            "id": "Surah An-Nisa (4:12)",
+            "ms": "Surah An-Nisa (4:12)"
+          },
+          "arabic_text": "وَلَهُنَّ الرُّبُعُ مِمَّا تَرَكْتُمْ إِن لَّمْ يَكُن لَّكُمْ وَلَدٌ ۚ فَإِن كَانَ لَكُمْ وَلَدٌ فَلَهُنَّ الثُّمُنُ مِمَّا تَرَكْتُم",
+          "transliteration": {
+            "en": "Wa lahunnar-rubu'u mimma taraktum il-lam yakul-lakum walad, fa-in kana lakum waladun fa-lahunnath-thumunu mimma taraktum.",
+            "id": "Wa lahunnar-rubu'u mimma taraktum il-lam yakul-lakum walad, fa-in kana lakum waladun fa-lahunnath-thumunu mimma taraktum.",
+            "ms": "Wa lahunnar-rubu'u mimma taraktum il-lam yakul-lakum walad, fa-in kana lakum waladun fa-lahunnath-thumunu mimma taraktum."
+          },
+          "translation": {
+            "en": "And for the wives is one-fourth of what you leave if you have no child. But if you have a child, for them is an eighth of what you leave.",
+            "id": "Para istri memperoleh seperempat harta yang kamu tinggalkan jika kamu tidak mempunyai anak. Jika kamu mempunyai anak, maka para istri memperoleh sepepan bagian dari harta yang kamu tinggalkan.",
+            "ms": "Dan bagi isteri-isteri kamu seperempat daripada harta yang kamu tinggalkan jika kamu tidak mempunyai anak. Tetapi jika kamu mempunyai anak maka mereka mendapat seperlapan daripada harta yang kamu tinggalkan."
+          }
+        }
+      ]
+    },
+    "father": {
+      "id": "father",
+      "arabic_term": "Ab (أب)",
+      "display_name": {
+        "en": "Father",
+        "id": "Ayah",
+        "ms": "Bapa"
+      },
+      "glossary_definition": {
+        "en": "Deceased's biological father. Inherits 1/6 if children exist, or acts as Asabah (residuary) if no male descendant exists.",
+        "id": "Ayah kandung pewaris. Mendapat 1/6 jika ada anak/cucu laki-laki, atau menjadi Asabah (penerima sisa) jika tidak ada keturunan laki-laki.",
+        "ms": "Bapa kandung si mati. Mewarisi 1/6 jika ada anak/cucu lelaki, atau menjadi Asabah jika tiada keturunan lelaki."
+      },
+      "dalil": [
+        {
+          "source": "QURAN",
+          "reference_citation": {
+            "en": "Surah An-Nisa (4:11)",
+            "id": "Surah An-Nisa (4:11)",
+            "ms": "Surah An-Nisa (4:11)"
+          },
+          "arabic_text": "وَلِأَبَوَيْهِ لِكُلِّ وَاحِدٍ مِّنْهُمَا السُّدُسُ مِمَّا تَرَكَ إِن كَانَ لَهُ وَلَدٌ",
+          "transliteration": {
+            "en": "Wa li abawayhi li kulli wahidim minhumas-sudusu mimma taraka in kana lahu walad.",
+            "id": "Wa li abawayhi li kulli wahidim minhumas-sudusu mimma taraka in kana lahu walad.",
+            "ms": "Wa li abawayhi li kulli wahidim minhumas-sudusu mimma taraka in kana lahu walad."
+          },
+          "translation": {
+            "en": "And for one's parents, to each one of them is a sixth of his estate if he left children.",
+            "id": "Dan untuk kedua ibu bapak, bagian masing-masing seperenam dari harta yang ditinggalkan, jika yang meninggal itu mempunyai anak.",
+            "ms": "Dan bagi kedua-dua ibu bapa, bahagian masing-masing seperenam daripada harta yang ditinggalkan, jika si mati mempunyai anak."
+          }
+        }
+      ]
+    },
+    "mother": {
+      "id": "mother",
+      "arabic_term": "Umm (أم)",
+      "display_name": {
+        "en": "Mother",
+        "id": "Ibu",
+        "ms": "Ibu"
+      },
+      "glossary_definition": {
+        "en": "Biological mother of the deceased. Inherits 1/3 if no children/siblings exist, or 1/6 if children or multiple siblings exist. Under Umariyatain, she gets 1/3 of the residue.",
+        "id": "Ibu kandung pewaris. Mendapat 1/3 jika tidak ada anak/cucu atau beberapa saudara, atau 1/6 jika ada anak/cucu atau minimal dua saudara. Berkurang menjadi 1/3 dari sisa pada kasus Umariyatain.",
+        "ms": "Ibu kandung si mati. Mewarisi 1/3 jika tiada anak/cucu mahupun saudara, atau 1/6 jika ada anak/cucu atau beberapa saudara. Berubah kepada 1/3 daripada baki dalam kes Umariyatain."
+      },
+      "dalil": [
+        {
+          "source": "QURAN",
+          "reference_citation": {
+            "en": "Surah An-Nisa (4:11)",
+            "id": "Surah An-Nisa (4:11)",
+            "ms": "Surah An-Nisa (4:11)"
+          },
+          "arabic_text": "فَإِن لَّمْ يَكُن لَّهُ وَلَدٌ وَوَرِثَهُ أَبَوَاهُ فَلِأُمِّهِ الثُّلُثُ ۚ فَإِن كَانَ لَهُ إِخْوَةٌ فَلِأُمِّهِ السُّدُسُ",
+          "transliteration": {
+            "en": "Fa-il-lam yakul-lahu waladun wa warithahu abawahu fa-li-ummihith-thuluth, fa-in kana lahu ikhwatun fa-li-ummihis-sudus.",
+            "id": "Fa-il-lam yakul-lahu waladun wa warithahu abawahu fa-li-ummihith-thuluth, fa-in kana lahu ikhwatun fa-li-ummihis-sudus.",
+            "ms": "Fa-il-lam yakul-lahu waladun wa warithahu abawahu fa-li-ummihith-thuluth, fa-in kana lahu ikhwatun fa-li-ummihis-sudus."
+          },
+          "translation": {
+            "en": "And if he had no children and the parents alone inherit from him, then for his mother is one-third. But if he had brothers (or sisters), for his mother is a sixth.",
+            "id": "Jika orang yang meninggal tidak mempunyai anak dan ia diwarisi oleh kedua ibu-bapaknya (saja), maka ibunya mendapat sepertiga; jika yang meninggal itu mempunyai beberapa saudara, maka ibunya mendapat seperenam.",
+            "ms": "Jika si mati tidak mempunyai anak dan dia diwarisi oleh kedua-dua ibu bapanya sahaja, maka ibunya mendapat sepertiga. Jika dia mempunyai beberapa saudara, maka ibunya mendapat seperenam."
+          }
+        }
+      ]
+    }
+  },
+  "classical_cases": {
+    "al_gharrawain": {
+      "id": "al_gharrawain",
+      "arabic_term": "Al-Gharrawain (الغراوين)",
+      "display_name": {
+        "en": "Al-Gharrawain (Umariyatain)",
+        "id": "Al-Gharrawain (Umariyatain)",
+        "ms": "Al-Gharrawain (Umariyatain)"
+      },
+      "glossary_definition": {
+        "en": "Occurs when heirs are Husband + Mother + Father, or Wife + Mother + Father. To protect the rule 'male gets twice female portion', the Mother receives 1/3 of the RESIDUE (Thuluth al-Baqi) rather than 1/3 of the total estate.",
+        "id": "Terjadi jika ahli waris hanya terdiri dari (Suami + Ibu + Ayah) atau (Istri + Ibu + Ayah). Ibu mendapatkan 1/3 dari SISA (Thuluth al-Baqi) setelah diambil bagian pasangan, agar bagian Ayah tetap 2 kali lipat bagian Ibu.",
+        "ms": "Berlaku apabila waris hanya terdiri daripada (Suami + Ibu + Bapa) atau (Isteri + Ibu + Bapa). Ibu menerima 1/3 daripada BAKI (Thuluth al-Baqi) selepas ditolak bahagian pasangan."
+      },
+      "dalil": [
+        {
+          "source": "IJMA",
+          "reference_citation": {
+            "en": "Ruling of Umar bin Al-Khattab, endorsed by Zeid bin Thabit and the Sahabah",
+            "id": "Fatwa Umar bin Khattab ra. disetujui Zaid bin Tsabit dan Ijma Sahabat",
+            "ms": "Ketetapan Umar bin Al-Khattab r.a. yang dipersetujui oleh Zaid bin Thabit dan Ijma Sahabat"
+          },
+          "arabic_text": "قضاء عمر رضي الله عنه في زوج وأم وأب أن للأم ثلث ما بقي بعد فرض الزوج",
+          "transliteration": {
+            "en": "Qada Umar radiyallahu anhu fi zawj wa umm wa ab anna lil-ummi thulutha ma baqiya ba'da fardiz-zawj.",
+            "id": "Qada Umar radiyallahu anhu fi zawj wa umm wa ab anna lil-ummi thulutha ma baqiya ba'da fardiz-zawj.",
+            "ms": "Qada Umar radiyallahu anhu fi zawj wa umm wa ab anna lil-ummi thulutha ma baqiya ba'da fardiz-zawj."
+          },
+          "translation": {
+            "en": "Umar ruled in the case of husband, mother, and father that the mother gets one-third of the residue remaining after the husband's fixed share.",
+            "id": "Umar memutuskan pada kasus suami, ibu, dan ayah bahwa bagian ibu adalah sepertiga dari sisa setelah diambil bagian fardhu milik suami.",
+            "ms": "Umar menetapkan dalam kes suami, ibu, dan bapa bahawa ibu mendapat sepertiga daripada baki selepas dikeluarkan bahagian fardhu suami."
+          }
+        }
+      ]
+    },
+    "al_akdariyah": {
+      "id": "al_akdariyah",
+      "arabic_term": "Al-Akdariyah (الأكدرية)",
+      "display_name": {
+        "en": "Al-Akdariyah Case",
+        "id": "Kasus Al-Akdariyah",
+        "ms": "Kes Al-Akdariyah"
+      },
+      "glossary_definition": {
+        "en": "The only case where a Grandfather forces a sister to register shares then they merge portions. Heirs: Husband (1/2), Mother (1/3), Sister (1/2), Grandfather (1/6). Sums to 9/6 (Awl). Grandfather and Sister's shares (1/6 + 1/2 = 4/6) are combined and re-distributed in a 2:1 ratio.",
+        "id": "Satu-satunya kasus di mana Kakek membagi waris bersama Saudari lalu menggabungkan bagian mereka. Ahli waris: Suami (1/2), Ibu (1/3), Saudari K. (1/2), Kakek (1/6). Masalah mengalami Aul menjadi 9/6. Bagian Kakek dan Saudari digabung lalu dibagi dengan rasio 2:1.",
+        "ms": "Satu-satunya kes di mana Datuk mewarisi bersama Saudari perempuan kemudian menggabungkan bahagian mereka. Ahli waris: Suami (1/2), Ibu (1/3), Saudari K. (1/2), Datuk (1/6). Mengalami Aul menjadi 9/6. Bahagian Datuk dan Saudari digabungkan lalu dibahagi dengan nisbah 2:1."
+      },
+      "dalil": [
+        {
+          "source": "QIYAS",
+          "reference_citation": {
+            "en": "Zeid bin Thabit's resolution to reconcile the conflicting rules of Grandfather and Sister inheritance",
+            "id": "Metode Zaid bin Tsabit untuk menyelaraskan hak waris Kakek bersama Saudari",
+            "ms": "Metodologi Zaid bin Thabit bagi menyelaraskan hak pewarisan Datuk bersama Saudari"
+          },
+          "arabic_text": "يضم فرض الجد إلى فرض الأخت فيقسم بينهما للذكر مثل حظ الأنثيين",
+          "transliteration": {
+            "en": "Yudammu fardul-jaddi ila fardil-ukhti fa-yuqsamu baynahuma lid-dhakari mithlu hazzil-unthayayn.",
+            "id": "Yudammu fardul-jaddi ila fardil-ukhti fa-yuqsamu baynahuma lid-dhakari mithlu hazzil-unthayayn.",
+            "ms": "Yudammu fardul-jaddi ila fardil-ukhti fa-yuqsamu baynahuma lid-dhakari mithlu hazzil-unthayayn."
+          },
+          "translation": {
+            "en": "The grandfather's share is added to the sister's share, and the sum is distributed between them such that the male receives the portion of two females.",
+            "id": "Jatah fardhu kakek digabung dengan jatah fardhu saudari lalu dibagi rata di antara keduanya dengan ketentuan laki-laki mendapat dua kali bagian perempuan.",
+            "ms": "Bahagian fardhu datuk digabungkan dengan bahagian fardhu saudari lalu dibahagikan di antara mereka dengan formula lelaki mendapat bahagian dua perempuan."
+          }
+        }
+      ]
+    }
+  },
+  "anomalies_and_legal_rules": {
+    "walad_zina": {
+      "id": "walad_zina",
+      "arabic_term": "Walad Zina (ولد الزنا)",
+      "display_name": {
+        "en": "Child Born Out of Wedlock",
+        "id": "Anak Luar Nikah",
+        "ms": "Anak Luar Nikah"
+      },
+      "glossary_definition": {
+        "en": "A child born out of wedlock has no legal lineage to the biological father. Lineage and inheritance are established solely with the mother and her relatives.",
+        "id": "Anak yang lahir di luar pernikahan sah tidak memiliki hubungan nasab dan hak waris dengan ayah biologisnya. Hubungan nasab dan waris hanya tersambung ke ibu dan kerabat ibunya.",
+        "ms": "Anak yang lahir di luar nikah tiada hubungan nasab dan hak waris dengan bapa biologikal. Hubungan nasab dan waris hanya wujud dengan ibu dan keluarga ibunya."
+      },
+      "dalil": [
+        {
+          "source": "HADITH",
+          "reference_citation": {
+            "en": "Sahih al-Bukhari No. 6749, Sahih Muslim No. 1457",
+            "id": "Sahih al-Bukhari No. 6749, Sahih Muslim No. 1457",
+            "ms": "Sahih al-Bukhari No. 6749, Sahih Muslim No. 1457"
+          },
+          "arabic_text": "الْوَلَدُ لِلْفِرَاشِ وَلِلْعَاهِرِ الْحَجَرُ",
+          "transliteration": {
+            "en": "Al-waladu lil-firashi wa lil-'ahiril-hajar.",
+            "id": "Al-waladu lil-firashi wa lil-'ahiril-hajar.",
+            "ms": "Al-waladu lil-firashi wa lil-'ahiril-hajar."
+          },
+          "translation": {
+            "en": "The child belongs to the bed (marital union), and for the adulterer is deprivation.",
+            "id": "Anak itu dinasabkan kepada pemilik tempat tidur (suami sah), sedangkan bagi pelaku zina adalah batu (penghalangan/rajam).",
+            "ms": "Anak itu dinasabkan kepada pemilik hamparan (suami sah), manakala bagi penzina pula adalah kerugian (halangan mewarisi/rejam)."
+          }
+        }
+      ]
+    }
+  },
+  "disqualifications": {
+    "al_qatl": {
+      "id": "al_qatl",
+      "arabic_term": "Al-Qatl (القتل)",
+      "display_name": {
+        "en": "Homicide (The Killer)",
+        "id": "Pembunuhan (Slayer)",
+        "ms": "Pembunuhan"
+      },
+      "glossary_definition": {
+        "en": "A person who kills the deceased, whether intentionally or unintentionally, is disqualified from inheriting.",
+        "id": "Ahli waris yang membunuh pewaris (baik sengaja maupun tidak sengaja) gugur hak mewarisinya.",
+        "ms": "Waris yang membunuh si mati (secara sengaja mahupun tidak sengaja) terhalang daripada mendapat harta warisan."
+      },
+      "dalil": [
+        {
+          "source": "HADITH",
+          "reference_citation": {
+            "en": "Sunan At-Tirmidhi No. 2109, graded Sahih by Al-Albani",
+            "id": "Sunan At-Tirmidhi No. 2109, dishahihkan Al-Albani",
+            "ms": "Sunan At-Tirmidhi No. 2109, disahihkan oleh Al-Albani"
+          },
+          "arabic_text": "لَيْسَ لِلْقَاتِلِ مِنَ الْمِيرَاثِ شَيْءٌ",
+          "transliteration": {
+            "en": "Laysa lil-qatili minal-mirathi shay'.",
+            "id": "Laysa lil-qatili minal-mirathi shay'.",
+            "ms": "Laysa lil-qatili minal-mirathi shay'."
+          },
+          "translation": {
+            "en": "The killer does not inherit anything.",
+            "id": "Pembunuh tidak berhak mendapatkan harta warisan sedikit pun.",
+            "ms": "Pembunuh tidak berhak mendapat apa-apa bahagian daripada harta pusaka."
+          }
+        }
+      ]
+    }
+  }
+}

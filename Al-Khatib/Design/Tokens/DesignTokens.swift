@@ -28,7 +28,10 @@ extension Color {
         static let pureWhite = Color.white
         static let softGrey = Color(hex: "#E5E7EB")
         static let lightGrey = Color(hex: "#F3F4F6")
+        static let slate400 = Color(hex: "#94A3B8")
         static let slate500 = Color(hex: "#64748B")
+        static let slate600 = Color(hex: "#475569")
+        static let slate700 = Color(hex: "#334155")
         static let slate800 = Color(hex: "#1E293B")
         static let slate900 = Color(hex: "#0F172A")
         static let prayerCream = Color(hex: "#FFF7ED")

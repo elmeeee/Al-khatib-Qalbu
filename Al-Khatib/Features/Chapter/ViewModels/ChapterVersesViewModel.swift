@@ -15,7 +15,8 @@ final class ChapterVersesViewModel {
     static let defaultRecitationId = 6
     private static let recitationStorageKey = "chapterReaderRecitationId"
 
-    let chapter: QuranChapter
+    let chapter: QuranChapter?
+    let juzNumber: Int?
 
     var verses: [RandomAyahPayload] = []
     var isLoading = false
@@ -26,7 +27,12 @@ final class ChapterVersesViewModel {
     var recitations: [RecitationPayload] = []
     var selectedRecitationId: Int
 
-    var surahDisplayTitle: String { chapter.displayComplexName }
+    var surahDisplayTitle: String {
+        if let j = juzNumber {
+            return "Juz \(j)"
+        }
+        return chapter?.displayComplexName ?? ""
+    }
     var reciterDisplayName: String {
         recitations.first(where: { $0.identifiableId == selectedRecitationId })?.displayName ?? ""
     }
@@ -35,8 +41,9 @@ final class ChapterVersesViewModel {
     private var nextPage = 1
     private var hasMorePages = true
 
-    init(chapter: QuranChapter, content: QuranContentRepository) {
+    init(chapter: QuranChapter?, juzNumber: Int?, content: QuranContentRepository) {
         self.chapter = chapter
+        self.juzNumber = juzNumber
         self.content = content
         let saved = UserDefaults.standard.integer(forKey: Self.recitationStorageKey)
         selectedRecitationId = saved > 0 ? saved : Self.defaultRecitationId
@@ -79,12 +86,24 @@ final class ChapterVersesViewModel {
 
         repeat {
             do {
-                let response = try await content.getVersesByChapter(
-                    chapterNumber: chapter.id,
-                    recitationId: selectedRecitationId,
-                    page: page,
-                    perPage: 50
-                )
+                let response: VersesByChapterResponse
+                if let j = juzNumber {
+                    response = try await content.getVersesByJuz(
+                        juzNumber: j,
+                        recitationId: selectedRecitationId,
+                        page: page,
+                        perPage: 50
+                    )
+                } else if let ch = chapter {
+                    response = try await content.getVersesByChapter(
+                        chapterNumber: ch.id,
+                        recitationId: selectedRecitationId,
+                        page: page,
+                        perPage: 50
+                    )
+                } else {
+                    return
+                }
                 accumulated.append(contentsOf: response.verses)
                 if response.pagination?.hasNextPage == true,
                    let next = response.pagination?.nextPage {
@@ -142,12 +161,24 @@ final class ChapterVersesViewModel {
 
     private func fetchPage(_ page: Int, append: Bool) async {
         do {
-            let response = try await content.getVersesByChapter(
-                chapterNumber: chapter.id,
-                recitationId: selectedRecitationId,
-                page: page,
-                perPage: 50
-            )
+            let response: VersesByChapterResponse
+            if let j = juzNumber {
+                response = try await content.getVersesByJuz(
+                    juzNumber: j,
+                    recitationId: selectedRecitationId,
+                    page: page,
+                    perPage: 50
+                )
+            } else if let ch = chapter {
+                response = try await content.getVersesByChapter(
+                    chapterNumber: ch.id,
+                    recitationId: selectedRecitationId,
+                    page: page,
+                    perPage: 50
+                )
+            } else {
+                return
+            }
             if append {
                 verses.append(contentsOf: response.verses)
             } else {

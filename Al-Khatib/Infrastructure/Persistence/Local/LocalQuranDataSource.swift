@@ -509,6 +509,32 @@ internal final class LocalQuranDataSource: Sendable {
         )
         return VersesByChapterResponse(verses: verses, pagination: pagination)
     }
+
+    internal func getVersesByRange(
+        chapterNumber: Int,
+        startAyah: Int,
+        endAyah: Int,
+        translationId: Int
+    ) async throws -> [RandomAyahPayload] {
+        let db = try database.openReadable()
+        defer { db.close() }
+
+        let query = """
+            SELECT \(Self.AYAH_SELECT)
+            FROM ayas a
+            JOIN suras s ON s."index" = a.sura
+            WHERE a.sura = ? AND a.aya >= ? AND a.aya <= ?
+            ORDER BY a.aya
+        """
+
+        let rows = try db.execute(
+            query: query,
+            params: [String(chapterNumber), String(startAyah), String(endAyah)]
+        )
+        return rows.map { row in
+            self.toVersePayload(row, translationId: translationId, recitationId: 6)
+        }
+    }
 }
 
 // Simple Cache Actor for Tafsir JSON

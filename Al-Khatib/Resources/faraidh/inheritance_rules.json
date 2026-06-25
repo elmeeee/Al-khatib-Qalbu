@@ -1,0 +1,50 @@
+{
+  "rules": [
+    {
+      "id": "father_residue",
+      "category": "asabah",
+      "title": {
+        "en": "Father takes residue",
+        "id": "Ayah mengambil sisa",
+        "ms": "Bapa mengambil baki"
+      },
+      "description": {
+        "en": "When the father is present and there are no descendants, he receives the residue as asabah.",
+        "id": "Saat ayah hadir dan tidak ada keturunan, ia menerima sisa sebagai asabah.",
+        "ms": "Apabila bapa hadir dan tiada keturunan, dia menerima baki sebagai asabah."
+      },
+      "edgeCaseExplanation": {
+        "en": "The father sweeps any remaining estate after daughters have taken their fixed shares if no sons are present.",
+        "id": "Ayah mengambil sisa setelah anak perempuan menerima bagian tetap jika tidak ada anak laki-laki.",
+        "ms": "Bapa mengambil baki selepas anak perempuan menerima bahagian tetap jika tiada anak lelaki."
+      },
+      "citations": [
+        {
+          "type": "QURAN",
+          "source": "An-Nisa 4:11",
+          "textAr": "يُوصِيكُمُ اللَّهُ فِي أَوْلَادِكُمْ ...",
+          "textEn": "Allah instructs you regarding your children...",
+          "textId": "Allah memerintahkan tentang anak-anak kalian...",
+          "textMs": "Allah mengarahkan tentang anak-anak kamu..."
+        },
+        {
+          "type": "HADITH",
+          "source": "Bukhari 6321",
+          "textAr": "وَعَنْ أَبِي هُرَيْرَةَ ...",
+          "textEn": "Narrated Abu Huraira: ...",
+          "textId": "Diriwayatkan dari Abu Hurairah: ...",
+          "textMs": "Dirwayatkan dari Abu Hurairah: ..."
+        }
+      ],
+      "tags": ["asabah", "residue", "father", "radd"],
+      "applicability": {
+        "munasakhat": true,
+        "waladZina": true,
+        "aul": true,
+        "radd": true,
+        "janin": true,
+        "mafqud": true
+      }
+    }
+  ]
+}

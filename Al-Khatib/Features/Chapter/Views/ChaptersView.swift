@@ -12,6 +12,7 @@ struct ChaptersView: View {
     @Environment(\.appContainer) private var container
     @State private var vm: QuranChaptersViewModel?
     @State private var navigationPath = NavigationPath()
+    @State private var selectedTab: Int = 0
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -27,6 +28,7 @@ struct ChaptersView: View {
             .navigationDestination(for: ChapterReaderRoute.self) { route in
                 ChapterVersesView(
                     chapter: route.chapter,
+                    juzNumber: route.juzNumber,
                     initialVerseNumber: route.initialVerseNumber
                 )
                 .toolbarBackground(.hidden, for: .navigationBar)
@@ -49,17 +51,39 @@ struct ChaptersView: View {
 
         VStack(spacing: 0) {
             header
+            
+            Picker("Quran Sections", selection: $selectedTab) {
+                Text("Surah").tag(0)
+                Text("Juz").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.bottom, 10)
 
-            if bindable.isLoading && bindable.chapters.isEmpty {
-                chaptersLoadingBody
-            } else if let error = bindable.errorMessage, bindable.chapters.isEmpty {
-                chaptersErrorBody(error) {
-                    Task { await bindable.refreshAll(force: true) }
+            if selectedTab == 0 {
+                if bindable.isLoading && bindable.chapters.isEmpty {
+                    chaptersLoadingBody
+                } else if let error = bindable.errorMessage, bindable.chapters.isEmpty {
+                    chaptersErrorBody(error) {
+                        Task { await bindable.refreshAll(force: true) }
+                    }
+                } else if bindable.chapters.isEmpty {
+                    chaptersEmptyBody
+                } else {
+                    chaptersList(bindable)
                 }
-            } else if bindable.chapters.isEmpty {
-                chaptersEmptyBody
             } else {
-                chaptersList(bindable)
+                if bindable.isLoadingJuzs && bindable.juzs.isEmpty {
+                    chaptersLoadingBody
+                } else if let error = bindable.errorMessageJuzs, bindable.juzs.isEmpty {
+                    chaptersErrorBody(error) {
+                        Task { await bindable.refreshAll(force: true) }
+                    }
+                } else if bindable.juzs.isEmpty {
+                    chaptersEmptyBody
+                } else {
+                    juzsList(bindable)
+                }
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -151,10 +175,10 @@ struct ChaptersView: View {
     private func chaptersList(_ vm: QuranChaptersViewModel) -> some View {
         ScrollView {
             LazyVStack(spacing: 10) {
-                if let route = vm.continueReadingRoute() {
+                if let route = vm.continueReadingRoute(), let ch = route.chapter {
                     NavigationLink(value: route) {
                         ContinueReadingCard(
-                            chapter: route.chapter,
+                            chapter: ch,
                             verseNumber: route.initialVerseNumber ?? 1
                         )
                     }
@@ -162,8 +186,29 @@ struct ChaptersView: View {
                 }
 
                 ForEach(vm.chapters) { chapter in
-                    NavigationLink(value: ChapterReaderRoute(chapter: chapter)) {
+                    NavigationLink(value: ChapterReaderRoute(chapter: chapter, juzNumber: nil, initialVerseNumber: nil)) {
                         QuranChapterRow(chapter: chapter)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 40)
+        }
+        .refreshable {
+            await vm.refreshAll(force: true)
+        }
+    }
+
+    private func juzsList(_ vm: QuranChaptersViewModel) -> some View {
+        ScrollView {
+            LazyVStack(spacing: 10) {
+                ForEach(vm.juzs) { juz in
+                    let start = juz.startChapterAndAyah()
+                    let chapter = start.flatMap { chAndAyah in vm.chapters.first(where: { $0.id == chAndAyah.0 }) }
+                    
+                    NavigationLink(value: ChapterReaderRoute(chapter: nil, juzNumber: juz.juzNumber, initialVerseNumber: start?.1)) {
+                        JuzRow(juz: juz, chapter: chapter)
                     }
                     .buttonStyle(.plain)
                 }
@@ -342,5 +387,71 @@ private struct QuranChapterRow: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(chapter.spokenAccessibilitySummary)
         .accessibilityHint("Open surah to read and listen")
+    }
+}
+
+private struct JuzRow: View {
+    let juz: QuranJuz
+    let chapter: QuranChapter?
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.Token.gold, Color.Token.goldDeep],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 30, height: 30)
+                    .rotationEffect(.degrees(45))
+
+                Text("\(juz.juzNumber)")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Juz \(juz.juzNumber)")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.primary)
+
+                        if let start = juz.startChapterAndAyah() {
+                            let surahName = chapter?.displayComplexName ?? "Surah \(start.0)"
+                            Text("Starts at \(surahName) \u{2022} Ayah \(start.1)")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if let count = juz.versesCount {
+                    Text("\(count) Verses")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(14)
+        .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Token.deepEmerald.opacity(0.1), Color.Token.softGrey.opacity(0.4)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: Color.black.opacity(0.03), radius: 6, y: 3)
     }
 }

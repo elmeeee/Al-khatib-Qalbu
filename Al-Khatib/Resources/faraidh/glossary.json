@@ -1,0 +1,164 @@
+{
+  "terms": [
+    {
+      "id": "faraidh",
+      "titleEn": "Faraidh",
+      "titleId": "Faraidh",
+      "titleMs": "Faraidh",
+      "arabic": "الفَرَائِض",
+      "bodyEn": "The Islamic science of inheritance distribution after death. Shares are defined by the Qur'an, Sunnah, and scholarly consensus (ijma').",
+      "bodyId": "Ilmu pembagian warisan Islam setelah kematian. Bagian ditetapkan oleh Al-Qur'an, Sunnah, dan ijma' ulama.",
+      "bodyMs": "Ilmu pembahagian warisan Islam selepas kematian. Bahagian ditetapkan oleh Al-Qur'an, Sunnah, dan ijma' ulama."
+    },
+    {
+      "id": "tarikah",
+      "titleEn": "Tarikah (net estate)",
+      "titleId": "Tarikah (harta bersih)",
+      "titleMs": "Tarikah (harta bersih)",
+      "arabic": "التَّرِكَة",
+      "bodyEn": "The wealth left by the deceased after funeral costs, debts, unpaid zakat, and lawful bequests (wasiat) up to one-third are settled. Faraidh is calculated on the tarikah.",
+      "bodyId": "Harta yang ditinggalkan setelah biaya jenazah, hutang, zakat tertunda, dan wasiat yang sah (maksimal sepertiga) dibayar. Faraidh dihitung dari tarikah.",
+      "bodyMs": "Harta yang ditinggalkan selepas kos jenazah, hutang, zakat tertunggak, dan wasiat yang sah (maksimum satu pertiga) dibayar. Faraidh dikira daripada tarikah."
+    },
+    {
+      "id": "furud",
+      "titleEn": "Ashab al-Furud (fixed shares)",
+      "titleId": "Ashab al-Furud (ahli waris berbagian tetap)",
+      "titleMs": "Ashab al-Furud (waris bahagian tetap)",
+      "arabic": "أَصْحَابُ الْفُرُوض",
+      "bodyEn": "Heirs with Quranic fixed portions such as husband, wife, mother, father, and daughters in specific cases. Their shares are defined before residue distribution.",
+      "bodyId": "Ahli waris dengan bagian tetap dalam Al-Qur'an seperti suami, istri, ibu, ayah, dan anak perempuan dalam kondisi tertentu. Bagian mereka ditetapkan sebelum pembagian sisa.",
+      "bodyMs": "Waris dengan bahagian tetap dalam Al-Qur'an seperti suami, isteri, ibu, bapa, dan anak perempuan dalam keadaan tertentu. Bahagian mereka ditetapkan sebelum pembahagian baki."
+    },
+    {
+      "id": "asabah",
+      "titleEn": "Asabah (residue heirs)",
+      "titleId": "Asabah (ahli waris ashābah)",
+      "titleMs": "Asabah (waris residu)",
+      "arabic": "الْعَصَبَة",
+      "bodyEn": "Heirs who take the remainder after fixed shares. Male relatives generally receive double the female share among children and siblings (2:1 ratio) when they inherit together as asabah.",
+      "bodyId": "Ahli waris yang mengambil sisa harta setelah bagian furud. Kerabat laki-laki umumnya mendapat dua kali bagian perempuan di antara anak dan saudara (rasio 2:1) saat mewaris sebagai asabah.",
+      "bodyMs": "Waris yang mengambil baki harta selepas bahagian furud. Kerabat lelaki biasanya mendapat dua kali bahagian perempuan dalam kalangan anak dan saudara (nisbah 2:1) apabila mewaris sebagai asabah."
+    },
+    {
+      "id": "asabah_bil_ghayr",
+      "titleEn": "Asabah bil-Ghayr",
+      "titleId": "Asabah bil-Ghayr",
+      "titleMs": "Asabah bil-Ghayr",
+      "arabic": "الْعَصَبَةُ بِالْغَيْرِ",
+      "bodyEn": "Residue heirs who inherit alongside female fixed-share heirs, such as a full sister with a daughter—she may receive residue together with the daughter per Hanafi and other views.",
+      "bodyId": "Asabah yang mewaris bersama ahli furud perempuan, misalnya saudara perempuan kandung bersama anak perempuan—ia dapat mengambil sisa bersama anak perempuan menurut Hanafi dan pendapat lain.",
+      "bodyMs": "Asabah yang mewaris bersama waris furud perempuan, contohnya saudara perempuan seibu sebapa bersama anak perempuan—dia boleh mengambil baki bersama anak perempuan mengikut Hanafi dan pandangan lain."
+    },
+    {
+      "id": "hajb",
+      "titleEn": "Hajb (blocking)",
+      "titleId": "Hajb (penghalang waris)",
+      "titleMs": "Hajb (penghalang waris)",
+      "arabic": "الْحَجْب",
+      "bodyEn": "A closer heir blocks a more distant one from inheriting or reduces their share. Example: a living son blocks grandchildren and siblings from inheriting.",
+      "bodyId": "Waris yang lebih dekat menghalangi waris yang lebih jauh atau mengurangi bagiannya. Contoh: anak laki-laki yang hidup menghalangi cucu dan saudara untuk mewaris.",
+      "bodyMs": "Waris yang lebih dekat menghalang waris yang lebih jauh atau mengurangkan bahagiannya. Contoh: anak lelaki yang hidup menghalang cucu dan saudara daripada mewaris."
+    },
+    {
+      "id": "aul",
+      "titleEn": "ʿAwl (deficit adjustment)",
+      "titleId": "ʿAul / Aul (penyesuaian defisit)",
+      "titleMs": "ʿAwl / Aul (pelarasan defisit)",
+      "arabic": "الْعَوْل",
+      "bodyEn": "When total fixed shares exceed the estate (shares sum to more than 1), all portions are reduced proportionally by increasing the common denominator. All four madhhabs agree on ʿawl.",
+      "bodyId": "Ketika jumlah bagian furud melebihi harta (total bagian lebih dari 1), semua porsi dikurangi proporsional dengan menaikkan penyebut bersama. Keempat mazhab sepakat tentang aul.",
+      "bodyMs": "Apabila jumlah bahagian furud melebihi harta (jumlah bahagian melebihi 1), semua bahagian dikurangkan secara proporsional dengan menaikkan penyebut bersama. Keempat mazhab bersetuju tentang aul."
+    },
+    {
+      "id": "radd",
+      "titleEn": "Radd (surplus redistribution)",
+      "titleId": "Radd (pengembalian kelebihan)",
+      "titleMs": "Radd (pengembalian lebihan)",
+      "arabic": "الرَّدّ",
+      "bodyEn": "When fixed shares total less than the estate and no asabah takes the remainder, the surplus is returned proportionally to eligible heirs. Hanafi includes spouses in radd; Maliki, Shafi'i, and Hanbali generally exclude spouses.",
+      "bodyId": "Ketika bagian furud kurang dari harta dan tidak ada asabah yang mengambil sisa, kelebihan dikembalikan secara proporsional kepada waris yang berhak. Hanafi memasukkan pasangan dalam radd; Maliki, Syafi'i, dan Hanbali umumnya mengecualikan pasangan.",
+      "bodyMs": "Apabila bahagian furud kurang daripada harta dan tiada asabah mengambil baki, lebihan dikembalikan secara proporsional kepada waris yang layak. Hanafi memasukkan pasangan dalam radd; Maliki, Syafi'i, dan Hanbali biasanya mengecualikan pasangan."
+    },
+    {
+      "id": "wasiat",
+      "titleEn": "Wasiat (bequest)",
+      "titleId": "Wasiat",
+      "titleMs": "Wasiat",
+      "arabic": "الْوَصِيَّة",
+      "bodyEn": "A lawful bequest for non-heirs or charity, limited to one-third of the estate after debts and funeral costs, per the hadith: 'One-third, and one-third is much.' Heirs cannot receive wasiat unless all agree.",
+      "bodyId": "Wasiat sah untuk non-warisan atau sedekah, dibatasi sepertiga harta setelah hutang dan biaya jenazah, sesuai hadits: 'Sepertiga, dan sepertiga itu banyak.' Ahli waris tidak boleh menerima wasiat kecuali semua setuju.",
+      "bodyMs": "Wasiat sah untuk bukan waris atau sedekah, terhad kepada satu pertiga harta selepas hutang dan kos jenazah, mengikut hadis: 'Satu pertiga, dan satu pertiga itu banyak.' Waris tidak boleh menerima wasiat melainkan semua bersetuju."
+    },
+    {
+      "id": "hutang",
+      "titleEn": "Debts (hutang)",
+      "titleId": "Hutang",
+      "titleMs": "Hutang",
+      "arabic": "الدَّيْن",
+      "bodyEn": "Debts owed by the deceased must be paid from the estate before any inheritance distribution, as taught by the Prophet ﷺ: 'The believer is suspended until his debt is paid.'",
+      "bodyId": "Hutang almarhum wajib dibayar dari harta sebelum pembagian warisan, sesuai sabda Nabi ﷺ: 'Orang beriman ditahan (syahadatnya) hingga hutangnya lunas.'",
+      "bodyMs": "Hutang si mati wajib dibayar daripada harta sebelum pembahagian warisan, mengikut sabda Nabi ﷺ: 'Orang beriman ditahan (syahadatnya) sehingga hutangnya selesai.'"
+    },
+    {
+      "id": "jenazah",
+      "titleEn": "Funeral costs",
+      "titleId": "Biaya jenazah",
+      "titleMs": "Kos jenazah",
+      "arabic": "تَكْلِفَةُ الْجَنَازَة",
+      "bodyEn": "Reasonable shrouding, washing, and burial expenses are paid first from the estate before debts and inheritance, following the Sunnah of prompt burial with dignity.",
+      "bodyId": "Biaya kafan, memandikan, dan menguburkan yang wajar dibayar terlebih dahulu dari harta sebelum hutang dan warisan, mengikuti Sunnah dimakamkan dengan cepat dan bermartabat.",
+      "bodyMs": "Kos kapan, memandikan, dan pengebumian yang munasabah dibayar terlebih dahulu daripada harta sebelum hutang dan warisan, mengikut Sunnah dikebumikan dengan segera dan bermaruah."
+    },
+    {
+      "id": "zakat",
+      "titleEn": "Unpaid zakat",
+      "titleId": "Zakat tertunda",
+      "titleMs": "Zakat tertunggak",
+      "arabic": "الزَّكَاة",
+      "bodyEn": "Zakat that was due on the deceased's wealth but unpaid is a right upon the estate and should be settled before distributing inheritance, as it is a debt to Allah and the poor.",
+      "bodyId": "Zakat yang sudah wajib atas harta almarhum tetapi belum dibayar merupakan hak atas harta dan sebaiknya dilunasi sebelum pembagian warisan, karena merupakan hutang kepada Allah dan fakir miskin.",
+      "bodyMs": "Zakat yang sudah wajib ke atas harta si mati tetapi belum dibayar merupakan hak ke atas harta dan sebaiknya diselesaikan sebelum pembahagian warisan, kerana ia hutang kepada Allah dan golongan fakir."
+    },
+    {
+      "id": "qismah",
+      "titleEn": "Qismah (division)",
+      "titleId": "Qismah (pembagian)",
+      "titleMs": "Qismah (pembahagian)",
+      "arabic": "الْقِسْمَة",
+      "bodyEn": "The act of dividing the tarikah among heirs according to established shares. Each heir's portion may be further divided per head when multiple individuals share one category.",
+      "bodyId": "Proses membagi tarikah kepada ahli waris sesuai bagian yang ditetapkan. Bagian setiap waris dapat dibagi lagi per orang bila beberapa individu dalam satu golongan.",
+      "bodyMs": "Proses membahagikan tarikah kepada waris mengikut bahagian yang ditetapkan. Bahagian setiap waris boleh dibahagikan lagi setiap orang apabila beberapa individu dalam satu golongan."
+    },
+    {
+      "id": "nasab",
+      "titleEn": "Nasab (blood relationship)",
+      "titleId": "Nasab (hubungan nasab)",
+      "titleMs": "Nasab (hubungan nasab)",
+      "arabic": "النَّسَب",
+      "bodyEn": "Blood ties that establish inheritance eligibility. Spouses inherit by contract; others primarily by nasab, with rules for full siblings, half-siblings, and maternal siblings.",
+      "bodyId": "Hubungan darah yang menetapkan kelayakan waris. Pasangan mewaris karena akad nikah; lainnya terutama melalui nasab, dengan aturan saudara kandung, seayah/seibu, dan seibu.",
+      "bodyMs": "Hubungan darah yang menetapkan kelayakan waris. Pasangan mewaris melalui akad nikah; yang lain terutamanya melalui nasab, dengan peraturan saudara seibu sebapa, sebapa, dan seibu."
+    },
+    {
+      "id": "mahjub",
+      "titleEn": "Mahjub (blocked heir)",
+      "titleId": "Mahjub (terhalang)",
+      "titleMs": "Mahjub (terhalang)",
+      "arabic": "مَحْجُوب",
+      "bodyEn": "An heir who is completely blocked from inheritance by a closer heir (hajb al-hirmān), or whose fixed share is reduced (hajb al-nuqsān).",
+      "bodyId": "Ahli waris yang sepenuhnya terhalang oleh waris yang lebih dekat (hajb al-hirmān), atau yang bagian tetapnya dikurangi (hajb al-nuqsān).",
+      "bodyMs": "Waris yang sepenuhnya terhalang oleh waris yang lebih dekat (hajb al-hirmān), atau yang bahagian tetapnya dikurangkan (hajb al-nuqsān)."
+    },
+    {
+      "id": "madhhab",
+      "titleEn": "Madhhab (school of law)",
+      "titleId": "Mazhab",
+      "titleMs": "Mazhab",
+      "arabic": "مَذْهَب",
+      "bodyEn": "A recognized school of Islamic jurisprudence. This calculator supports Hanafi, Maliki, Shafi'i, and Hanbali views where they differ—especially on radd and certain residue cases.",
+      "bodyId": "Mazhab fiqh Islam yang diakui. Kalkulator ini mendukung pandangan Hanafi, Maliki, Syafi'i, dan Hanbali pada poin perbedaan—terutama radd dan beberapa kasus asabah.",
+      "bodyMs": "Mazhab fiqh Islam yang diiktiraf. Kalkulator ini menyokong pandangan Hanafi, Maliki, Syafi'i, dan Hanbali pada titik perbezaan—terutamanya radd dan beberapa kes asabah."
+    }
+  ]
+}

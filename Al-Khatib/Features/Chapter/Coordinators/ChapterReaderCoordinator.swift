@@ -24,11 +24,13 @@ final class ChapterReaderCoordinator {
     var lastAppliedTranslationId = ChapterReaderPreferences.defaultTranslationId
     var reservesReaderChromeForAudio = false
 
-    let chapter: QuranChapter
+    let chapter: QuranChapter?
+    let juzNumber: Int?
     let audio: AudioPlayerController
 
-    init(chapter: QuranChapter, audio: AudioPlayerController) {
+    init(chapter: QuranChapter?, juzNumber: Int?, audio: AudioPlayerController) {
         self.chapter = chapter
+        self.juzNumber = juzNumber
         self.audio = audio
     }
 
@@ -37,7 +39,10 @@ final class ChapterReaderCoordinator {
     }
 
     func bootstrap(container: AppContainer) -> ChapterVersesViewModel {
-        let model = ChapterVersesViewModel(chapter: chapter, content: container.content)
+        let model = ChapterVersesViewModel(chapter: chapter, juzNumber: juzNumber, content: container.content)
+        if chapter == nil {
+            scrollPosition = nil
+        }
         if tafsirPresenter == nil {
             tafsirPresenter = TafsirPresenter(content: container.content)
         }
@@ -54,9 +59,15 @@ final class ChapterReaderCoordinator {
     }
 
     func applyInitialScrollIfNeeded(vm: ChapterVersesViewModel, initialVerseNumber: Int?) {
-        guard let target = initialVerseNumber, target >= 1 else { return }
-        guard let verse = vm.verses.first(where: { $0.resolvedVerseNumber == target }) else { return }
-        scrollToVerse(identity: verse.listIdentity)
+        if let target = initialVerseNumber, target >= 1 {
+            if let verse = vm.verses.first(where: { $0.resolvedVerseNumber == target }) {
+                scrollToVerse(identity: verse.listIdentity)
+                return
+            }
+        }
+        if chapter == nil, let first = vm.verses.first {
+            scrollToVerse(identity: first.listIdentity)
+        }
     }
 
     func onScrollPositionChanged(_ newID: String?, vm: ChapterVersesViewModel) {
@@ -117,13 +128,13 @@ final class ChapterReaderCoordinator {
 
     func positionLabel(in vm: ChapterVersesViewModel?) -> String {
         guard let vm, let scrollPosition, scrollPosition != ScrollID.intro else {
-            return chapter.versesCountLabel ?? ""
+            return chapter?.versesCountLabel ?? ""
         }
         if let index = vm.verses.firstIndex(where: { $0.listIdentity == scrollPosition }) {
-            let total = chapter.versesCount ?? vm.verses.count
+            let total = chapter?.versesCount ?? vm.verses.count
             return "Ayah \(index + 1) / \(total)"
         }
-        return chapter.versesCountLabel ?? ""
+        return chapter?.versesCountLabel ?? ""
     }
 
     @MainActor
@@ -179,7 +190,8 @@ final class ChapterReaderCoordinator {
 
     private func trackReadingSession(for verse: RandomAyahPayload) {
         guard let verseNumber = verse.resolvedVerseNumber else { return }
-        readingTracker?.updateVisibleAyah(chapterNumber: chapter.id, verseNumber: verseNumber)
+        guard let chapterNumber = chapter?.id else { return }
+        readingTracker?.updateVisibleAyah(chapterNumber: chapterNumber, verseNumber: verseNumber)
     }
 
     @MainActor

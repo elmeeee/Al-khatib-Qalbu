@@ -141,5 +141,30 @@ enum AppEndpoints {
             components?.queryItems = query
             return components?.url
         }
+
+        static func alAdhanCalendar(
+            year: Int,
+            month: Int,
+            latitude: Double,
+            longitude: Double,
+            method: PrayerCalculationMethod = .muhammadiyah
+        ) -> URL? {
+            var components = URLComponents(string: "\(External.alAdhanRoot)/v1/calendar")
+            var query: [URLQueryItem] = [
+                .init(name: "latitude", value: "\(latitude)"),
+                .init(name: "longitude", value: "\(longitude)"),
+                .init(name: "year", value: "\(year)"),
+                .init(name: "month", value: "\(month)"),
+                .init(name: "method", value: "\(method.aladhanMethodID)"),
+                .init(name: "school", value: "\(method.aladhanSchool)"),
+                .init(name: "tune", value: method.aladhanTune)
+            ]
+            if let methodSettings = method.aladhanMethodSettings {
+                query.append(.init(name: "methodSettings", value: methodSettings))
+            }
+            components?.queryItems = query
+            return components?.url
+        }
     }
 }
+

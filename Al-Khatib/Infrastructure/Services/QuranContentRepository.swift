@@ -41,6 +41,41 @@ struct QuranContentRepository: Sendable {
         )
     }
 
+    func getVersesByJuz(
+        juzNumber: Int,
+        recitationId: Int = 6,
+        page: Int = 1,
+        perPage: Int = 50
+    ) async throws -> VersesByChapterResponse {
+        let normalizedTranslationId = normalizeTranslationId(ChapterReaderPreferences.selectedTranslationId())
+        let normalizedRecitationId = normalizeRecitationId(recitationId)
+        return try await local.getVersesByJuz(
+            juzNumber: juzNumber,
+            page: page,
+            perPage: perPage,
+            translationId: normalizedTranslationId,
+            recitationId: normalizedRecitationId
+        )
+    }
+
+    func getJuzs() async throws -> [QuranJuz] {
+        return try await local.getJuzs()
+    }
+
+    func getVersesByRange(
+        chapterNumber: Int,
+        startAyah: Int,
+        endAyah: Int
+    ) async throws -> [RandomAyahPayload] {
+        let normalizedTranslationId = normalizeTranslationId(ChapterReaderPreferences.selectedTranslationId())
+        return try await local.getVersesByRange(
+            chapterNumber: chapterNumber,
+            startAyah: startAyah,
+            endAyah: endAyah,
+            translationId: normalizedTranslationId
+        )
+    }
+
     func getRandomAyah(
         recitationId: Int = 6
     ) async throws -> RandomAyahResponse {

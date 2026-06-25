@@ -59,7 +59,7 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     private let notificationScheduler = PrayerNotificationScheduler()
     private var hasRequestedThisSession = false
     private var todaySchedule: [PrayerEntry] = []
-    private var lastKnownLocation: CLLocation?
+    internal var lastKnownLocation: CLLocation?
     private var scheduleAnchorDate: Date?
     private var tickerCancellable: AnyCancellable?
     private var methodChangeCancellable: AnyCancellable?

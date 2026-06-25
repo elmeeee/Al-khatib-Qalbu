@@ -9,6 +9,7 @@
 import Foundation
 
 struct ChapterReaderRoute: Hashable {
-    let chapter: QuranChapter
+    var chapter: QuranChapter?
+    var juzNumber: Int?
     var initialVerseNumber: Int?
 }

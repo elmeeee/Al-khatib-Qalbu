@@ -13,10 +13,13 @@ import Observation
 @Observable
 final class QuranChaptersViewModel {
     var chapters: [QuranChapter] = []
+    var juzs: [QuranJuz] = []
     var continueReading: ReadingSession?
     var isLoading = false
+    var isLoadingJuzs = false
     var isLoadingContinueReading = false
     var errorMessage: String?
+    var errorMessageJuzs: String?
 
     private let content: QuranContentRepository
     private let readingSessions: ReadingSessionRepository
@@ -47,6 +50,21 @@ final class QuranChaptersViewModel {
         }
     }
 
+    func loadJuzs(force: Bool = false) async {
+        if isLoadingJuzs { return }
+        if juzs.isEmpty == false, force == false { return }
+
+        isLoadingJuzs = true
+        errorMessageJuzs = nil
+        defer { isLoadingJuzs = false }
+
+        do {
+            juzs = try await content.getJuzs()
+        } catch {
+            errorMessageJuzs = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
     func loadContinueReading() async {
         isLoadingContinueReading = true
         defer { isLoadingContinueReading = false }
@@ -71,13 +89,15 @@ final class QuranChaptersViewModel {
         }
         return ChapterReaderRoute(
             chapter: chapter,
+            juzNumber: nil,
             initialVerseNumber: session.verseNumber
         )
     }
 
     func refreshAll(force: Bool = false) async {
         async let chaptersTask: Void = loadChapters(force: force)
+        async let juzsTask: Void = loadJuzs(force: force)
         async let continueTask: Void = loadContinueReading()
-        _ = await (chaptersTask, continueTask)
+        _ = await (chaptersTask, juzsTask, continueTask)
     }
 }
