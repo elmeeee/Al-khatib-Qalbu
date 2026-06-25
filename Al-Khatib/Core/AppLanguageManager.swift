@@ -152,7 +152,25 @@ class AppLanguageManager: ObservableObject {
         "faraidh_out_wedlock": [.english: "Deceased Born Out of Wedlock", .indonesian: "Pewaris Lahir di Luar Nikah", .malay: "Pewaris Lahir Luar Nikah"],
         "faraidh_estate": [.english: "Estate & Deductions", .indonesian: "Harta & Pengurangan", .malay: "Harta & Potongan"],
         "faraidh_heirs": [.english: "Select Surviving Heirs", .indonesian: "Pilih Ahli Waris", .malay: "Pilih Ahli Waris"],
-        "faraidh_btn_calc": [.english: "Calculate Inheritance Shares", .indonesian: "Hitung Pembagian Waris", .malay: "Kira Bahagian Waris"]
+        "faraidh_btn_calc": [.english: "Calculate Inheritance Shares", .indonesian: "Hitung Pembagian Waris", .malay: "Kira Bahagian Waris"],
+        
+        // Onboarding
+        "onboarding_welcome_title": [.english: "Welcome to Al-Khatib", .indonesian: "Selamat Datang di Al-Khatib", .malay: "Selamat Datang di Al-Khatib"],
+        "onboarding_welcome_subtitle": [.english: "Your premium, offline companion to reflect on the Holy Quran and track spiritual habits.", .indonesian: "Pendamping ibadah luring premium Anda untuk merenungkan Al-Quran & mencatat kebiasaan spiritual harian.", .malay: "Pendamping ibadah luar talian premium anda untuk merenungkan Al-Quran & mencatat tabiat spiritual harian."],
+        "onboarding_select_language": [.english: "Select Language", .indonesian: "Pilih Bahasa", .malay: "Pilih Bahasa"],
+        "onboarding_location_title": [.english: "Accurate Prayer Times", .indonesian: "Waktu Shalat Akurat", .malay: "Waktu Solat Tepat"],
+        "onboarding_location_subtitle": [.english: "We compute prayer times completely offline. Grant location access or set it later to get started.", .indonesian: "Kami menghitung waktu shalat sepenuhnya secara luring. Izinkan lokasi atau atur nanti untuk memulai.", .malay: "Kami mengira waktu solat sepenuhnya secara luar talian. Benarkan lokasi atau tetapkan kemudian untuk bermula."],
+        "onboarding_use_gps": [.english: "Enable GPS Location", .indonesian: "Aktifkan Lokasi GPS", .malay: "Aktifkan Lokasi GPS"],
+        "onboarding_location_skip": [.english: "Set Location Later", .indonesian: "Atur Lokasi Nanti", .malay: "Tetapkan Lokasi Kemudian"],
+        "onboarding_notifications_title": [.english: "Stay Notified", .indonesian: "Tetap Terhubung", .malay: "Kekal Berhubung"],
+        "onboarding_notifications_subtitle": [.english: "Receive daily verse of the day reminders and beautiful Adhan sound alerts at prayer times.", .indonesian: "Dapatkan pengingat ayat pilihan harian serta alarm kumandang Adzan merdu setiap masuk waktu shalat.", .malay: "Terima peringatan ayat harian pilihan serta amaran laungan Azan merdu setiap masuk waktu solat."],
+        "onboarding_enable_notifications": [.english: "Enable Notifications", .indonesian: "Aktifkan Notifikasi", .malay: "Aktifkan Notifikasi"],
+        "onboarding_notifications_skip": [.english: "Skip Notifications", .indonesian: "Lewati Notifikasi", .malay: "Langkau Notifikasi"],
+        "onboarding_widgets_title": [.english: "Worship at a Glance", .indonesian: "Ibadah Sekilas Pandang", .malay: "Ibadah Sekilas Pandang"],
+        "onboarding_widgets_subtitle": [.english: "Pin custom widgets to your home screen to see today's verse and countdowns to the next prayer times.", .indonesian: "Sematkan widget khusus di layar beranda untuk memantau ayat pilihan hari ini dan hitung mundur waktu shalat.", .malay: "Sematkan widget khas di skrin utama untuk memantau ayat pilihan hari ini dan hitung mundur waktu solat."],
+        "onboarding_get_started": [.english: "Get Started", .indonesian: "Mulai Sekarang", .malay: "Mula Sekarang"],
+        "onboarding_continue": [.english: "Continue", .indonesian: "Lanjutkan", .malay: "Teruskan"],
+        "onboarding_step": [.english: "Step %d of 4", .indonesian: "Langkah %d dari 4", .malay: "Langkah %d dari 4"]
     ]
 }
 
