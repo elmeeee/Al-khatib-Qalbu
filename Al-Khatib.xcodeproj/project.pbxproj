@@ -464,6 +464,7 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We use your location to show accurate prayer times.";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We use your location to show accurate prayer times.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to show accurate prayer times.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use your camera to display the Qibla finder in AR mode.";
 				INFOPLIST_KEY_UIAppFonts_0 = tajweed_font.ttf;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -527,6 +528,7 @@
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We use your location to show accurate prayer times.";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We use your location to show accurate prayer times.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to show accurate prayer times.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use your camera to display the Qibla finder in AR mode.";
 				INFOPLIST_KEY_UIAppFonts_0 = tajweed_font.ttf;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

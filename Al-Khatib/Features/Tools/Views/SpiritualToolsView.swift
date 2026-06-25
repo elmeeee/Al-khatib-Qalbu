@@ -47,33 +47,50 @@ struct SpiritualToolsView: View {
                         )
                     }
                     
-                    ToolCardPlaceholder(
-                        title: "Qibla Finder",
-                        subtitle: "Locate Kaaba direction",
-                        iconName: "safari",
-                        color: Color.Token.goldDeep
-                    )
+                    NavigationLink(destination: QiblaFinderView()) {
+                        ToolCard(
+                            title: "Qibla Finder",
+                            subtitle: "Locate Kaaba direction",
+                            iconName: "safari",
+                            color: Color.Token.goldDeep
+                        )
+                    }
                     
-                    ToolCardPlaceholder(
-                        title: "Zakat Calculator",
-                        subtitle: "Calculate your zakat",
-                        iconName: "percent",
-                        color: Color.Token.indigoAccent
-                    )
+                    NavigationLink(destination: ZakatCalculatorView()) {
+                        ToolCard(
+                            title: "Zakat Calculator",
+                            subtitle: "Calculate your zakat",
+                            iconName: "percent",
+                            color: Color.Token.indigoAccent
+                        )
+                    }
                     
-                    ToolCardPlaceholder(
-                        title: "Qiyam Guide",
-                        subtitle: "Tahajjud guidance",
-                        iconName: "moon.stars",
-                        color: Color.Token.indigoDeep
-                    )
+                    NavigationLink(destination: QiyamTrackerView()) {
+                        ToolCard(
+                            title: "Qiyam Tracker",
+                            subtitle: "Tahajjud logging & guide",
+                            iconName: "moon.stars",
+                            color: Color.Token.indigoDeep
+                        )
+                    }
                     
-                    ToolCardPlaceholder(
-                        title: "Faraidh",
-                        subtitle: "Islamic inheritance",
-                        iconName: "doc.text",
-                        color: Color.Token.slate900
-                    )
+                    NavigationLink(destination: FaraidhCalculatorView()) {
+                        ToolCard(
+                            title: "Faraidh",
+                            subtitle: "Islamic inheritance",
+                            iconName: "doc.text",
+                            color: Color.Token.slate900
+                        )
+                    }
+
+                    NavigationLink(destination: ManzilView()) {
+                        ToolCard(
+                            title: "Manzil",
+                            subtitle: "Quranic protection verses",
+                            iconName: "shield.checkerboard",
+                            color: Color.Token.deepEmerald
+                        )
+                    }
                 }
                 .padding(.horizontal)
             }

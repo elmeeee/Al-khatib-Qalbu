@@ -127,8 +127,8 @@ struct PrayerCalendarView: View {
                     VStack(spacing: 12) {
                         // Weekday Headers
                         HStack(spacing: 0) {
-                            ForEach(shiftedWeekdaySymbols, id: \.self) { symbol in
-                                Text(symbol)
+                            ForEach(0..<shiftedWeekdaySymbols.count, id: \.self) { index in
+                                Text(shiftedWeekdaySymbols[index])
                                     .font(.system(size: 13, weight: .bold))
                                     .foregroundColor(Color.Token.slate400)
                                     .frame(maxWidth: .infinity)

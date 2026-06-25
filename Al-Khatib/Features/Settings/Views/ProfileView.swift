@@ -256,8 +256,35 @@ struct ProfileView: View {
                         ? "Choose translation language for Quran text"
                         : "Current translator \(selectedTranslationName)"
                 )
+
+                Divider().padding(.leading, 64)
+
+                Button { showingAdhanVoiceSheet = true } label: {
+                    ProfileRowView(
+                        icon: "waveform",
+                        title: "Adhan Voice",
+                        subtitle: adhanVoiceDisplayName,
+                        hasToggle: false,
+                        isOn: .constant(false)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Adhan Voice")
+                .accessibilityHint("Current voice: \(adhanVoiceDisplayName). Choose the voice for Adhan notifications")
             }
             .profileCardStyle()
+        }
+    }
+
+    private var adhanVoiceDisplayName: String {
+        switch selectedAdhanSound {
+        case "default": return "System Default"
+        case "adhan_ust_daeng_syawal_indonesia": return "Ust. Daeng Syawal (ID)"
+        case "adhan_ustaz_sadid_ahmad_dahri_singapore": return "Ust. Sadid Ahmad Dahri (SG)"
+        case "adhan_omar_hisham_al_arabi": return "Omar Hisham Al Arabi"
+        case "adhan_sheikh_abdul_karim_malaysia": return "Sheikh Abdul Karim (MY)"
+        case "adhan_fajr_mishary_alafasy": return "Mishary Alafasy (Fajr)"
+        default: return "System Default"
         }
     }
 

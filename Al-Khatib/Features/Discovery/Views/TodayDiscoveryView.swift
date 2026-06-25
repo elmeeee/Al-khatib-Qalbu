@@ -19,6 +19,8 @@ struct TodayDiscoveryView: View {
     @State private var coordinator: TodayDiscoveryCoordinator?
     @State private var actionsViewModel = TodayVerseActionsViewModel()
     @State private var tracker: PrayerTrackerViewModel?
+    @State private var showingPrayerCalendar = false
+    @State private var showingTrackerCalendar = false
 
     let verseState: TodayVerseState
 
@@ -84,13 +86,25 @@ struct TodayDiscoveryView: View {
                 )
                 .ignoresSafeArea(edges: .bottom)
 
+                NavigationLink(
+                    destination: PrayerCalendarView().environmentObject(prayer),
+                    isActive: $showingPrayerCalendar
+                ) { EmptyView() }
+
+                NavigationLink(
+                    destination: PrayerTrackerCalendarView(),
+                    isActive: $showingTrackerCalendar
+                ) { EmptyView() }
+
                 ScrollView {
                     VStack(spacing: 0) {
                         prayerCard
                         if let tracker {
-                            PrayerTrackerCard(viewModel: tracker, onOpenCalendar: {})
-                                .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
-                                .padding(.top, 12)
+                            PrayerTrackerCard(viewModel: tracker, onOpenCalendar: {
+                                showingTrackerCalendar = true
+                            })
+                            .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
+                            .padding(.top, 12)
                         }
                         verseSection(vm: vm)
                     }
@@ -194,7 +208,21 @@ struct TodayDiscoveryView: View {
     private var prayerCard: some View {
         Group {
             if let dashboard = coordinator?.dashboardViewModel {
-                PrayerDashboardCard(viewModel: dashboard)
+                ZStack(alignment: .topTrailing) {
+                    PrayerDashboardCard(viewModel: dashboard)
+                    
+                    Button(action: { showingPrayerCalendar = true }) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(10)
+                            .background(Color.black.opacity(0.2))
+                            .clipShape(Circle())
+                    }
+                    .padding(.trailing, 32)
+                    .padding(.top, 92)
+                    .accessibilityLabel("Open Prayer Calendar")
+                }
             } else {
                 RoundedRectangle(cornerRadius: 24)
                     .fill(Color.Token.softGrey.opacity(0.4))
