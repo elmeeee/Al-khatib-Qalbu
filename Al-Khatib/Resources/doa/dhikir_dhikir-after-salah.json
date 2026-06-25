@@ -1,0 +1,76 @@
+{
+  "success": true,
+  "message": "Succeeded in taking dhikr by category dhikir-after-salah",
+  "data": [
+    {
+      "title": "Zikir Setelah Salat",
+      "category": "dhikir-after-salah",
+      "compiled_by": "Rumaysho",
+      "content": [
+        {
+          "arabic": "أَسْتَغْفِرُ اللهَ (3x)\nاَللَّهُمَّ أَنْتَ السَّلَامُ، وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ",
+          "latin": "Astagh-firullah (3x). Allahumma antas salaam wa minkas salaam tabaarokta yaa dzal jalaali wal ikrom.",
+          "translation": "Aku memohon ampun kepada Allah (3x). Ya Allah, Engkau pemberi keselamatan, dan dariMu keselamatan, Maha Suci Engkau, wahai Tuhan Yang Pemilik Keagungan dan Kemuliaan.",
+          "fawaid": "Rasulullah shallallahu ‘alaihi wa sallam jika selesai dari shalatnya beliau beristighfar sebanyak tiga kali dan membaca dzikir di atas.",
+          "notes": "Istighfar dibaca 3 kali, dilanjutkan doa keselamatan 1 kali.",
+          "source": "HR. Muslim no. 591",
+          "repeat_count": 1
+        },
+        {
+          "arabic": "لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ، اَللَّهُمَّ لاَ مَانِعَ لِمَا أَعْطَيْتَ، وَلاَ مُعْطِيَ لِمَا مَنَعْتَ، وَلاَ يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ",
+          "latin": "Laa ilaaha illallaahu wahdahu laa syariika lah, lahul-mulku wa lahul-hamdu wa huwa 'alaa kulli syai-in qadiir. Allahumma laa maani'a limaa a'thaita wa laa mu'thiya limaa mana'ta wa laa yanfa'u dzal-jaddi minkal-jadd.",
+          "translation": "Tiada Rabb yang berhak disembah selain Allah Yang Maha Esa, tidak ada sekutu bagi-Nya. Bagi-Nya puji dan bagi-Nya kerajaan. Dia Maha Kuasa atas segala sesuatu. Ya Allah, tidak ada yang mencegah apa yang Engkau berikan, dan tidak ada yang memberi apa yang Engkau cegah, dan tidak bermanfaat kekayaan serta kedudukan bagi pemiliknya untuk menghalangi azab-Mu.",
+          "fawaid": "Pernyataan tauhid serta kepasrahan terhadap ketetapan rezeki dan nasib dari Allah.",
+          "notes": "Dibaca 1 kali.",
+          "source": "HR. Bukhari no. 844 dan Muslim no. 593",
+          "repeat_count": 1
+        },
+        {
+          "arabic": "لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ. لاَ حَوْلَ وَلاَ قُوَّةَ إِلاَّ بِاللهِ، لاَ إِلَـهَ إِلاَّ اللهُ، وَلاَ نَعْبُدُ إِلاَّ إِيَّاهُ، لَهُ النِّعْمَةُ وَلَهُ الْفَضْلُ وَلَهُ الثَّنَاءُ الْحَسَنُ، لاَ إِلَـهَ إِلاَّ اللهُ مُخْلِصِيْنَ لَهُ الدِّيْنَ وَلَوْ كَرِهَ الْكَافِرُوْنَ",
+          "latin": "Laa ilaaha illallaahu wahdahu laa syariika lah, lahul-mulku wa lahul-hamdu wa huwa 'alaa kulli syai-in qadiir. Laa haula wa laa quwwata illaa billaah. Laa ilaaha illallaahu wa laa na'budu illaa iyyaah, lahun-ni'matu wa lahul-fadhlu wa lahutts-tsanaa'ul-hasan. Laa ilaaha illallaahu mukhlisiina lahud-diina walau karihal-kaafiruun.",
+          "translation": "Tiada Rabb yang berhak disembah kecuali Allah Yang Maha Esa, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan pujian. Dia Maha Kuasa atas segala sesuatu. Tiada daya dan kekuatan melainkan dengan pertolongan Allah. Tiada Rabb kecuali Allah, dan kami tidak menyembah melainkan Dia. Bagi-Nya segala nikmat, limpah kurnia, dan pujian yang baik. Tiada Rabb melainkan Allah, dengan mengikhlaskan ibadah kepada-Nya walaupun orang-orang kafir membencinya.",
+          "fawaid": "Nabi shallallahu ‘alaihi wa sallam biasa membaca tahlil ini di akhir setiap shalat.",
+          "notes": "Dibaca 1 kali.",
+          "source": "HR. Muslim no. 594",
+          "repeat_count": 1
+        },
+        {
+          "arabic": "سُبْحَانَ اللهِ (33x)\nاَلْحَمْدُ لِلَّهِ (33x)\nاَللهُ أَكْبَرُ (33x)\n\nلاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ",
+          "latin": "Subhanallah (33x), Alhamdulillah (33x), Allahu akbar (33x). Dilanjutkan tahlil 1x.",
+          "translation": "Maha Suci Allah (33 x), segala puji bagi Allah (33 x), Allah Maha Besar (33 x). Tidak ada Rabb kecuali Allah Yang Maha Esa... Bagi-Nya kerajaan, bagi-Nya pujaan, Dia-lah Yang Mahakuasa...",
+          "fawaid": "Siapa yang membacanya, maka dosa-dosanya diampuni walau sebanyak buih di lautan.",
+          "notes": "Tasbih, tahmid, takbir masing-masing 33 kali secara terpisah, lalu ditutup dengan kalimat tauhid 1 kali.",
+          "source": "HR. Muslim no. 597",
+          "repeat_count": 1
+        },
+        {
+          "arabic": "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+          "latin": "Allaahu laa ilaaha illaa huwal hayyul qayyuum, laa ta'khudzuhu sinatun wa laa naum. Lahuu maa fis-samaawaati wa maa fil-ardh. Man dzal-ladzii yasyfa'u 'indahuu illaa bi-idznih. Ya'lamu maa baina aidiihim wa maa kholfahum. Wa laa yuhiithuuna bi-syai-im min 'ilmihii illaa bi-maa syaa'. Wasi'a kursiyyuhus-samaawaati wal-ardh. Wa laa ya'uuduhu hifzhuhumaa, wa huwal 'aliyyul 'azhiim.",
+          "translation": "Allah, tidak ada ilah (yang berhak disembah) melainkan Dia, yang hidup kekal lagi terus menerus mengurus (makhluk-Nya). Dia tidak mengantuk dan tidak tidur. Kepunyaan-Nya apa yang di langit dan di bumi. Siapakah yang dapat memberi syafaat di sisi-Nya tanpa izin-Nya? Dia mengetahui apa yang di hadapan mereka dan apa yang di belakang mereka, dan mereka tidak mengetahui sesuatu pun dari ilmu-Nya melainkan apa yang Dia kehendaki. Kursi-Nya meliputi langit dan bumi, dan pemeliharaan kedua-duanya tidak melelahkan-Nya. Dan Dia Maha Tinggi lagi Maha Agung.",
+          "fawaid": "Siapa membaca ayat Kursi setiap selesai shalat fardhu, tidak ada yang menghalanginya masuk surga selain kematian.",
+          "notes": "Dibaca 1 kali.",
+          "source": "HR. An-Nasai dalam Al Kubro 9: 44. Dinyatakan shahih oleh Ibnu Hibban",
+          "repeat_count": 1
+        },
+        {
+          "arabic": "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ\nقُلْ هُوَ اللَّهُ أَحَدٌ اللَّهُ الصَّمَدُ لَمْ يَلِدْ وَلَمْ يُولَدْ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ\n\nبِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ الْفَلَقِ مِن شَرِّ مَا خَلَقَ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ\n\nبِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ النَّاسِ مَلِكِ النَّاسِ إِلَهِ النَّاسِ مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ مِنَ الْجِنَّةِ وَ النَّاسِ",
+          "latin": "Membaca Surah Al-Ikhlas, Al-Falaq, dan An-Naas.",
+          "translation": "Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang. Katakanlah: Dialah Allah, Yang Maha Esa... Aku berlindung kepada Rabb yang menguasai Shubuh... Aku berlindung kepada Rabb manusia...",
+          "fawaid": "Tiga surat pelindung (mu'awwidzat) yang dianjurkan dibaca setiap selesai shalat fardhu.",
+          "notes": "Dibaca 1 kali selesai shalat fardhu (pada shalat Maghrib dan Shubuh dianjurkan dibaca 3 kali).",
+          "source": "HR. Abu Daud no. 1523 dan An-Nasai no. 1337, sanad hasan",
+          "repeat_count": 1
+        },
+        {
+          "arabic": "اَللَّهُمَّ إِنِّيْ أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلاً مُتَقَبَّلاً",
+          "latin": "Allahumma inni as-aluka 'ilman naafi'a, wa rizqon thoyyiba, wa 'amalan mutaqobbala",
+          "translation": "Ya Allah, sungguh aku memohon kepada-Mu ilmu yang bermanfaat, rizki yang halal dan amal yang diterima.",
+          "fawaid": "Memohon keberkahan ilmu, rezeki, dan amalan di awal hari.",
+          "notes": "Khusus dibaca setelah salam dari shalat Shubuh saja.",
+          "source": "HR. Ibnu Majah no. 925 dan Ahmad 6: 305, sanad shahih",
+          "repeat_count": 1
+        }
+      ]
+    }
+  ]
+}

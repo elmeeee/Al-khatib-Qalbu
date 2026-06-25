@@ -8,110 +8,56 @@
 
 import Foundation
 
-private enum QuranVerseContentQuery {
-    static let language = "en"
-    static var translations: String {
-        ChapterReaderPreferences.selectedTranslationIdQueryValue()
-    }
-    static let defaultRecitationId = 6
-    static let translationFields = "resource_name"
-
-    static func items(
-        recitationId: Int = defaultRecitationId,
-        page: Int? = nil,
-        perPage: Int? = nil
-    ) -> [URLQueryItem] {
-        var query: [URLQueryItem] = [
-            URLQueryItem(name: "language", value: language),
-            URLQueryItem(name: "translations", value: translations),
-            URLQueryItem(name: "audio", value: String(recitationId)),
-            URLQueryItem(name: "fields", value: QuranVerseArabic.apiFields),
-            URLQueryItem(name: "translation_fields", value: translationFields)
-        ]
-        if let page {
-            query.append(URLQueryItem(name: "page", value: String(page)))
-        }
-        if let perPage {
-            let clamped = min(max(perPage, 1), 50)
-            query.append(URLQueryItem(name: "per_page", value: String(clamped)))
-        }
-        return query
-    }
-}
-
 struct QuranContentRepository: Sendable {
     private let client: QFApiClient
+    private let local = LocalQuranDataSource()
+    private let hadithLocal = LocalHadithDataSource()
 
     init(client: QFApiClient) {
         self.client = client
     }
 
     func getChapters(language: String = "en") async throws -> [QuranChapter] {
-        if let cached = await ChaptersCache.shared.get(language: language) {
-            await MainActor.run { ChapterCatalog.register(cached) }
-            return cached
-        }
-        let query = [URLQueryItem(name: "language", value: language)]
-        let response: ChaptersResponse = try await client.send(
-            QuranContentEndpoint.chapters(query: query)
-        )
-        let sorted = response.chapters.sorted { $0.id < $1.id }
-        await ChaptersCache.shared.set(sorted, language: language)
-        await MainActor.run { ChapterCatalog.register(sorted) }
-        return sorted
+        let normalizedLang = language.hasPrefix("id") ? "id" : "en"
+        let chapters = try await local.getChapters(language: normalizedLang)
+        await MainActor.run { ChapterCatalog.register(chapters) }
+        return chapters
     }
 
     func getVersesByChapter(
         chapterNumber: Int,
-        recitationId: Int = QuranVerseContentQuery.defaultRecitationId,
+        recitationId: Int = 6,
         page: Int = 1,
         perPage: Int = 50
     ) async throws -> VersesByChapterResponse {
-        let query = QuranVerseContentQuery.items(
-            recitationId: recitationId,
+        let normalizedTranslationId = normalizeTranslationId(ChapterReaderPreferences.selectedTranslationId())
+        let normalizedRecitationId = normalizeRecitationId(recitationId)
+        return try await local.getVersesByChapter(
+            chapterNumber: chapterNumber,
             page: page,
-            perPage: perPage
-        )
-        return try await client.send(
-            QuranContentEndpoint.versesByChapter(chapterNumber: chapterNumber, query: query)
+            perPage: perPage,
+            translationId: normalizedTranslationId,
+            recitationId: normalizedRecitationId
         )
     }
 
     func getRandomAyah(
-        recitationId: Int = QuranVerseContentQuery.defaultRecitationId
+        recitationId: Int = 6
     ) async throws -> RandomAyahResponse {
-        let query = QuranVerseContentQuery.items(recitationId: recitationId)
-
-        var attempt = 0
-        let maxAttempts = 3
-        var backoff: TimeInterval = 0.5
-        
-        while true {
-            do {
-                return try await client.send(
-                    QuranContentEndpoint.randomAyah(query: query)
-                )
-            } catch let qf as QFError {
-                switch qf {
-                case .apiLimitReached(let retryAfter):
-                    guard attempt < maxAttempts else { throw qf }
-                    let delay = retryAfter ?? backoff
-                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                    backoff *= 2
-                    attempt += 1
-                    continue
-                default: throw qf
-                }
-            }
+        let normalizedTranslationId = normalizeTranslationId(ChapterReaderPreferences.selectedTranslationId())
+        let normalizedRecitationId = normalizeRecitationId(recitationId)
+        if let payload = try await local.getRandomAyah(translationId: normalizedTranslationId, recitationId: normalizedRecitationId) {
+            return RandomAyahResponse(verse: payload)
         }
+        throw NSError(domain: "LocalQuran", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load random Ayah."])
     }
 
     func getTafsirByAyah(resourceId: String, ayahKey: String) async throws -> TafsirResponse {
-        try await TafsirByAyahCache.shared.response(resourceId: resourceId, ayahKey: ayahKey) {
-            try await client.send(
-                QuranContentEndpoint.tafsirByAyah(resourceId: resourceId, ayahKey: ayahKey, query: [])
-            )
+        let localId = (resourceId == "16" || resourceId == "jalalayn") ? "jalalayn" : "local"
+        if let payload = try await local.getTafsirByAyah(ayahKey: ayahKey, resourceId: localId) {
+            return TafsirResponse(tafsir: payload)
         }
+        throw NSError(domain: "LocalQuran", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load Tafsir."])
     }
 
     func getHadithsByAyah(
@@ -120,108 +66,62 @@ struct QuranContentRepository: Sendable {
         page: Int = 1,
         limit: Int = 4
     ) async throws -> HadithsByAyahResponse {
-        let clampedLimit = min(max(limit, 1), 5)
-        let query: [URLQueryItem] = [
-            URLQueryItem(name: "language", value: language),
-            URLQueryItem(name: "page", value: String(max(page, 1))),
-            URLQueryItem(name: "limit", value: String(clampedLimit))
-        ]
-        return try await client.send(
-            QuranContentEndpoint.hadithsByAyah(ayahKey: ayahKey, query: query)
-        )
+        return try await hadithLocal.getHadithsByAyah(ayahKey: ayahKey, page: page, limit: limit, language: language) {
+            let clampedLimit = min(max(limit, 1), 5)
+            let query: [URLQueryItem] = [
+                URLQueryItem(name: "language", value: language),
+                URLQueryItem(name: "page", value: String(max(page, 1))),
+                URLQueryItem(name: "limit", value: String(clampedLimit))
+            ]
+            return try await client.send(
+                QuranContentEndpoint.hadithsByAyah(ayahKey: ayahKey, query: query)
+            )
+        }
     }
 
     func getRecitations() async throws -> RecitationsResponse {
-        let query: [URLQueryItem] = [
-            URLQueryItem(name: "language", value: "en")
+        let recs = [
+            RecitationPayload(id: 1, reciterName: "alafasy", translatedName: RecitationTranslatedName(name: "Mishary Rashid Alafasy")),
+            RecitationPayload(id: 2, reciterName: "husarymujawwad", translatedName: RecitationTranslatedName(name: "Mahmoud Khalil Al-Husary")),
+            RecitationPayload(id: 3, reciterName: "minshawi", translatedName: RecitationTranslatedName(name: "Muhammad Siddiq Al-Minshawi")),
+            RecitationPayload(id: 4, reciterName: "muhammadjibreel", translatedName: RecitationTranslatedName(name: "Muhammad Jibreel")),
+            RecitationPayload(id: 5, reciterName: "ahmedajamy", translatedName: RecitationTranslatedName(name: "Ahmed Al-Ajamy")),
+            RecitationPayload(id: 6, reciterName: "muhammadayyoub", translatedName: RecitationTranslatedName(name: "Muhammad Ayyoub"))
         ]
-        return try await client.send(
-            QuranContentEndpoint.resourcesRecitations(query: query)
-        )
+        return RecitationsResponse(recitations: recs)
     }
 
     func getTranslations(language: String = "en") async throws -> TranslationsResponse {
-        let query: [URLQueryItem] = [
-            URLQueryItem(name: "language", value: language)
+        let trans = [
+            QFTranslation(id: 1, name: "Indonesian", authorName: "Kementerian Agama RI", slug: "id", languageName: "indonesian", translatedName: QFTranslation.TranslatedName(name: "Indonesian", languageName: "indonesian")),
+            QFTranslation(id: 2, name: "Sahih International", authorName: "Sahih International", slug: "en", languageName: "english", translatedName: QFTranslation.TranslatedName(name: "Sahih International", languageName: "english")),
+            QFTranslation(id: 3, name: "Malay", authorName: "DBP", slug: "my", languageName: "malay", translatedName: QFTranslation.TranslatedName(name: "Malay", languageName: "malay")),
+            QFTranslation(id: 4, name: "Kemenag (Arab Latin)", authorName: "Kementerian Agama RI", slug: "kemenag", languageName: "indonesian", translatedName: QFTranslation.TranslatedName(name: "Kemenag", languageName: "indonesian"))
         ]
-        return try await client.send(
-            QuranContentEndpoint.resourcesTranslations(query: query)
-        )
+        return TranslationsResponse(translations: trans)
     }
 
     func getVerseByKey(verseKey: String) async throws -> SingleVerseResponse {
-        let query = QuranVerseContentQuery.items()
-        return try await client.send(
-            QuranContentEndpoint.verseByKey(verseKey: verseKey, query: query)
-        )
+        let normalizedTranslationId = normalizeTranslationId(ChapterReaderPreferences.selectedTranslationId())
+        if let payload = try await local.getVerseByKey(verseKey, translationId: normalizedTranslationId, recitationId: 6) {
+            return SingleVerseResponse(verse: payload)
+        }
+        throw NSError(domain: "LocalQuran", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to load verse."])
     }
-}
 
-private actor TafsirByAyahCache {
-    static let shared = TafsirByAyahCache()
-
-    private var inflight: [String: Task<TafsirResponse, Error>] = [:]
-    private var memory: [String: (TafsirResponse, Date)] = [:]
-    private let ttl: TimeInterval = 600
-
-    func response(
-        resourceId: String,
-        ayahKey: String,
-        fetch: @Sendable @escaping () async throws -> TafsirResponse
-    ) async throws -> TafsirResponse {
-        let key = "\(resourceId)|\(ayahKey)"
-        if let (cached, at) = memory[key], Date().timeIntervalSince(at) < ttl {
-            return cached
-        }
-        if let task = inflight[key] {
-            return try await task.value
-        }
-        let task = Task { try await fetch() }
-        inflight[key] = task
-        do {
-            let value = try await task.value
-            memory[key] = (value, Date())
-            inflight[key] = nil
-            pruneMemoryIfNeeded()
-            return value
-        } catch {
-            inflight[key] = nil
-            throw error
+    // Normalizers
+    private func normalizeTranslationId(_ savedId: Int) -> Int {
+        switch savedId {
+        case 1, 2, 3, 4: return savedId
+        case 22, 131, 33: return 1 // Indonesian
+        case 20, 84: return 2 // English
+        default: return 1
         }
     }
 
-    private func pruneMemoryIfNeeded() {
-        let maxEntries = 32
-        guard memory.count > maxEntries else { return }
-        let now = Date()
-        memory = memory.filter { _, pair in
-            now.timeIntervalSince(pair.1) < ttl
-        }
-        guard memory.count > maxEntries else { return }
-        let keysByAge = memory.sorted { $0.value.1 < $1.value.1 }.map(\.key)
-        let toRemove = max(0, memory.count - 24)
-        for key in keysByAge.prefix(toRemove) {
-            memory.removeValue(forKey: key)
-        }
-    }
-}
-
-private actor ChaptersCache {
-    static let shared = ChaptersCache()
-
-    private var store: [String: (chapters: [QuranChapter], fetchedAt: Date)] = [:]
-    private let ttl: TimeInterval = 3600
-
-    func get(language: String) -> [QuranChapter]? {
-        guard let entry = store[language] else { return nil }
-        if Date().timeIntervalSince(entry.fetchedAt) > ttl {
-            store.removeValue(forKey: language)
-            return nil
-        }
-        return entry.chapters
-    }
-
-    func set(_ chapters: [QuranChapter], language: String) {
-        store[language] = (chapters, Date())
+    private func normalizeRecitationId(_ savedId: Int) -> Int {
+        if (1...6).contains(savedId) { return savedId }
+        // Map legacy QF IDs (e.g. 7 or other ones)
+        return 1
     }
 }

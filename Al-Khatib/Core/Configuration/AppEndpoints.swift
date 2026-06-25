@@ -15,6 +15,15 @@ enum AppEndpoints {
         static var oauthToken: URL { url(forInfoKey: "QF_OAUTH_TOKEN_URL") }
         static var oauthAuthorize: URL { url(forInfoKey: "QF_OAUTH_AUTHORIZE_URL") }
         static var oauthCallback: URL { url(forInfoKey: "QF_OAUTH_CALLBACK_URL") }
+
+        /// Custom URL scheme the app intercepts after the registered HTTPS redirect (production bridge).
+        static var oauthAppCallback: URL {
+            if let raw = optionalString(forInfoKey: "QF_OAUTH_APP_CALLBACK_URL"),
+               let url = URL(string: raw) {
+                return url
+            }
+            return oauthCallback
+        }
         static var versesWebBase: String { string(forInfoKey: "QF_VERSES_WEB_BASE") }
         static var alAdhanRoot: String { string(forInfoKey: "QF_ALADHAN_ROOT") }
         static var oauthClientId: String { string(forInfoKey: "QF_OAUTH_CLIENT_ID") }

@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		36DC64F02FBC45C2007DDF44 /* Prowl in Frameworks */ = {isa = PBXBuildFile; productRef = 36DC64EF2FBC45C2007DDF44 /* Prowl */; };
-		36DC64F22FBC45C2007DDF44 /* ProwlCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36DC64F12FBC45C2007DDF44 /* ProwlCore */; };
-		36DC64F42FBC45C2007DDF44 /* ProwlUI in Frameworks */ = {isa = PBXBuildFile; productRef = 36DC64F32FBC45C2007DDF44 /* ProwlUI */; };
+		36825E302FED073F007D0D9D /* ProwlCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36825E2F2FED073F007D0D9D /* ProwlCore */; };
+		36825E322FED073F007D0D9D /* ProwlGRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 36825E312FED073F007D0D9D /* ProwlGRPC */; };
+		36825E342FED073F007D0D9D /* ProwlKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36825E332FED073F007D0D9D /* ProwlKit */; };
+		36825E362FED073F007D0D9D /* ProwlUI in Frameworks */ = {isa = PBXBuildFile; productRef = 36825E352FED073F007D0D9D /* ProwlUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,9 +77,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				36DC64F42FBC45C2007DDF44 /* ProwlUI in Frameworks */,
-				36DC64F22FBC45C2007DDF44 /* ProwlCore in Frameworks */,
-				36DC64F02FBC45C2007DDF44 /* Prowl in Frameworks */,
+				36825E342FED073F007D0D9D /* ProwlKit in Frameworks */,
+				36825E362FED073F007D0D9D /* ProwlUI in Frameworks */,
+				36825E302FED073F007D0D9D /* ProwlCore in Frameworks */,
+				36825E322FED073F007D0D9D /* ProwlGRPC in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,9 +153,10 @@
 			);
 			name = "Al-Khatib";
 			packageProductDependencies = (
-				36DC64EF2FBC45C2007DDF44 /* Prowl */,
-				36DC64F12FBC45C2007DDF44 /* ProwlCore */,
-				36DC64F32FBC45C2007DDF44 /* ProwlUI */,
+				36825E2F2FED073F007D0D9D /* ProwlCore */,
+				36825E312FED073F007D0D9D /* ProwlGRPC */,
+				36825E332FED073F007D0D9D /* ProwlKit */,
+				36825E352FED073F007D0D9D /* ProwlUI */,
 			);
 			productName = "Al-Khatib";
 			productReference = 3600CD252F9C5791001EC262 /* Al-Khatib.app */;
@@ -238,7 +241,7 @@
 			mainGroup = 3600CD1C2F9C5791001EC262;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				36DC64EE2FBC45C2007DDF44 /* XCRemoteSwiftPackageReference "Prowl" */,
+				36825E2E2FED073F007D0D9D /* XCRemoteSwiftPackageReference "prowlkit-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3600CD262F9C5791001EC262 /* Products */;
@@ -476,6 +479,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
@@ -538,6 +542,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
@@ -690,30 +695,35 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		36DC64EE2FBC45C2007DDF44 /* XCRemoteSwiftPackageReference "Prowl" */ = {
+		36825E2E2FED073F007D0D9D /* XCRemoteSwiftPackageReference "prowlkit-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/elmeeee/Prowl.git";
+			repositoryURL = "https://github.com/ProwlLabs/prowlkit-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.7;
+				minimumVersion = 1.0.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		36DC64EF2FBC45C2007DDF44 /* Prowl */ = {
+		36825E2F2FED073F007D0D9D /* ProwlCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 36DC64EE2FBC45C2007DDF44 /* XCRemoteSwiftPackageReference "Prowl" */;
-			productName = Prowl;
-		};
-		36DC64F12FBC45C2007DDF44 /* ProwlCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 36DC64EE2FBC45C2007DDF44 /* XCRemoteSwiftPackageReference "Prowl" */;
+			package = 36825E2E2FED073F007D0D9D /* XCRemoteSwiftPackageReference "prowlkit-ios" */;
 			productName = ProwlCore;
 		};
-		36DC64F32FBC45C2007DDF44 /* ProwlUI */ = {
+		36825E312FED073F007D0D9D /* ProwlGRPC */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 36DC64EE2FBC45C2007DDF44 /* XCRemoteSwiftPackageReference "Prowl" */;
+			package = 36825E2E2FED073F007D0D9D /* XCRemoteSwiftPackageReference "prowlkit-ios" */;
+			productName = ProwlGRPC;
+		};
+		36825E332FED073F007D0D9D /* ProwlKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 36825E2E2FED073F007D0D9D /* XCRemoteSwiftPackageReference "prowlkit-ios" */;
+			productName = ProwlKit;
+		};
+		36825E352FED073F007D0D9D /* ProwlUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 36825E2E2FED073F007D0D9D /* XCRemoteSwiftPackageReference "prowlkit-ios" */;
 			productName = ProwlUI;
 		};
 /* End XCSwiftPackageProductDependency section */

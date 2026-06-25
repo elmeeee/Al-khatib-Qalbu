@@ -1,13 +1,31 @@
 {
-  "originHash" : "79c8405afb284f6c33bb80ee35444788b3bb8b08ed39a2d5fdf17df56e4343cb",
+  "originHash" : "bfb05d915827c132dc5326fe29118039fca568bf12bb78f3c5e726f8ebd6c3f6",
   "pins" : [
     {
-      "identity" : "prowl",
+      "identity" : "grpc-swift-2",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/elmeeee/Prowl.git",
+      "location" : "https://github.com/grpc/grpc-swift-2.git",
       "state" : {
-        "revision" : "ce0e4439bc6776f55256356d1db3c68b73a9133e",
-        "version" : "1.0.7"
+        "revision" : "28cdd63ef88583ddc67d7bb179eab46fab465ce9",
+        "version" : "2.4.2"
+      }
+    },
+    {
+      "identity" : "prowlkit-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ProwlLabs/prowlkit-ios.git",
+      "state" : {
+        "revision" : "d16c758fe1f3cc5dceed599e171417e443d1c427",
+        "version" : "1.0.4"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "a0cb0954ecb21e4e31b0070e6ed5674e8556685a",
+        "version" : "1.6.0"
       }
     }
   ],

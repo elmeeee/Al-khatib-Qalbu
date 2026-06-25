@@ -18,6 +18,7 @@ struct TodayDiscoveryView: View {
     @StateObject private var audio = AudioPlayerController()
     @State private var coordinator: TodayDiscoveryCoordinator?
     @State private var actionsViewModel = TodayVerseActionsViewModel()
+    @State private var tracker: PrayerTrackerViewModel?
 
     let verseState: TodayVerseState
 
@@ -42,6 +43,14 @@ struct TodayDiscoveryView: View {
         .onAppear {
             if coordinator == nil {
                 coordinator = TodayDiscoveryCoordinator(prayer: prayer, audio: audio)
+            }
+            if tracker == nil {
+                tracker = PrayerTrackerViewModel(
+                    appGroupIdentifier: container?.configuration.appGroupIdentifier,
+                    controller: prayer
+                )
+            } else {
+                tracker?.refresh()
             }
             guard let container, let coordinator else { return }
             Task { await coordinator.bootstrap(container: container, verseState: verseState) }
@@ -78,12 +87,18 @@ struct TodayDiscoveryView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         prayerCard
+                        if let tracker {
+                            PrayerTrackerCard(viewModel: tracker, onOpenCalendar: {})
+                                .padding(.horizontal, TodayDiscoveryLayout.horizontalInset)
+                                .padding(.top, 12)
+                        }
                         verseSection(vm: vm)
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .refreshable {
                     await coordinator?.refreshToday(discovery: vm)
+                    tracker?.refresh()
                 }
             }
         }
@@ -98,6 +113,7 @@ struct TodayDiscoveryView: View {
             if phase == .active {
                 vm.autoRefreshDailyAyahIfNeeded(forceIfNoData: false)
                 prayer.refreshIfNeeded()
+                tracker?.refresh()
             }
         }
         .onChangeWithFallback(of: vm.detail?.verseKey) { newKey in

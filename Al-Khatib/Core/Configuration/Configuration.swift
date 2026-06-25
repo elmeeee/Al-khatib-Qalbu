@@ -47,7 +47,6 @@ private enum QFCompiledCredentials {
     static let appGroupIdentifier = "group.co.kamy.Al-Khatib"
 
     static func configuration(for environment: AppEnvironment) -> AppConfiguration {
-        let oauthCallback = AppEndpoints.Runtime.oauthCallback
         let apiBase = AppEndpoints.Runtime.apiBase
         return AppConfiguration(
             environment: environment,
@@ -55,8 +54,8 @@ private enum QFCompiledCredentials {
             userAPIBaseURL: apiBase,
             oauthEndpoint: AppEndpoints.Runtime.oauthToken,
             oauthAuthorizeEndpoint: AppEndpoints.Runtime.oauthAuthorize,
-            oauthRedirectURI: oauthCallback,
-            oauthAppRedirectURI: oauthCallback,
+            oauthRedirectURI: AppEndpoints.Runtime.oauthCallback,
+            oauthAppRedirectURI: AppEndpoints.Runtime.oauthAppCallback,
             oauthScopes: AppEndpoints.Runtime.oauthScopes,
             clientId: AppEndpoints.Runtime.oauthClientId,
             clientSecret: AppEndpoints.Runtime.oauthClientSecret,

@@ -217,7 +217,7 @@ struct TafsirPayload: Decodable, Sendable {
     }
 }
 
-struct HadithsByAyahResponse: Decodable, Sendable {
+struct HadithsByAyahResponse: Codable, Sendable {
     let hadiths: [HadithReference]?
     let page: Int?
     let limit: Int?
@@ -226,7 +226,7 @@ struct HadithsByAyahResponse: Decodable, Sendable {
     let direction: String?
 }
 
-struct HadithReference: Decodable, Sendable {
+struct HadithReference: Codable, Sendable {
     let urn: Int?
     let collection: String?
     let bookNumber: String?
@@ -236,7 +236,7 @@ struct HadithReference: Decodable, Sendable {
     let hadith: [HadithText]?
 }
 
-struct HadithText: Decodable, Sendable {
+struct HadithText: Codable, Sendable {
     let lang: String?
     let chapterNumber: String?
     let chapterTitle: String?
@@ -245,7 +245,7 @@ struct HadithText: Decodable, Sendable {
     let grades: [HadithGrade]?
 }
 
-struct HadithGrade: Decodable, Sendable {
+struct HadithGrade: Codable, Sendable {
     let gradedBy: String?
     let grade: String?
 }
@@ -301,6 +301,30 @@ struct QuranChapter: Decodable, Sendable, Identifiable, Hashable {
     let versesCount: Int?
     let translatedName: ChapterTranslatedName?
 
+    init(
+        id: Int,
+        revelationPlace: String?,
+        revelationOrder: Int? = nil,
+        bismillahPre: Bool? = nil,
+        pages: [Int]?,
+        nameSimple: String?,
+        nameComplex: String?,
+        nameArabic: String?,
+        versesCount: Int?,
+        translatedName: ChapterTranslatedName?
+    ) {
+        self.id = id
+        self.revelationPlace = revelationPlace
+        self.revelationOrder = revelationOrder
+        self.bismillahPre = bismillahPre
+        self.pages = pages
+        self.nameSimple = nameSimple
+        self.nameComplex = nameComplex
+        self.nameArabic = nameArabic
+        self.versesCount = versesCount
+        self.translatedName = translatedName
+    }
+
     var displayComplexName: String {
         if let nameComplex, nameComplex.isEmpty == false { return nameComplex }
         if let nameSimple, nameSimple.isEmpty == false { return nameSimple }
@@ -348,11 +372,21 @@ struct QuranChapter: Decodable, Sendable, Identifiable, Hashable {
 struct ChapterTranslatedName: Decodable, Sendable, Hashable {
     let languageName: String?
     let name: String?
+    
+    init(languageName: String?, name: String?) {
+        self.languageName = languageName
+        self.name = name
+    }
 }
 
 struct VersesByChapterResponse: Decodable, Sendable {
     let verses: [RandomAyahPayload]
     let pagination: ContentPagination?
+
+    init(verses: [RandomAyahPayload], pagination: ContentPagination? = nil) {
+        self.verses = verses
+        self.pagination = pagination
+    }
 
     enum CodingKeys: String, CodingKey {
         case verses, pagination
@@ -371,6 +405,20 @@ struct ContentPagination: Decodable, Sendable {
     let nextPage: Int?
     let totalPages: Int?
     let totalRecords: Int?
+
+    init(
+        perPage: Int?,
+        currentPage: Int?,
+        nextPage: Int?,
+        totalPages: Int?,
+        totalRecords: Int?
+    ) {
+        self.perPage = perPage
+        self.currentPage = currentPage
+        self.nextPage = nextPage
+        self.totalPages = totalPages
+        self.totalRecords = totalRecords
+    }
 
 
     var hasNextPage: Bool {
@@ -411,4 +459,92 @@ struct QFTranslation: Decodable, Identifiable, Hashable, Sendable {
 
 struct TranslationsResponse: Decodable, Sendable {
     let translations: [QFTranslation]
+}
+
+struct QuranJuz: Decodable, Sendable, Identifiable, Hashable {
+    let id: Int
+    let juzNumber: Int
+    let verseMapping: [String: String]?
+    let firstVerseId: Int?
+    let lastVerseId: Int?
+    let versesCount: Int?
+    
+    init(
+        id: Int,
+        juzNumber: Int,
+        verseMapping: [String: String]?,
+        firstVerseId: Int? = nil,
+        lastVerseId: Int? = nil,
+        versesCount: Int? = nil
+    ) {
+        self.id = id
+        self.juzNumber = juzNumber
+        self.verseMapping = verseMapping
+        self.firstVerseId = firstVerseId
+        self.lastVerseId = lastVerseId
+        self.versesCount = versesCount
+    }
+
+    var displayJuzNumber: Int { juzNumber }
+
+    func startChapterAndAyah() -> (Int, Int)? {
+        guard let verseMapping, !verseMapping.isEmpty else { return nil }
+        let chapters = verseMapping.keys.compactMap { Int($0) }
+        guard let minChapter = chapters.min() else { return nil }
+        guard let range = verseMapping[String(minChapter)] else { return nil }
+        let parts = range.split(separator: "-")
+        let startAyahStr = parts.first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let startAyah = Int(startAyahStr) ?? 1
+        return (minChapter, startAyah)
+    }
+
+    func firstChapterNumber() -> Int? {
+        guard let verseMapping else { return nil }
+        return verseMapping.keys.compactMap { Int($0) }.min()
+    }
+}
+
+struct PagesLookupResponse: Decodable, Sendable {
+    let lookupRange: LookupRange?
+    let pages: [String: PageInfo]?
+    let totalPage: Int?
+    
+    init(
+        lookupRange: LookupRange? = nil,
+        pages: [String: PageInfo]? = nil,
+        totalPage: Int? = nil
+    ) {
+        self.lookupRange = lookupRange
+        self.pages = pages
+        self.totalPage = totalPage
+    }
+}
+
+struct LookupRange: Decodable, Sendable {
+    let from: String
+    let to: String
+    
+    init(from: String, to: String) {
+        self.from = from
+        self.to = to
+    }
+}
+
+struct PageInfo: Decodable, Sendable {
+    let from: String
+    let to: String
+    let firstVerseKey: String?
+    let lastVerseKey: String?
+    
+    init(
+        from: String,
+        to: String,
+        firstVerseKey: String? = nil,
+        lastVerseKey: String? = nil
+    ) {
+        self.from = from
+        self.to = to
+        self.firstVerseKey = firstVerseKey
+        self.lastVerseKey = lastVerseKey
+    }
 }

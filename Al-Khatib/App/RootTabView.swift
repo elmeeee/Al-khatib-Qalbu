@@ -10,7 +10,7 @@ import SwiftUI
 
 struct RootTabView: View {
     enum Tab: Hashable {
-        case today, reflect, journey
+        case today, journey, tools, reflect, account
     }
 
     enum TodayNavigation: Hashable {
@@ -46,20 +46,22 @@ struct RootTabView: View {
             NavigationStack(path: $todayNavigationPath) {
                 TodayDiscoveryView(verseState: verseState)
                     .toolbar(.hidden, for: .navigationBar)
-                    .navigationDestination(for: TodayNavigation.self) { destination in
-                        switch destination {
-                        case .account:
-                            ProfileView(preferSystemNavigationTitle: true, verseState: verseState)
-                                .environment(\.appContainer, container)
-                                .navigationTitle("Account")
-                                .navigationBarTitleDisplayMode(.large)
-                                .toolbar(.visible, for: .navigationBar)
-                        }
-                    }
             }
             .tag(Tab.today)
             .tabItem { Label("Today", systemImage: "sun.max.fill") }
             .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.today, hint: AlKhatibAccessibility.Tab.todayHint)
+
+            ChaptersView()
+                .tag(Tab.journey)
+                .tabItem { Label("Quran", systemImage: "book.fill") }
+                .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.quran, hint: AlKhatibAccessibility.Tab.quranHint)
+
+            NavigationStack {
+                SpiritualToolsView()
+            }
+            .tag(Tab.tools)
+            .tabItem { Label("Tools", systemImage: "grid") }
+
             ReflectionView(
                 verseState: verseState,
                 isTabSelected: selectedTab == .reflect
@@ -67,10 +69,13 @@ struct RootTabView: View {
             .tag(Tab.reflect)
             .tabItem { Label("Reflect", systemImage: "square.and.pencil") }
             .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.reflect, hint: AlKhatibAccessibility.Tab.reflectHint)
-            ChaptersView()
-                .tag(Tab.journey)
-                .tabItem { Label("Quran", systemImage: "book.fill") }
-                .alKhatibAccessibility(label: AlKhatibAccessibility.Tab.quran, hint: AlKhatibAccessibility.Tab.quranHint)
+
+            NavigationStack {
+                ProfileView(preferSystemNavigationTitle: true, verseState: verseState)
+                    .environment(\.appContainer, container)
+            }
+            .tag(Tab.account)
+            .tabItem { Label("Account", systemImage: "person.crop.circle") }
         }
         .onChangeWithFallback(of: verseState.shouldNavigateToReflect) { shouldNavigate in
             if shouldNavigate {
@@ -81,9 +86,7 @@ struct RootTabView: View {
         }
         .onChangeWithFallback(of: verseState.shouldNavigateToAccount) { shouldNavigate in
             if shouldNavigate {
-                if todayNavigationPath.isEmpty {
-                    todayNavigationPath.append(.account)
-                }
+                selectedTab = .account
                 verseState.didNavigateToAccount()
             }
         }

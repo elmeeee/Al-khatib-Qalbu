@@ -5,6 +5,7 @@ QF_API_BASE_URL = https:/$()/apis-prelive.quran.foundation
 QF_OAUTH_TOKEN_URL = https:/$()/prelive-oauth2.quran.foundation/oauth2/token
 QF_OAUTH_AUTHORIZE_URL = https:/$()/prelive-oauth2.quran.foundation/oauth2/auth
 QF_OAUTH_CALLBACK_URL = alkhatib:/$()/oauth/callback
+QF_OAUTH_APP_CALLBACK_URL = alkhatib:/$()/oauth/callback
 QF_OAUTH_CLIENT_ID = 04fbf4ca-3de0-4a39-b1ac-0e88a44f0b08
 QF_OAUTH_CLIENT_SECRET = $(QF_OAUTH_CLIENT_SECRET_DEBUG)
 QF_OAUTH_SCOPES = openid offline_access user post streak activity_day reading_session

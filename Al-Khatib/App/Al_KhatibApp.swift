@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import Prowl
+import ProwlKit
 import UserNotifications
 
 @main
