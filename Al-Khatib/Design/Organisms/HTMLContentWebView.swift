@@ -435,7 +435,7 @@ struct HTMLContentWebView: UIViewRepresentable {
             }
             body {
               direction: rtl;
-              text-align: right;
+              text-align: center;
               unicode-bidi: plaintext;
               font-family: \(arabicFontStack);
               font-size: clamp(\(String(format: "%.1f", minPx))px, \(String(format: "%.1f", vw))vw, \(String(format: "%.1f", maxPx))px);

@@ -14,6 +14,8 @@ struct ChapterAyahPage: View {
 
     let verse: RandomAyahPayload
     let showTranslation: Bool
+    let showTransliteration: Bool
+    let isMemorizationMode: Bool
     let fontScale: Double
     let isPlaying: Bool
     let onTapScreen: () -> Void
@@ -21,6 +23,7 @@ struct ChapterAyahPage: View {
     @State private var showTapFeedback = false
     @State private var arabicMeasuredHeight: CGFloat = 120
     @State private var layoutScale: Double = 1.0
+    @State private var isRevealed = false
 
     private let contentSpacing: CGFloat = 16
     private let minimumLayoutScale: Double = 0.68
@@ -65,24 +68,41 @@ struct ChapterAyahPage: View {
                 VStack(alignment: .center, spacing: 0) {
                     VStack(spacing: contentSpacing) {
 
-                        // ── Verse Number Pill ─────────────────────────
+                        // ── Verse Number Pill & Memorization Eye ─────────────────────────
                         if !verseDisplayNumber.isEmpty {
-                            HStack(spacing: 6) {
-                                ornamentDot
-                                Text(verseDisplayNumber)
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color.Token.gold)
-                                ornamentDot
+                            HStack(spacing: 8) {
+                                HStack(spacing: 6) {
+                                    ornamentDot
+                                    Text(verseDisplayNumber)
+                                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                                        .foregroundColor(Color.Token.gold)
+                                    ornamentDot
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.Token.gold.opacity(0.1))
+                                        .overlay(
+                                            Capsule().stroke(Color.Token.gold.opacity(0.25), lineWidth: 1)
+                                        )
+                                )
+
+                                if isMemorizationMode {
+                                    Button {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            isRevealed.toggle()
+                                        }
+                                    } label: {
+                                        Image(systemName: isRevealed ? "eye.fill" : "eye.slash.fill")
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(Color.Token.goldBright)
+                                            .padding(6)
+                                            .background(Circle().fill(Color.Token.gold.opacity(0.12)))
+                                            .overlay(Circle().stroke(Color.Token.gold.opacity(0.25), lineWidth: 1))
+                                    }
+                                }
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color.Token.gold.opacity(0.1))
-                                    .overlay(
-                                        Capsule().stroke(Color.Token.gold.opacity(0.25), lineWidth: 1)
-                                    )
-                            )
                         }
 
                         // ── Arabic WebBlock ───────────────────────────
@@ -96,7 +116,7 @@ struct ChapterAyahPage: View {
                         .padding(.horizontal, 8)
 
                         // ── Transliteration ───────────────────────────
-                        if let latinText = verse.transliteration, latinText.isEmpty == false {
+                        if showTransliteration, let latinText = verse.transliteration, latinText.isEmpty == false {
                             Text(latinText)
                                 .font(.system(size: CGFloat(15 * effectiveFontScale), weight: .medium, design: .serif))
                                 .foregroundColor(Color.Token.goldBright.opacity(0.95))
@@ -118,6 +138,28 @@ struct ChapterAyahPage: View {
                                                 )
                                         )
                                 )
+                                .blur(radius: (isMemorizationMode && !isRevealed) ? 12 : 0)
+                                .overlay {
+                                    if isMemorizationMode && !isRevealed {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "eye.slash.fill")
+                                                .font(.system(size: 11))
+                                            Text(AppLanguageManager.shared.currentLanguage == .english ? "Tap to reveal" : "Ketuk untuk melihat")
+                                                .font(.caption2.weight(.bold))
+                                        }
+                                        .foregroundColor(Color.Token.goldBright.opacity(0.85))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(Capsule().fill(Color.black.opacity(0.35)))
+                                    }
+                                }
+                                .onTapGesture {
+                                    if isMemorizationMode {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            isRevealed.toggle()
+                                        }
+                                    }
+                                }
                         }
 
                         // ── Translation ───────────────────────────────
@@ -150,6 +192,28 @@ struct ChapterAyahPage: View {
                                 )
                                 .padding(.horizontal, 4)
                             }
+                            .blur(radius: (isMemorizationMode && !isRevealed) ? 16 : 0)
+                            .overlay {
+                                if isMemorizationMode && !isRevealed {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "eye.slash.fill")
+                                            .font(.system(size: 11))
+                                        Text(AppLanguageManager.shared.currentLanguage == .english ? "Tap to reveal" : "Ketuk untuk melihat")
+                                            .font(.caption2.weight(.bold))
+                                    }
+                                    .foregroundColor(.white.opacity(0.85))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Capsule().fill(Color.black.opacity(0.35)))
+                                }
+                            }
+                            .onTapGesture {
+                                if isMemorizationMode {
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        isRevealed.toggle()
+                                    }
+                                }
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .top)
@@ -173,11 +237,18 @@ struct ChapterAyahPage: View {
                         : ""
                 )
                 .onTapGesture {
-                    guard hasAudio else { return }
-                    onTapScreen()
-                    pulseTapFeedback()
+                    if isMemorizationMode && !isRevealed {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            isRevealed = true
+                        }
+                    } else {
+                        guard hasAudio else { return }
+                        onTapScreen()
+                        pulseTapFeedback()
+                    }
                 }
                 .onAppear {
+                    isRevealed = false
                     layoutScale = 1.0
                     recalculateLayoutScale(availableHeight: availableHeight, contentWidth: geometry.size.width)
                 }

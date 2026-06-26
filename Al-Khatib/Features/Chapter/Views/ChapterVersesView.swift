@@ -19,12 +19,18 @@ struct ChapterVersesView: View {
 
     @AppStorage("chapterReaderFontScale") private var fontScale = 1.0
     @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
+    @AppStorage("chapterReaderShowTransliteration") private var showTransliteration = true
+    @AppStorage("chapterReaderMemorizationMode") private var isMemorizationMode = false
     @AppStorage(ChapterReaderPreferences.translationIdKey) private var chapterTranslationId = ChapterReaderPreferences.defaultTranslationId
 
     @StateObject private var audio = AudioPlayerController()
     @State private var readerCoordinator: ChapterReaderCoordinator?
     @State private var vm: ChapterVersesViewModel?
     @State private var showReadingSettings = false
+    @State private var isMenuExpanded = false
+    @State private var showAISheet = false
+    @State private var showNoteSheet = false
+    @State private var toastMessage: String? = nil
 
     private var showsNowPlaying: Bool { audio.currentURL != nil }
 
@@ -50,63 +56,7 @@ struct ChapterVersesView: View {
                 safeArea: rootGeo.safeAreaInsets,
                 showsNowPlaying: readerChromeShowsNowPlaying
             )
-
-            ZStack {
-                Group {
-                    if let vm {
-                        versePager(vm)
-                    } else {
-                        ChapterReaderBackground()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .environment(\.chapterReaderChromeInsets, chromeInsets)
-
-                VStack(spacing: 0) {
-                    chapterHeader
-                    Spacer()
-                }
-
-                VStack(spacing: 0) {
-                    Spacer()
-                    if showsNowPlaying {
-                        floatingNowPlayingBar
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                }
-                .safeAreaPadding(.horizontal)
-                .safeAreaPadding(.bottom, floatingPlayerBottomPadding)
-
-                if readerCoordinator?.isOnIntroPage == false {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            sideActionButtons
-                        }
-                    }
-                    .padding(.trailing, 12)
-                    .safeAreaPadding(.bottom, floatingActionsBottomPadding)
-                }
-
-                if vm == nil || (vm?.isLoading == true && vm?.verses.isEmpty == true) {
-                    ProgressView()
-                        .tint(.white)
-                        .allowsHitTesting(false)
-                }
-
-                if let vm, vm.isLoadingMore {
-                    ProgressView()
-                        .tint(.white)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                        .safeAreaPadding(.bottom, floatingActionsBottomPadding)
-                        .allowsHitTesting(false)
-                }
-
-                if let vm, vm.isReloadingContent {
-                    reloadingOverlay
-                }
-            }
+            mainContent(chromeInsets: chromeInsets)
         }
         .id(languageManager.currentLanguage)
         .chapterReaderScreenBackground()
@@ -181,6 +131,28 @@ struct ChapterVersesView: View {
                 )
             }
         }
+        .sheet(isPresented: $showAISheet) {
+            if let vm, let verse = readerCoordinator?.currentVerse(in: vm) {
+                VerseAISheet(
+                    surahName: currentSurahName,
+                    verseNumber: verse.resolvedVerseNumber ?? 1,
+                    verseText: verse.text ?? "",
+                    translationText: verse.translations?.first?.text ?? ""
+                )
+            }
+        }
+        .sheet(isPresented: $showNoteSheet) {
+            if let vm, let verse = readerCoordinator?.currentVerse(in: vm), let key = verse.verseKey {
+                VerseNoteSheet(
+                    surahName: currentSurahName,
+                    verseNumber: verse.resolvedVerseNumber ?? 1,
+                    verseKey: key,
+                    onSave: {
+                        showToast(languageManager.currentLanguage == .english ? "Note saved" : "Catatan disimpan")
+                    }
+                )
+            }
+        }
         .onChange(of: audio.activeSequenceIndex) { _, _ in
             guard let vm, let readerCoordinator else { return }
             readerCoordinator.onActiveSequenceIndexChanged(vm: vm)
@@ -191,6 +163,95 @@ struct ChapterVersesView: View {
         }
         .onDisappear {
             readerCoordinator?.onDisappear()
+        }
+    }
+
+    @ViewBuilder
+    private func mainContent(chromeInsets: ChapterReaderChromeInsets) -> some View {
+        ZStack {
+            Group {
+                if let vm {
+                    versePager(vm)
+                } else {
+                    ChapterReaderBackground()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .environment(\.chapterReaderChromeInsets, chromeInsets)
+
+            VStack(spacing: 0) {
+                chapterHeader
+                Spacer()
+            }
+
+            VStack(spacing: 0) {
+                Spacer()
+                if showsNowPlaying {
+                    floatingNowPlayingBar
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .safeAreaPadding(.horizontal)
+            .safeAreaPadding(.bottom, floatingPlayerBottomPadding)
+
+            if isMenuExpanded {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(20)
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                            isMenuExpanded = false
+                        }
+                    }
+            }
+
+            if readerCoordinator?.isOnIntroPage == false {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        sideActionButtons
+                    }
+                }
+                .padding(.trailing, 12)
+                .safeAreaPadding(.bottom, floatingActionsBottomPadding)
+                .zIndex(30)
+            }
+
+            if let toast = toastMessage {
+                VStack {
+                    Text(toast)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(Color.Token.deepEmerald.opacity(0.95)))
+                        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                    Spacer()
+                }
+                .padding(.top, 100)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .zIndex(100)
+            }
+
+            if vm == nil || (vm?.isLoading == true && vm?.verses.isEmpty == true) {
+                ProgressView()
+                    .tint(.white)
+                    .allowsHitTesting(false)
+            }
+
+            if let vm, vm.isLoadingMore {
+                ProgressView()
+                    .tint(.white)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .safeAreaPadding(.bottom, floatingActionsBottomPadding)
+                    .allowsHitTesting(false)
+            }
+
+            if let vm, vm.isReloadingContent {
+                reloadingOverlay
+            }
         }
     }
 
@@ -298,42 +359,163 @@ struct ChapterVersesView: View {
     }
 
     private var sideActionButtons: some View {
-        VStack(spacing: 18) {
-            if let vm, let readerCoordinator {
-                Button(action: {
-                    if audio.isPlaying {
-                        audio.pause()
-                    } else {
-                        if audio.currentURL != nil {
-                            audio.toggle()
-                        } else {
-                            Task {
-                                await readerCoordinator.playEntireSurah(vm: vm)
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 16) {
+                if isMenuExpanded {
+                    // Menu Items (vertical list)
+                    fabMenuItem(icon: "bookmark.fill", color: Color.Token.goldBright, label: languageManager.currentLanguage == .english ? "Bookmark" : "Bookmark") {
+                        if let vm, let verse = readerCoordinator?.currentVerse(in: vm), let key = verse.verseKey {
+                            let bookmarked = UserDefaults.standard.stringArray(forKey: "bookmarked_verses") ?? []
+                            var newBookmarks = bookmarked
+                            if bookmarked.contains(key) {
+                                newBookmarks.removeAll(where: { $0 == key })
+                                showToast(languageManager.currentLanguage == .english ? "Removed bookmark" : "Bookmark dihapus")
+                            } else {
+                                newBookmarks.append(key)
+                                showToast(languageManager.currentLanguage == .english ? "Bookmarked successfully" : "Bookmark disimpan")
                             }
+                            UserDefaults.standard.set(newBookmarks, forKey: "bookmarked_verses")
                         }
                     }
-                }) {
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
+
+                    fabMenuItem(icon: "pencil.and.outline", color: Color.Token.teal, label: languageManager.currentLanguage == .english ? "Notes" : "Catatan") {
+                        showNoteSheet = true
+                    }
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
+
+                    fabMenuItem(icon: "brain.headlight", color: .orange, label: languageManager.currentLanguage == .english ? "Memorize" : "Tandai Hafalan") {
+                        if let vm, let verse = readerCoordinator?.currentVerse(in: vm), let key = verse.verseKey {
+                            let memorized = UserDefaults.standard.stringArray(forKey: "memorized_verses") ?? []
+                            var newMemorized = memorized
+                            if memorized.contains(key) {
+                                newMemorized.removeAll(where: { $0 == key })
+                                showToast(languageManager.currentLanguage == .english ? "Removed from memorized" : "Hafalan dibatalkan")
+                            } else {
+                                newMemorized.append(key)
+                                showToast(languageManager.currentLanguage == .english ? "Marked as memorized" : "Telah dihafal")
+                            }
+                            UserDefaults.standard.set(newMemorized, forKey: "memorized_verses")
+                        }
+                    }
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
+
+                    fabMenuItem(icon: "sparkles", color: .purple, label: "Tafsir AI") {
+                        showAISheet = true
+                    }
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
+
+                    fabMenuItem(icon: "book.closed.fill", color: Color.Token.deepEmerald, label: "Tafsir") {
+                        guard let readerCoordinator, let vm else { return }
+                        readerCoordinator.openTafsirForCurrentAyah(in: vm)
+                    }
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
+
+                    fabMenuItem(icon: "text.book.closed.fill", color: Color.Token.indigoAccent, label: "Hadits") {
+                        guard let readerCoordinator, let vm else { return }
+                        readerCoordinator.openHadithForCurrentAyah(in: vm)
+                    }
+                    .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
+                }
+
+                // Play/Pause button shown above collapsed FAB button
+                if !isMenuExpanded, let vm, let readerCoordinator = readerCoordinator {
+                    Button(action: {
+                        if audio.isPlaying {
+                            audio.pause()
+                        } else {
+                            if audio.currentURL != nil {
+                                audio.toggle()
+                            } else {
+                                Task {
+                                    await readerCoordinator.playEntireSurah(vm: vm)
+                                }
+                            }
+                        }
+                    }) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.Token.deepEmerald)
+                                .frame(width: 48, height: 48)
+                                .shadow(color: Color.Token.deepEmerald.opacity(0.3), radius: 6, y: 3)
+                            
+                            Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .transition(.opacity)
+                }
+
+                // Main FAB Button
+                Button {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        isMenuExpanded.toggle()
+                    }
+                } label: {
                     ZStack {
                         Circle()
-                            .fill(Color.Token.deepEmerald)
-                            .frame(width: 48, height: 48)
-                            .shadow(color: Color.Token.deepEmerald.opacity(0.3), radius: 6, y: 3)
-                        
-                        Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 20, weight: .bold))
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.Token.deepEmerald, Color.Token.tealDark],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 56, height: 56)
+                            .shadow(color: Color.Token.deepEmerald.opacity(0.4), radius: 8, x: 0, y: 4)
+
+                        Image(systemName: isMenuExpanded ? "xmark" : "doc.text.image.fill")
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
+                            .rotationEffect(.degrees(isMenuExpanded ? 90 : 0))
                     }
                 }
-                .accessibilityLabel(audio.isPlaying ? "Pause recitation" : "Play recitation")
+                .buttonStyle(.plain)
             }
-            
-            QFSideActionButton(icon: "text.book.closed.fill", label: "Hadith") {
-                guard let readerCoordinator, let vm else { return }
-                readerCoordinator.openHadithForCurrentAyah(in: vm)
+        }
+    }
+
+    private func fabMenuItem(icon: String, color: Color, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                isMenuExpanded = false
             }
-            QFSideActionButton(icon: "book.closed.fill", label: "Tafsir") {
-                guard let readerCoordinator, let vm else { return }
-                readerCoordinator.openTafsirForCurrentAyah(in: vm)
+            action()
+        }) {
+            HStack(spacing: 12) {
+                Text(label)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.black.opacity(0.65))
+                    .cornerRadius(8)
+                    .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+
+                ZStack {
+                    Circle()
+                        .fill(color)
+                        .frame(width: 44, height: 44)
+                        .shadow(color: color.opacity(0.3), radius: 6, y: 3)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func showToast(_ message: String) {
+        toastMessage = message
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            withAnimation(.easeOut(duration: 0.35)) {
+                if toastMessage == message {
+                    toastMessage = nil
+                }
             }
         }
     }
@@ -395,6 +577,8 @@ struct ChapterVersesView: View {
                             ChapterAyahPage(
                                 verse: verse,
                                 showTranslation: showTranslation,
+                                showTransliteration: showTransliteration,
+                                isMemorizationMode: isMemorizationMode,
                                 fontScale: fontScale,
                                 isPlaying: audio.isPlayingURL(verse.audio?.url) && audio.isPlaying,
                                 onTapScreen: { readerCoordinator.handleTap(for: verse, vm: bindable) }

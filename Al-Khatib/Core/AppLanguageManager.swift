@@ -148,6 +148,9 @@ class AppLanguageManager: ObservableObject {
         "reciter": [.english: "Reciter", .indonesian: "Pilihan Qori", .malay: "Pilihan Qari"],
         "loading_verses": [.english: "Loading verses…", .indonesian: "Memuat ayat…", .malay: "Memuatkan ayat…"],
         "reciter_audio_update_desc": [.english: "Updates audio for all verses in this surah.", .indonesian: "Memperbarui audio untuk semua ayat dalam surah ini.", .malay: "Mengemas kini audio untuk semua ayat dalam surah ini."],
+        "show_transliteration": [.english: "Show Transliteration", .indonesian: "Tampilkan Latin", .malay: "Tampilkan Rumi"],
+        "memorization_mode": [.english: "Memorization Mode", .indonesian: "Mode Hafalan", .malay: "Mod Hafalan"],
+        "continuous_play": [.english: "Continuous Play", .indonesian: "Putar Berkelanjutan", .malay: "Putar Berterusan"],
 
 
         // Settings details
@@ -504,8 +507,6 @@ class AppLanguageManager: ObservableObject {
         "loading": [.english: "Loading...", .indonesian: "Memuat...", .malay: "Memuatkan..."],
         "reflection_signin_prompt": [.english: "Sign in to Reflect", .indonesian: "Masuk untuk Menulis Refleksi", .malay: "Log Masuk untuk Menulis Refleksi"],
         "reflection_placeholder": [.english: "Write your reflection here...", .indonesian: "Tulis refleksi Anda di sini...", .malay: "Tulis refleksi anda di sini..."],
-        "post_reflection": [.english: "Post Reflection", .indonesian: "Kirim Refleksi", .malay: "Hantar Refleksi"],
-        "your_reflection": [.english: "Your Reflection", .indonesian: "Refleksi Anda", .malay: "Refleksi Anda"],
         "revelation_makkah": [.english: "Makkah", .indonesian: "Makkah", .malay: "Mekah"],
         "revelation_madinah": [.english: "Madinah", .indonesian: "Madinah", .malay: "Madinah"],
         

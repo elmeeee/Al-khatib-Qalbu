@@ -138,7 +138,11 @@ final class AudioPlayerController: ObservableObject {
     }
 
     private func handlePlaybackEnded() {
-        if queueIndex + 1 < queue.count {
+        let isContinuous = UserDefaults.standard.object(forKey: "chapterReaderContinuousPlay") == nil
+            ? true
+            : UserDefaults.standard.bool(forKey: "chapterReaderContinuousPlay")
+
+        if isContinuous && queueIndex + 1 < queue.count {
             queueIndex += 1
             playCurrentQueueItem()
         } else {

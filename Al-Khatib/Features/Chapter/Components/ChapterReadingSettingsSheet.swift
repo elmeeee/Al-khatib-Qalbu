@@ -51,31 +51,91 @@ struct ChapterReadingSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var languageManager = AppLanguageManager.shared
 
+    @AppStorage("chapterReaderShowTransliteration") private var showTransliteration = true
+    @AppStorage("chapterReaderMemorizationMode") private var isMemorizationMode = false
+    @AppStorage("chapterReaderContinuousPlay") private var isContinuousPlay = true
+
     private let fontScaleRange: ClosedRange<Double> = 0.85 ... 1.35
 
     var body: some View {
         NavigationStack {
             Form {
-                recitationSection
+                Section {
+                    if isLoadingRecitations && recitations.isEmpty {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                            Spacer()
+                        }
+                        .listRowBackground(Color.clear)
+                    } else if recitations.isEmpty {
+                        Text(languageManager.localize("reciters_unavailable"))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Picker(selection: $selectedRecitationId) {
+                            ForEach(recitations, id: \.identifiableId) { recitation in
+                                Text(recitation.displayName).tag(recitation.identifiableId)
+                            }
+                        } label: {
+                            Label(languageManager.localize("reciter"), systemImage: "person.wave.2.fill")
+                                .foregroundColor(Color.Token.deepEmerald)
+                        }
+                        .pickerStyle(.menu)
+                        .disabled(isApplyingPreferences)
+                    }
+                } header: {
+                    Text(languageManager.localize("reciter") ?? "Reciter")
+                }
 
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text(languageManager.localize("text_size"))
+                            Label(languageManager.localize("text_size"), systemImage: "textformat.size")
+                                .foregroundColor(Color.Token.deepEmerald)
                             Spacer()
                             Text(fontScaleLabel)
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.secondary)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(Color.Token.gold)
                         }
                         Slider(value: $fontScale, in: fontScaleRange, step: 0.05)
+                            .tint(Color.Token.deepEmerald)
                     }
                     .padding(.vertical, 4)
+                } header: {
+                    Text(languageManager.localize("text_size") ?? "Text Display")
+                }
+
+                Section {
+                    Toggle(isOn: $showTranslation) {
+                        Label(languageManager.localize("show_translation") ?? "Show Translation", systemImage: "character.book.closed.fill")
+                            .foregroundColor(Color.Token.deepEmerald)
+                    }
+                    .tint(Color.Token.deepEmerald)
+
+                    Toggle(isOn: $showTransliteration) {
+                        Label(languageManager.localize("show_transliteration") ?? "Tampilkan Latin", systemImage: "abc")
+                            .foregroundColor(Color.Token.deepEmerald)
+                    }
+                    .tint(Color.Token.deepEmerald)
+
+                    Toggle(isOn: $isMemorizationMode) {
+                        Label(languageManager.localize("memorization_mode") ?? "Mode Hafalan", systemImage: "brain.headlight")
+                            .foregroundColor(Color.Token.deepEmerald)
+                    }
+                    .tint(Color.Token.deepEmerald)
                 } header: {
                     Text(languageManager.localize("arabic_translation_header"))
                 }
 
                 Section {
-                    Toggle(languageManager.localize("show_translation"), isOn: $showTranslation)
+                    Toggle(isOn: $isContinuousPlay) {
+                        Label(languageManager.localize("continuous_play") ?? "Putar Berkelanjutan", systemImage: "arrow.forward.to.line.circle.fill")
+                            .foregroundColor(Color.Token.deepEmerald)
+                    }
+                    .tint(Color.Token.deepEmerald)
+                } header: {
+                    Text("Audio Control")
                 }
             }
             .navigationTitle(languageManager.localize("reading_settings"))
@@ -83,46 +143,12 @@ struct ChapterReadingSettingsSheet: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(languageManager.localize("done")) { dismiss() }
+                        .fontWeight(.bold)
+                        .foregroundColor(Color.Token.deepEmerald)
                 }
             }
         }
         .presentationDetents([.medium, .large])
-    }
-
-    private var recitationSection: some View {
-        Section {
-            if isLoadingRecitations && recitations.isEmpty {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
-                .listRowBackground(Color.clear)
-            } else if recitations.isEmpty {
-                Text(languageManager.localize("reciters_unavailable"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
-                Picker(languageManager.localize("reciter"), selection: $selectedRecitationId) {
-                    ForEach(recitations, id: \.identifiableId) { recitation in
-                        Text(recitation.displayName).tag(recitation.identifiableId)
-                    }
-                }
-                .pickerStyle(.menu)
-                .disabled(isApplyingPreferences)
-            }
-
-            if isApplyingPreferences {
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text(languageManager.localize("loading_verses"))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        } footer: {
-            Text(languageManager.localize("reciter_audio_update_desc"))
-        }
     }
 
     private var fontScaleLabel: String {
