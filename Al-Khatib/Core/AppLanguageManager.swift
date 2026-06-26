@@ -144,9 +144,10 @@ class AppLanguageManager: ObservableObject {
         "verses": [.english: "Verses", .indonesian: "Ayat", .malay: "Ayat"],
         "no_chapters": [.english: "No chapters found", .indonesian: "Tidak ada surah ditemukan", .malay: "Tiada surah dijumpai"],
         "try_again": [.english: "Try Again", .indonesian: "Coba Lagi", .malay: "Cuba Lagi"],
-        "continue_reading": [.english: "Continue reading", .indonesian: "Lanjutkan membaca", .malay: "Teruskan membaca"],
         "starts_at": [.english: "Starts at", .indonesian: "Mulai dari", .malay: "Mula dari"],
         "quran_title": [.english: "Quran", .indonesian: "Al-Quran", .malay: "Al-Quran"],
+        "quran_subtitle": [.english: "114 Surahs · The Noble Quran", .indonesian: "114 Surah · Al-Quran Al-Karim", .malay: "114 Surah · Al-Quran Al-Karim"],
+        "quran_subtitle_juz": [.english: "30 Juz · The Noble Quran", .indonesian: "30 Juz · Al-Quran Al-Karim", .malay: "30 Juz · Al-Quran Al-Karim"],
         
         // Faraidh
         "faraidh_title": [.english: "Inheritance Calculator", .indonesian: "Kalkulator Waris", .malay: "Kalkulator Waris"],
