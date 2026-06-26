@@ -313,13 +313,15 @@ struct ARCameraPreviewContainer: View {
             if permissionGranted {
                 CameraPreviewView(session: session)
                     .onAppear {
+                        let currentSession = session
                         DispatchQueue.global(qos: .userInitiated).async {
-                            session.startRunning()
+                            currentSession.startRunning()
                         }
                     }
                     .onDisappear {
+                        let currentSession = session
                         DispatchQueue.global(qos: .userInitiated).async {
-                            session.stopRunning()
+                            currentSession.stopRunning()
                         }
                     }
             } else {

@@ -359,7 +359,7 @@ struct PrayerCalendarView: View {
         let method = prayerController.calculationMethod
         
         let calendar = Calendar.current
-        var comps = DateComponents(year: currentYear, month: currentMonth)
+        let comps = DateComponents(year: currentYear, month: currentMonth)
         guard let monthDate = calendar.date(from: comps),
               let range = calendar.range(of: .day, in: .month, for: monthDate) else {
             errorMessage = "Invalid month/year specifications."

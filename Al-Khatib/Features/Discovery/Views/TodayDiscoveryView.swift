@@ -86,16 +86,6 @@ struct TodayDiscoveryView: View {
                 )
                 .ignoresSafeArea(edges: .bottom)
 
-                NavigationLink(
-                    destination: PrayerCalendarView().environmentObject(prayer),
-                    isActive: $showingPrayerCalendar
-                ) { EmptyView() }
-
-                NavigationLink(
-                    destination: PrayerTrackerCalendarView(),
-                    isActive: $showingTrackerCalendar
-                ) { EmptyView() }
-
                 ScrollView {
                     VStack(spacing: 0) {
                         prayerCard
@@ -108,8 +98,9 @@ struct TodayDiscoveryView: View {
                         }
                         verseSection(vm: vm)
                     }
+                    .padding(.bottom, 24)
                 }
-                .scrollBounceBehavior(.basedOnSize)
+                .scrollIndicators(.hidden)
                 .refreshable {
                     await coordinator?.refreshToday(discovery: vm)
                     tracker?.refresh()
@@ -117,6 +108,12 @@ struct TodayDiscoveryView: View {
             }
         }
         .background(Color.Token.deepEmerald.ignoresSafeArea(edges: .top))
+        .navigationDestination(isPresented: $showingPrayerCalendar) {
+            PrayerCalendarView().environmentObject(prayer)
+        }
+        .navigationDestination(isPresented: $showingTrackerCalendar) {
+            PrayerTrackerCalendarView()
+        }
         .animation(nil, value: audio.currentURL)
         .safeAreaInset(edge: .bottom) {
             if audio.currentURL != nil {
@@ -210,18 +207,9 @@ struct TodayDiscoveryView: View {
             if let dashboard = coordinator?.dashboardViewModel {
                 ZStack(alignment: .topTrailing) {
                     PrayerDashboardCard(viewModel: dashboard)
-                    
-                    Button(action: { showingPrayerCalendar = true }) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(10)
-                            .background(Color.black.opacity(0.2))
-                            .clipShape(Circle())
-                    }
-                    .padding(.trailing, 32)
-                    .padding(.top, 92)
-                    .accessibilityLabel("Open Prayer Calendar")
+                        .onTapGesture {
+                            showingPrayerCalendar = true
+                        }
                 }
             } else {
                 RoundedRectangle(cornerRadius: 24)
@@ -244,7 +232,7 @@ struct TodayDiscoveryView: View {
         guard let url = verse.audio?.url else { return }
         let reciter = vm.recitations
             .first(where: { $0.id == vm.selectedRecitationId })?.displayName ?? ""
-        let label = verse.verseKey.flatMap { ShareVerseCard.humanLabel(for: $0) } ?? "Quran"
+        let label = verse.verseKey.flatMap { ShareVerseCard.humanLabel(for: $0) } ?? ""
         audio.playVerse(url: url, surahTitle: label, ayahLabel: reciter, reciterName: reciter)
     }
 

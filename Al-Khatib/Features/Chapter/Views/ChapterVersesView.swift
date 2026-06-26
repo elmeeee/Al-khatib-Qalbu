@@ -223,9 +223,9 @@ struct ChapterVersesView: View {
            let currentVerse = readerCoordinator?.currentVerse(in: vm) {
             let verseNum = currentVerse.resolvedVerseNumber
             if let juz = currentVerse.juzNumber {
-                return "Ayah \(verseNum) · Juz \(juz)"
+                return "Ayah \(String(describing: verseNum)) · Juz \(juz)"
             }
-            return "Ayah \(verseNum)"
+            return "Ayah \(String(describing: verseNum))"
         }
         return readerCoordinator?.positionLabel(in: vm) ?? chapter?.versesCountLabel ?? ""
     }
