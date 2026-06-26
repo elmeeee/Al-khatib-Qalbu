@@ -105,30 +105,12 @@ struct ChapterVersesView: View {
         }
         .sheet(isPresented: tafsirSheetBinding) {
             if let presenter = readerCoordinator?.tafsirPresenter {
-                TafsirReaderSheet(
-                    verseReference: presenter.verseReference,
-                    commentarySource: presenter.commentarySource,
-                    isLoading: presenter.isLoading,
-                    loadErrorDescription: presenter.loadErrorDescription,
-                    commentaryUnavailable: presenter.commentaryUnavailable,
-                    htmlFragment: presenter.htmlFragment,
-                    reload: { Task { await presenter.reload() } }
-                )
+                TafsirReaderSheet(presenter: presenter)
             }
         }
         .sheet(isPresented: hadithSheetBinding) {
             if let presenter = readerCoordinator?.hadithPresenter {
-                HadithReaderSheet(
-                    verseReference: presenter.verseReference,
-                    items: presenter.items,
-                    isLoading: presenter.isLoading,
-                    isLoadingMore: presenter.isLoadingMore,
-                    hasMore: presenter.hasMore,
-                    loadErrorDescription: presenter.loadErrorDescription,
-                    contentUnavailable: presenter.contentUnavailable,
-                    reload: { Task { await presenter.reload() } },
-                    loadMore: { Task { await presenter.loadMore() } }
-                )
+                HadithReaderSheet(presenter: presenter)
             }
         }
         .sheet(isPresented: $showAISheet) {
@@ -596,7 +578,7 @@ struct ChapterVersesView: View {
                 .scrollIndicators(.hidden)
                 .scrollContentBackground(.hidden)
             }
-            .ignoresSafeArea(edges: .top)
+            .ignoresSafeArea()
             .onChange(of: readerCoordinator.scrollPosition) { _, newID in
                 readerCoordinator.onScrollPositionChanged(newID, vm: bindable)
             }

@@ -25,25 +25,25 @@ internal final class LocalHadithDataSource: Sendable {
         language: String = "en",
         fetcher: @escaping @Sendable () async throws -> HadithsByAyahResponse
     ) async throws -> HadithsByAyahResponse {
-        if let cached = loadFromCache(ayahKey: ayahKey, page: page) {
+        if let cached = loadFromCache(ayahKey: ayahKey, page: page, language: language) {
             return cached
         }
         do {
             let response = try await fetcher()
-            saveToCache(ayahKey: ayahKey, page: page, response: response)
+            saveToCache(ayahKey: ayahKey, page: page, language: language, response: response)
             return response
         } catch {
             return HadithsByAyahResponse(hadiths: [], page: page, limit: limit, hasMore: false, language: nil, direction: nil)
         }
     }
 
-    private func cacheFile(ayahKey: String, page: Int) -> URL {
+    private func cacheFile(ayahKey: String, page: Int, language: String) -> URL {
         let safeKey = ayahKey.replacingOccurrences(of: ":", with: "_")
-        return cacheDir.appendingPathComponent("\(safeKey)_p\(page).json")
+        return cacheDir.appendingPathComponent("\(safeKey)_\(language)_p\(page).json")
     }
 
-    private func loadFromCache(ayahKey: String, page: Int) -> HadithsByAyahResponse? {
-        let fileUrl = cacheFile(ayahKey: ayahKey, page: page)
+    private func loadFromCache(ayahKey: String, page: Int, language: String) -> HadithsByAyahResponse? {
+        let fileUrl = cacheFile(ayahKey: ayahKey, page: page, language: language)
         guard FileManager.default.fileExists(atPath: fileUrl.path) else { return nil }
         do {
             let data = try Data(contentsOf: fileUrl)
@@ -53,9 +53,9 @@ internal final class LocalHadithDataSource: Sendable {
         }
     }
 
-    private func saveToCache(ayahKey: String, page: Int, response: HadithsByAyahResponse) {
+    private func saveToCache(ayahKey: String, page: Int, language: String, response: HadithsByAyahResponse) {
         guard let hadiths = response.hadiths, !hadiths.isEmpty else { return }
-        let fileUrl = cacheFile(ayahKey: ayahKey, page: page)
+        let fileUrl = cacheFile(ayahKey: ayahKey, page: page, language: language)
         do {
             let data = try JSONEncoder().encode(response)
             try data.write(to: fileUrl, options: .atomicWrite)

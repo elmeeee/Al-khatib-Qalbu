@@ -351,6 +351,7 @@ class AppLanguageManager: ObservableObject {
         "prayer_imsak": [.english: "Imsak", .indonesian: "Imsak", .malay: "Imsak"],
         "prayer_midnight": [.english: "Midnight", .indonesian: "Tengah Malam", .malay: "Tengah Malam"],
         "time_remaining_before": [.english: "Time remaining before prayer %@", .indonesian: "Sisa waktu sebelum shalat %@", .malay: "Sisa waktu sebelum solat %@"],
+        "next_prayer": [.english: "Next prayer", .indonesian: "Sholat berikutnya", .malay: "Solat berikutnya"],
         "daily_prayer_tracker": [.english: "Daily Prayer Tracker", .indonesian: "Jurnal Shalat Harian", .malay: "Jurnal Solat Harian"],
         "prayer_completed_format": [.english: "%d of %d completed", .indonesian: "%d dari %d selesai", .malay: "%d daripada %d selesai"],
         "prayer_tracker_history": [.english: "Prayer Tracker History", .indonesian: "Riwayat Jurnal Shalat", .malay: "Sejarah Diari Solat"],

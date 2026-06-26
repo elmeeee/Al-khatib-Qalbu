@@ -74,23 +74,42 @@ struct PrayerDashboardCard: View {
     @ViewBuilder
     private var activeCardLayout: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(languageManager.localize("next_prayer"))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white.opacity(0.7))
+                    
+                    Text(viewModel.nextPrayerDisplayName)
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    
+                    Text("\(viewModel.nextPrayerDisplayName) · \(viewModel.nextPrayerTime)")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                }
+                
+                Spacer()
+                
                 Text(viewModel.countdownString)
-                    .font(.system(size: 38, weight: .bold))
-                    .foregroundColor(.white)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(Color.Token.goldBright)
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
-                
-                Text(String(format: languageManager.localize("time_remaining_before"), viewModel.nextPrayerDisplayName))
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(.white.opacity(0.8))
-                    .lineLimit(2)
+                    .shadow(color: Color.Token.goldBright.opacity(0.3), radius: 6, x: 0, y: 0)
             }
             .padding(.horizontal, 24)
             .padding(.top, 24)
-            .padding(.bottom, 24)
+            .padding(.bottom, 16)
+            
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(height: 1)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
             
             HStack(spacing: 0) {
                 ForEach(viewModel.mappedPrayers) { item in
@@ -102,11 +121,11 @@ struct PrayerDashboardCard: View {
                     )
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.black.opacity(0.15))
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color.black.opacity(0.18))
             )
             .padding(.horizontal, 16)
             .padding(.bottom, 16)

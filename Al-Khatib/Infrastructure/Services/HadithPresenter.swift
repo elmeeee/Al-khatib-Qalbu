@@ -29,6 +29,7 @@ final class HadithPresenter {
     var verseReference = ""
     var items: [HadithDisplayItem] = []
     var hasMore = false
+    var selectedLanguage: AppLanguage = AppLanguageManager.shared.currentLanguage
 
     private var activeAyahKey: String?
     private var currentPage = 1
@@ -54,7 +55,7 @@ final class HadithPresenter {
     }
 
     func prefetch(ayahKey: String) async {
-        _ = try? await content.getHadithsByAyah(ayahKey: ayahKey, page: 1, limit: 1)
+        _ = try? await content.getHadithsByAyah(ayahKey: ayahKey, language: selectedLanguage.rawValue, page: 1, limit: 1)
     }
 
     func reload() async {
@@ -66,6 +67,7 @@ final class HadithPresenter {
         do {
             let response = try await content.getHadithsByAyah(
                 ayahKey: key,
+                language: selectedLanguage.rawValue,
                 page: currentPage,
                 limit: pageLimit
             )
@@ -88,6 +90,7 @@ final class HadithPresenter {
         do {
             let response = try await content.getHadithsByAyah(
                 ayahKey: key,
+                language: selectedLanguage.rawValue,
                 page: nextPage,
                 limit: pageLimit
             )

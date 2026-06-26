@@ -136,15 +136,7 @@ struct TodayDiscoveryView: View {
         }
         .sheet(isPresented: tafsirSheetBinding) {
             if let presenter = coordinator?.tafsirPresenter {
-                TafsirReaderSheet(
-                    verseReference: presenter.verseReference,
-                    commentarySource: presenter.commentarySource,
-                    isLoading: presenter.isLoading,
-                    loadErrorDescription: presenter.loadErrorDescription,
-                    commentaryUnavailable: presenter.commentaryUnavailable,
-                    htmlFragment: presenter.htmlFragment,
-                    reload: { Task { await presenter.reload() } }
-                )
+                TafsirReaderSheet(presenter: presenter)
             }
         }
     }

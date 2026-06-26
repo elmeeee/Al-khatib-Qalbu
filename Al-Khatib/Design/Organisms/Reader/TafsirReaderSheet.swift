@@ -1,6 +1,6 @@
 //
 //  TafsirReaderSheet.swift
-//  Sāat
+//  Al-Khatib
 //
 //  Created by Elmee on 25/04/2026.
 //  Copyright © 2026 Elmee. All rights reserved.
@@ -10,13 +10,7 @@ import SwiftUI
 
 struct TafsirReaderSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let verseReference: String
-    let commentarySource: String?
-    let isLoading: Bool
-    let loadErrorDescription: String?
-    let commentaryUnavailable: Bool
-    let htmlFragment: String
-    let reload: () -> Void
+    @Bindable var presenter: TafsirPresenter
 
     var body: some View {
         ZStack {
@@ -30,18 +24,18 @@ struct TafsirReaderSheet: View {
             VStack(spacing: 0) {
                 sheetTopBar
                 verseContextHeader
-                Divider().opacity(0.55)
+                Divider().opacity(0.4)
 
                 Group {
-                    let hasHTML = !htmlFragment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    if isLoading || (!hasHTML && loadErrorDescription == nil && !commentaryUnavailable) {
+                    let hasHTML = !presenter.htmlFragment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    if presenter.isLoading || (!hasHTML && presenter.loadErrorDescription == nil && !presenter.commentaryUnavailable) {
                         tafsirLoadingBody
-                    } else if loadErrorDescription != nil {
+                    } else if presenter.loadErrorDescription != nil {
                         tafsirErrorBody
-                    } else if commentaryUnavailable {
+                    } else if presenter.commentaryUnavailable {
                         tafsirEmptyBody
                     } else {
-                        HTMLContentWebView(htmlFragment: htmlFragment, style: .tafsirReader)
+                        HTMLContentWebView(htmlFragment: presenter.htmlFragment, style: .tafsirReader)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
@@ -52,72 +46,97 @@ struct TafsirReaderSheet: View {
         .presentationContentInteraction(.scrolls)
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(22)
-        .animation(nil, value: isLoading)
-        .animation(nil, value: htmlFragment)
     }
 
     private var sheetTopBar: some View {
-        HStack {
+        HStack(alignment: .center) {
             Text("Tafsir")
-                .font(.headline.weight(.semibold))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(Color.Token.deepEmerald)
+            
             Spacer()
-            Button("Done") { dismiss() }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.Token.deepEmerald)
+            
+            HStack(spacing: 12) {
+                // Custom Language Selector Pills
+                HStack(spacing: 2) {
+                    ForEach(AppLanguage.allCases) { lang in
+                        Button {
+                            if presenter.selectedLanguage != lang {
+                                withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
+                                    presenter.selectedLanguage = lang
+                                }
+                                Task { await presenter.reload() }
+                            }
+                        } label: {
+                            Text(lang.rawValue.uppercased())
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(presenter.selectedLanguage == lang ? .white : Color.Token.deepEmerald.opacity(0.8))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    Capsule()
+                                        .fill(presenter.selectedLanguage == lang ? Color.Token.deepEmerald : Color.clear)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(3)
+                .background(Capsule().fill(Color.black.opacity(0.04)))
+                
+                Button("Done") { dismiss() }
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.Token.deepEmerald)
+            }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
     }
 
     private var verseContextHeader: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "text.alignleft")
-                .font(.title2)
-                .foregroundStyle(Color.Token.deepEmerald.opacity(0.88))
-                .frame(width: 36, alignment: .leading)
+        HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.Token.gold.opacity(0.12))
+                    .frame(width: 44, height: 44)
+                Image(systemName: "text.alignleft")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.Token.gold)
+            }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(verseReference)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.Token.deepEmerald)
-                    .multilineTextAlignment(.leading)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(presenter.verseReference)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
 
                 Group {
-                    if isLoading {
-                        SkeletonBar(width: 180, height: 11, cornerRadius: 5)
-                    } else if let source = commentarySource {
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Image(systemName: "book.pages.fill")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(source)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.leading)
-                        }
+                    if presenter.isLoading {
+                        SkeletonBar(width: 140, height: 10, cornerRadius: 5)
+                    } else if let source = presenter.commentarySource {
+                        Text(source)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.8))
                     }
                 }
-                .frame(maxWidth: .infinity, minHeight: 14, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer()
         }
-        .padding(14)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.82))
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.Token.softGrey.opacity(0.65), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.Token.deepEmerald, Color.Token.tealDark],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: Color.Token.deepEmerald.opacity(0.2), radius: 8, x: 0, y: 4)
         )
         .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 6)
-        .animation(nil, value: isLoading)
-        .animation(nil, value: commentarySource ?? "")
+        .padding(.top, 6)
+        .padding(.bottom, 12)
     }
 
     private var tafsirLoadingBody: some View {
@@ -144,7 +163,7 @@ struct TafsirReaderSheet: View {
 
     @ViewBuilder
     private var tafsirErrorBody: some View {
-        if let desc = loadErrorDescription {
+        if let desc = presenter.loadErrorDescription {
             ContentUnavailableView {
                 Label("Couldn't load tafsir", systemImage: "wifi.exclamationmark")
             } description: {
@@ -153,9 +172,11 @@ struct TafsirReaderSheet: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
             } actions: {
-                Button("Try again", action: reload)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color.Token.deepEmerald)
+                Button("Try again") {
+                    Task { await presenter.reload() }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.Token.deepEmerald)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

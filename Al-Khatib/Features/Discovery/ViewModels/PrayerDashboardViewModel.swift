@@ -16,6 +16,7 @@ final class PrayerDashboardViewModel: ObservableObject {
     @Published private(set) var activePrayerDisplayName: String = ""
     @Published private(set) var activePrayerOriginalName: String = ""
     @Published private(set) var nextPrayerDisplayName: String = ""
+    @Published private(set) var nextPrayerTime: String = ""
     @Published private(set) var countdownString: String = "00:00:00"
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var cityName: String? = nil
@@ -100,8 +101,10 @@ final class PrayerDashboardViewModel: ObservableObject {
         
         if let next = controller.nextPrayer {
             self.nextPrayerDisplayName = mapToSoutheastAsianName(next.name)
+            self.nextPrayerTime = formatter.string(from: next.date)
         } else {
             self.nextPrayerDisplayName = "--"
+            self.nextPrayerTime = "--:--"
         }
         
         if let countdown = computeCountdownString(at: now) {

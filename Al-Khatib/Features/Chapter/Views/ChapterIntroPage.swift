@@ -184,25 +184,14 @@ struct ChapterIntroPage: View {
             }
 
             // Tap feedback
-            ZStack {
+            if showTapFeedback {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.Token.deepEmerald.opacity(0.6), Color.Token.gold.opacity(0.4)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(Color.white.opacity(0.12))
                     .frame(width: 80, height: 80)
-                    .blur(radius: showTapFeedback ? 0 : 8)
-                    .opacity(showTapFeedback ? 1.0 : 0.3)
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 72))
-                    .foregroundColor(.white.opacity(showTapFeedback ? 0.95 : 0.3))
-                    .scaleEffect(showTapFeedback ? 1.05 : 1.0)
-                    .animation(.easeOut(duration: 0.2), value: showTapFeedback)
+                    .blur(radius: 4)
+                    .transition(.scale.combined(with: .opacity))
+                    .allowsHitTesting(false)
             }
-            .allowsHitTesting(false)
         }
         .clipped()
     }

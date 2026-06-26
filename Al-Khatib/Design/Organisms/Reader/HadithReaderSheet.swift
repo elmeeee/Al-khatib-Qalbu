@@ -1,6 +1,6 @@
 //
 //  HadithReaderSheet.swift
-//  Sāat
+//  Al-Khatib
 //
 //  Created by Elmee on 25/04/2026.
 //  Copyright © 2026 Elmee. All rights reserved.
@@ -10,15 +10,7 @@ import SwiftUI
 
 struct HadithReaderSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let verseReference: String
-    let items: [HadithDisplayItem]
-    let isLoading: Bool
-    let isLoadingMore: Bool
-    let hasMore: Bool
-    let loadErrorDescription: String?
-    let contentUnavailable: Bool
-    let reload: () -> Void
-    let loadMore: () -> Void
+    @Bindable var presenter: HadithPresenter
 
     var body: some View {
         ZStack {
@@ -32,14 +24,14 @@ struct HadithReaderSheet: View {
             VStack(spacing: 0) {
                 sheetTopBar
                 verseContextHeader
-                Divider().opacity(0.55)
+                Divider().opacity(0.4)
 
                 Group {
-                    if isLoading {
+                    if presenter.isLoading {
                         hadithLoadingBody
-                    } else if loadErrorDescription != nil {
+                    } else if presenter.loadErrorDescription != nil {
                         hadithErrorBody
-                    } else if contentUnavailable {
+                    } else if presenter.contentUnavailable {
                         hadithEmptyBody
                     } else {
                         hadithListBody
@@ -55,54 +47,90 @@ struct HadithReaderSheet: View {
     }
 
     private var sheetTopBar: some View {
-        HStack {
+        HStack(alignment: .center) {
             Text("Hadith")
-                .font(.headline.weight(.semibold))
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(Color.Token.deepEmerald)
+            
             Spacer()
-            Button("Done") { dismiss() }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.Token.deepEmerald)
+            
+            HStack(spacing: 12) {
+                // Custom Language Selector Pills
+                HStack(spacing: 2) {
+                    ForEach(AppLanguage.allCases) { lang in
+                        Button {
+                            if presenter.selectedLanguage != lang {
+                                withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
+                                    presenter.selectedLanguage = lang
+                                }
+                                Task { await presenter.reload() }
+                            }
+                        } label: {
+                            Text(lang.rawValue.uppercased())
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(presenter.selectedLanguage == lang ? .white : Color.Token.deepEmerald.opacity(0.8))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    Capsule()
+                                        .fill(presenter.selectedLanguage == lang ? Color.Token.deepEmerald : Color.clear)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(3)
+                .background(Capsule().fill(Color.black.opacity(0.04)))
+                
+                Button("Done") { dismiss() }
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.Token.deepEmerald)
+            }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
     }
 
     private var verseContextHeader: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "text.book.closed.fill")
-                .font(.title2)
-                .foregroundStyle(Color.Token.deepEmerald.opacity(0.88))
-                .frame(width: 36, alignment: .leading)
+        HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.Token.gold.opacity(0.12))
+                    .frame(width: 44, height: 44)
+                Image(systemName: "text.book.closed.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.Token.gold)
+            }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(verseReference)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.Token.deepEmerald)
-                    .multilineTextAlignment(.leading)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(presenter.verseReference)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white)
 
-                if isLoading == false, items.isEmpty == false {
-                    Text("\(items.count) hadith\(items.count == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if presenter.isLoading == false, presenter.items.isEmpty == false {
+                    Text("\(presenter.items.count) hadith\(presenter.items.count == 1 ? "" : "s")")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.8))
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer()
         }
-        .padding(14)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.82))
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.Token.softGrey.opacity(0.65), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.Token.deepEmerald, Color.Token.tealDark],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: Color.Token.deepEmerald.opacity(0.2), radius: 8, x: 0, y: 4)
         )
         .padding(.horizontal, 16)
-        .padding(.top, 10)
-        .padding(.bottom, 6)
+        .padding(.top, 6)
+        .padding(.bottom, 12)
     }
 
     private var hadithLoadingBody: some View {
@@ -127,21 +155,21 @@ struct HadithReaderSheet: View {
     private var hadithListBody: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(items) { item in
+                ForEach(presenter.items) { item in
                     hadithCard(item)
                 }
 
-                if hasMore {
+                if presenter.hasMore {
                     Button {
-                        loadMore()
+                        Task { await presenter.loadMore() }
                     } label: {
                         Group {
-                            if isLoadingMore {
+                            if presenter.isLoadingMore {
                                 ProgressView()
                                     .tint(Color.Token.deepEmerald)
                             } else {
                                 Text("Load more")
-                                    .font(.subheadline.weight(.semibold))
+                                    .font(.system(size: 14, weight: .bold))
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -149,7 +177,7 @@ struct HadithReaderSheet: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(Color.Token.deepEmerald)
-                    .disabled(isLoadingMore)
+                    .disabled(presenter.isLoadingMore)
                 }
             }
             .padding(.horizontal, 16)
@@ -161,57 +189,68 @@ struct HadithReaderSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(item.sourceName)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(Color.Token.deepEmerald)
                 Spacer(minLength: 8)
                 if let reference = item.referenceLabel {
                     Text(reference)
-                        .font(.caption.weight(.medium))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.secondary)
                 }
             }
 
             if let chapter = item.chapterTitle, chapter.isEmpty == false {
                 Text(chapter)
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(Color.Token.gold)
             }
 
             Text(item.body)
-                .font(.body)
+                .font(.system(size: 15))
                 .foregroundStyle(.primary)
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
 
             if item.gradeLines.isEmpty == false {
-                VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
                     ForEach(item.gradeLines, id: \.self) { line in
-                        Label(line, systemImage: "checkmark.seal.fill")
-                            .font(.caption)
-                            .foregroundStyle(Color.Token.deepEmerald.opacity(0.85))
-                            .labelStyle(.titleAndIcon)
+                        let isSahih = line.lowercased().contains("sahih")
+                        HStack(spacing: 4) {
+                            Image(systemName: isSahih ? "checkmark.seal.fill" : "info.circle.fill")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(line)
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(isSahih ? Color.green.opacity(0.12) : Color.Token.gold.opacity(0.12))
+                        )
+                        .foregroundColor(isSahih ? .green : Color.Token.gold)
                     }
                 }
+                .padding(.top, 4)
             }
         }
-        .padding(14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(cardBackground)
     }
 
     private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(Color.white.opacity(0.82))
-            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(Color.white.opacity(0.85))
+            .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
             .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(Color.Token.softGrey.opacity(0.65), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.Token.softGrey.opacity(0.6), lineWidth: 1)
             )
     }
 
     @ViewBuilder
     private var hadithErrorBody: some View {
-        if let desc = loadErrorDescription {
+        if let desc = presenter.loadErrorDescription {
             ContentUnavailableView {
                 Label("Couldn't load hadith", systemImage: "wifi.exclamationmark")
             } description: {
@@ -220,9 +259,11 @@ struct HadithReaderSheet: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
             } actions: {
-                Button("Try again", action: reload)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color.Token.deepEmerald)
+                Button("Try again") {
+                    Task { await presenter.reload() }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.Token.deepEmerald)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

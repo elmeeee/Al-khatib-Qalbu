@@ -88,6 +88,17 @@ struct QuranContentRepository: Sendable {
     }
 
     func getTafsirByAyah(resourceId: String, ayahKey: String) async throws -> TafsirResponse {
+        do {
+            let response: TafsirResponse = try await client.send(
+                QuranContentEndpoint.tafsirByAyah(resourceId: resourceId, ayahKey: ayahKey, query: [])
+            )
+            if let t = response.tafsir, t.text?.isEmpty == false {
+                return response
+            }
+        } catch {
+            print("API Tafsir fetch failed, falling back to local database: \(error.localizedDescription)")
+        }
+        
         let localId = (resourceId == "16" || resourceId == "jalalayn") ? "jalalayn" : "local"
         if let payload = try await local.getTafsirByAyah(ayahKey: ayahKey, resourceId: localId) {
             return TafsirResponse(tafsir: payload)

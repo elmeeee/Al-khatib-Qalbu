@@ -25,6 +25,7 @@ final class TafsirPresenter {
     var commentaryUnavailable = false
     var verseReference = ""
     var commentarySource: String?
+    var selectedLanguage: AppLanguage = AppLanguageManager.shared.currentLanguage
 
     private var activeAyahKey: String?
     private var cache: [String: CachedTafsir] = [:]
@@ -52,7 +53,8 @@ final class TafsirPresenter {
     }
 
     func prefetch(ayahKey: String) async {
-        guard cache[ayahKey] == nil else { return }
+        let cacheKey = "\(ayahKey)_\(selectedLanguage.rawValue)"
+        guard cache[cacheKey] == nil else { return }
         _ = try? await loadCached(ayahKey: ayahKey)
     }
 
@@ -76,26 +78,51 @@ final class TafsirPresenter {
     }
 
     private func loadCached(ayahKey: String) async throws -> CachedTafsir {
-        if let cached = cache[ayahKey] {
-            cacheAccessOrder.removeAll { $0 == ayahKey }
-            cacheAccessOrder.append(ayahKey)
+        let cacheKey = "\(ayahKey)_\(selectedLanguage.rawValue)"
+        if let cached = cache[cacheKey] {
+            cacheAccessOrder.removeAll { $0 == cacheKey }
+            cacheAccessOrder.append(cacheKey)
             return cached
         }
-        let response = try await content.getTafsirByAyah(resourceId: resourceId, ayahKey: ayahKey)
+        
+        let resource: String
+        switch selectedLanguage {
+        case .english:
+            resource = "169" // Tafsir Ibn Kathir (English)
+        case .indonesian:
+            resource = "16"  // Tafsir Jalalayn (Indonesian)
+        case .malay:
+            resource = "local" // Local Indonesian/Malay fallback
+        }
+        
+        let response = try await content.getTafsirByAyah(resourceId: resource, ayahKey: ayahKey)
         let html = response.tafsir?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let plainText = response.tafsir?.textStrippingHTML?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let sourceName = response.tafsir?.resourceName ?? "Tafsir Ibn Kathir (English)"
+        
+        let defaultName: String
+        switch selectedLanguage {
+        case .english:
+            defaultName = "Tafsir Ibn Kathir (English)"
+        case .indonesian:
+            defaultName = "Tafsir Jalalayn"
+        case .malay:
+            defaultName = "Tafsir Indonesia (lokal)"
+        }
+        let sourceName = response.tafsir?.resourceName ?? defaultName
+        
         let result = CachedTafsir(html: html, plainText: plainText, sourceName: sourceName)
         rememberCache(ayahKey: ayahKey, result: result)
         return result
     }
 
     private func rememberCache(ayahKey: String, result: CachedTafsir) {
-        cache[ayahKey] = result
-        cacheAccessOrder.removeAll { $0 == ayahKey }
-        cacheAccessOrder.append(ayahKey)
+        let cacheKey = "\(ayahKey)_\(selectedLanguage.rawValue)"
+        cache[cacheKey] = result
+        cacheAccessOrder.removeAll { $0 == cacheKey }
+        cacheAccessOrder.append(cacheKey)
         while cacheAccessOrder.count > maxCachedAyahs {
-            guard let victim = cacheAccessOrder.first(where: { $0 != activeAyahKey }) else { break }
+            let activePrefix = "\(activeAyahKey ?? "")_"
+            guard let victim = cacheAccessOrder.first(where: { !$0.hasPrefix(activePrefix) }) else { break }
             cacheAccessOrder.removeAll { $0 == victim }
             cache.removeValue(forKey: victim)
         }
