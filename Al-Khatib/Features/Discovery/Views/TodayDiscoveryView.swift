@@ -160,6 +160,8 @@ struct TodayDiscoveryView: View {
                     verse: detail,
                     showTranslation: showTranslation,
                     isDetailLoading: vm.isDetailLoading,
+                    reciterName: vm.recitations.first(where: { $0.id == vm.selectedRecitationId })?.displayName ?? "",
+                    isPlaying: audio.isPlayingURL(detail.audio?.url) && audio.isPlaying,
                     onAudio: { playAudio(for: detail, vm: vm) },
                     onShare: {
                         guard actionsViewModel.isGeneratingShare == false else { return }

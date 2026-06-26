@@ -55,139 +55,243 @@ struct TodayVerseOfDayCardView: View {
     let verse: RandomAyahPayload
     let showTranslation: Bool
     let isDetailLoading: Bool
+    let reciterName: String
+    let isPlaying: Bool
     let onAudio: () -> Void
     let onShare: () -> Void
     let onReflect: () -> Void
     let onTafsir: () -> Void
     let audioAccessibilityHint: String
 
+    private var dayName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        let lang = AppLanguageManager.shared.currentLanguage
+        formatter.locale = Locale(identifier: lang.rawValue)
+        return formatter.string(from: Date()).capitalized
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            if let key = verse.verseKey {
-                HStack {
-                    Text(ShareVerseCard.humanLabel(for: key))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Color.Token.deepEmerald))
-                    Spacer()
+        VStack(spacing: 16) {
+            // Header: Title, Subtitle & Day Pill + Share
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(AppLanguageManager.shared.localize("today_quran_title"))
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color.Token.deepEmerald)
+                    
+                    if let key = verse.verseKey {
+                        Text(ShareVerseCard.humanLabel(for: key))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color.Token.gold)
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 18)
+                
+                Spacer()
+                
+                HStack(spacing: 8) {
+                    // Glassmorphic Share Button
+                    Button(action: onShare) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color.Token.deepEmerald)
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color.Token.deepEmerald.opacity(0.08)))
+                            .overlay(Circle().stroke(Color.Token.deepEmerald.opacity(0.15), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .alKhatibAccessibility(label: AppLanguageManager.shared.localize("share"), hint: AlKhatibAccessibility.VerseActions.shareHint)
+                    
+                    // Day of the Week Badge
+                    Text(dayName)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.orange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color.orange.opacity(0.1)))
+                        .overlay(Capsule().stroke(Color.orange.opacity(0.25), lineWidth: 1))
+                }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 18)
 
-            TodayOrnamentalDividerView()
-                .padding(.horizontal, 24)
-                .padding(.top, 14)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .trailing, spacing: 0) {
+            // Arabic Text Block Container
+            VStack {
                 AyahArabicWebBlock(
                     payload: verse,
                     includeTranslationInAccessibility: showTranslation
                 )
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 12)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
             }
-            .frame(maxWidth: .infinity, alignment: .topTrailing)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.Token.deepEmerald.opacity(0.03))
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.white.opacity(0.95))
+                    .shadow(color: Color.Token.deepEmerald.opacity(0.04), radius: 8, x: 0, y: 4)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.Token.deepEmerald.opacity(0.08), lineWidth: 1)
+            )
+            .padding(.horizontal, 16)
 
+            // Transliteration / Latin Block
             if let latinText = verse.transliteration, latinText.isEmpty == false {
                 Text(latinText)
-                    .font(.system(size: 15, weight: .medium, design: .serif))
-                    .foregroundColor(Color.Token.gold)
+                    .font(.system(size: 14, weight: .medium, design: .serif))
+                    .foregroundColor(Color.Token.deepEmerald.opacity(0.85))
+                    .italic()
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.Token.lightGrey.opacity(0.6))
+                            .fill(Color.Token.mintWash.opacity(0.35))
                     )
-                    .padding(.top, 10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.Token.deepEmerald.opacity(0.1), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 16)
             }
 
+            // Translation Block
             if showTranslation,
                let translation = verse.translations?.first,
                let text = translation.text,
                text.isEmpty == false {
-                translationBlock(text)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(text)
+                        .font(.system(size: 15, weight: .regular))
+                        .lineSpacing(5)
+                        .foregroundColor(Color.Token.slate800)
+                        .multilineTextAlignment(.leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.45))
+                )
+                .padding(.horizontal, 16)
             }
 
-            TodayOrnamentalDividerView()
-                .padding(.horizontal, 24)
-                .padding(.bottom, 14)
-                .accessibilityHidden(true)
+            // Qari Reciter Info
+            if reciterName.isEmpty == false {
+                HStack(spacing: 6) {
+                    Image(systemName: "headphones")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color.Token.gold)
+                    
+                    Text("\(AppLanguageManager.shared.localize("qari_label")): \(reciterName)")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.Token.deepEmerald.opacity(0.8))
+                }
+                .padding(.top, 4)
+            }
 
-            TodayVerseActionGrid(
-                onAudio: onAudio,
-                onShare: onShare,
-                onReflect: onReflect,
-                onTafsir: onTafsir,
-                audioAccessibilityHint: audioAccessibilityHint
-            )
+            // Action Buttons Row (Audio, AI, Tafsir)
+            HStack(spacing: 12) {
+                // Audio
+                actionButton(
+                    icon: isPlaying ? "pause.fill" : "play.fill",
+                    text: "Audio",
+                    tint: Color.Token.deepEmerald,
+                    background: LinearGradient(
+                        colors: [Color.Token.deepEmerald.opacity(0.12), Color.Token.teal.opacity(0.08)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    action: onAudio
+                )
+                .alKhatibAccessibility(label: "Audio", hint: audioAccessibilityHint)
+                
+                // AI
+                actionButton(
+                    icon: "sparkles",
+                    text: "AI",
+                    tint: Color.orange,
+                    background: LinearGradient(
+                        colors: [Color.orange.opacity(0.12), Color.Token.gold.opacity(0.1)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    action: onReflect
+                )
+                .alKhatibAccessibility(label: "AI Reflection", hint: AlKhatibAccessibility.VerseActions.reflectHint)
+                
+                // Tafsir
+                actionButton(
+                    icon: "book.closed.fill",
+                    text: "Tafsir",
+                    tint: Color.Token.indigoAccent,
+                    background: LinearGradient(
+                        colors: [Color.Token.indigoAccent.opacity(0.12), Color.purple.opacity(0.08)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    action: onTafsir
+                )
+                .alKhatibAccessibility(label: "Tafsir", hint: AlKhatibAccessibility.VerseActions.tafsirHint)
+            }
             .padding(.horizontal, 16)
-            .padding(.bottom, 18)
+            .padding(.bottom, 20)
         }
         .transaction { txn in txn.animation = nil }
         .opacity(isDetailLoading ? 0.55 : 1)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .background(
                     LinearGradient(
-                        colors: [Color.white, Color.Token.mintWash],
+                        colors: [Color.white.opacity(0.85), Color.Token.mintWash.opacity(0.45)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.Token.deepEmerald.opacity(0.15), Color.Token.softGrey.opacity(0.5)],
+                        colors: [Color.Token.deepEmerald.opacity(0.12), Color.Token.softGrey.opacity(0.4)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1
+                    lineWidth: 1.5
                 )
         )
-        .shadow(color: Color.Token.deepEmerald.opacity(0.06), radius: 12, x: 0, y: 6)
+        .shadow(color: Color.Token.deepEmerald.opacity(0.08), radius: 16, x: 0, y: 8)
     }
 
-    private func translationBlock(_ text: String) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("\u{201C}")
-                .font(.system(size: 32, weight: .light))
-                .foregroundStyle(Color.Token.gold.opacity(0.5))
-                .padding(.leading, 16)
-                .offset(y: 8)
-
-            Text(text)
-                .font(.system(size: 17, weight: .regular))
-                .lineSpacing(6)
-                .foregroundStyle(Color.Token.slate800)
-                .multilineTextAlignment(.leading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 4)
-
-            HStack {
-                Spacer()
-                Text("\u{201D}")
-                    .font(.system(size: 32, weight: .light))
-                    .foregroundStyle(Color.Token.gold.opacity(0.5))
-                    .padding(.trailing, 16)
-                    .offset(y: -8)
+    private func actionButton(
+        icon: String,
+        text: String,
+        tint: Color,
+        background: LinearGradient,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                Text(text)
+                    .font(.system(size: 13, weight: .bold))
             }
+            .foregroundColor(tint)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(background)
+            .cornerRadius(14)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(tint.opacity(0.2), lineWidth: 1)
+            )
         }
-        .padding(.bottom, 8)
+        .buttonStyle(PillPressStyle())
     }
 }
 

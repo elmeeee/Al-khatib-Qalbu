@@ -202,6 +202,8 @@ class AppLanguageManager: ObservableObject {
         "try_again": [.english: "Try Again", .indonesian: "Coba Lagi", .malay: "Cuba Lagi"],
         "starts_at": [.english: "Starts at", .indonesian: "Mulai dari", .malay: "Mula dari"],
         "quran_title": [.english: "Quran", .indonesian: "Al-Quran", .malay: "Al-Quran"],
+        "today_quran_title": [.english: "Al-Quran Today", .indonesian: "Al-Quran Hari Ini", .malay: "Al-Quran Hari Ini"],
+        "qari_label": [.english: "Qari", .indonesian: "Qori", .malay: "Qari"],
         "quran_subtitle": [.english: "114 Surahs · The Noble Quran", .indonesian: "114 Surah · Al-Quran Al-Karim", .malay: "114 Surah · Al-Quran Al-Karim"],
         "quran_subtitle_juz": [.english: "30 Juz · The Noble Quran", .indonesian: "30 Juz · Al-Quran Al-Karim", .malay: "30 Juz · Al-Quran Al-Karim"],
 
