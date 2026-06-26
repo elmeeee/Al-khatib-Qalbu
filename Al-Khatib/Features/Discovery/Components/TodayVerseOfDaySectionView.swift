@@ -18,7 +18,7 @@ struct TodayVerseOfDaySectionHeaderView: View {
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(Color.Token.gold)
 
-                Text("Verse of the Day")
+                Text(AppLanguageManager.shared.localize("verse_of_the_day"))
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(Color.Token.deepEmerald)
                     .accessibilityAddTraits(.isHeader)
@@ -99,6 +99,20 @@ struct TodayVerseOfDayCardView: View {
                     .padding(.horizontal, 12)
                     .padding(.top, 8)
             )
+
+            if let latinText = verse.transliteration, latinText.isEmpty == false {
+                Text(latinText)
+                    .font(.system(size: 15, weight: .medium, design: .serif))
+                    .foregroundColor(Color.Token.gold)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.Token.lightGrey.opacity(0.6))
+                    )
+                    .padding(.top, 10)
+            }
 
             if showTranslation,
                let translation = verse.translations?.first,
@@ -186,11 +200,12 @@ struct TodayVerseActionGrid: View {
 
     var body: some View {
         let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
+        let lm = AppLanguageManager.shared
         LazyVGrid(columns: columns, spacing: 8) {
             TodayActionPill(icon: "speaker.wave.2.fill", text: "Audio", tint: Color.Token.deepEmerald, hint: audioAccessibilityHint, action: onAudio)
-            TodayActionPill(icon: "square.and.arrow.up", text: "Share", tint: Color.Token.blueLink, hint: AlKhatibAccessibility.VerseActions.shareHint, action: onShare)
-            TodayActionPill(icon: "lightbulb.fill", text: "Reflect", tint: Color.Token.gold, hint: AlKhatibAccessibility.VerseActions.reflectHint, action: onReflect)
-            TodayActionPill(icon: "book.closed.fill", text: "Tafsir", tint: Color.Token.indigoAccent, hint: AlKhatibAccessibility.VerseActions.tafsirHint, action: onTafsir)
+            TodayActionPill(icon: "square.and.arrow.up", text: lm.localize("share"), tint: Color.Token.blueLink, hint: AlKhatibAccessibility.VerseActions.shareHint, action: onShare)
+            TodayActionPill(icon: "lightbulb.fill", text: lm.localize("post_reflection"), tint: Color.Token.gold, hint: AlKhatibAccessibility.VerseActions.reflectHint, action: onReflect)
+            TodayActionPill(icon: "book.closed.fill", text: lm.localize("tab_quran"), tint: Color.Token.indigoAccent, hint: AlKhatibAccessibility.VerseActions.tafsirHint, action: onTafsir)
         }
     }
 }

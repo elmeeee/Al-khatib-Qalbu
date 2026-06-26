@@ -168,7 +168,8 @@ struct ChapterAyahPage: View {
         guard availableHeight > 0 else { return }
 
         let translationHeight = estimatedTranslationHeight(width: contentWidth - 72)
-        let budget = availableHeight - translationHeight - contentSpacing - chromeInsets.top - chromeInsets.bottom
+        let latinHeight = estimatedLatinHeight(width: contentWidth - 72)
+        let budget = availableHeight - translationHeight - latinHeight - (contentSpacing * 2) - chromeInsets.top - chromeInsets.bottom
         guard budget > 0, arabicMeasuredHeight > 0 else { return }
 
         if arabicMeasuredHeight <= budget {
@@ -208,6 +209,18 @@ struct ChapterAyahPage: View {
             context: nil
         )
         return ceil(rect.height)
+    }
+
+    private func estimatedLatinHeight(width: CGFloat) -> CGFloat {
+        guard let text = verse.transliteration, !text.isEmpty else { return 0 }
+        let font = UIFont.systemFont(ofSize: CGFloat(15 * effectiveFontScale), weight: .medium)
+        let rect = (text as NSString).boundingRect(
+            with: CGSize(width: width, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: font],
+            context: nil
+        )
+        return ceil(rect.height) + 16 // add padding
     }
 
     private func pulseTapFeedback() {

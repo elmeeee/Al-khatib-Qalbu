@@ -93,7 +93,7 @@ struct ChapterIntroPage: View {
                         .padding(.top, 12)
                 }
 
-                Text("Tap to begin recitation")
+                Text(AppLanguageManager.shared.localize("tap_to_begin"))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white.opacity(0.45))
                     .padding(.top, 12)
@@ -104,7 +104,7 @@ struct ChapterIntroPage: View {
                     Image(systemName: "chevron.up")
                         .font(.title2.weight(.semibold))
                         .offset(y: bounceChevron ? -4 : 4)
-                    Text("Swipe up")
+                    Text(AppLanguageManager.shared.localize("swipe_up_intro"))
                         .font(.caption.weight(.semibold))
                 }
                 .foregroundColor(.white.opacity(0.4))

@@ -198,7 +198,7 @@ struct ChapterVersesView: View {
             .overlay {
                 VStack(spacing: 12) {
                     ProgressView().tint(.white)
-                    Text("Updating verses…")
+                    Text(AppLanguageManager.shared.localize("loading"))
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.white)
                 }
@@ -278,6 +278,34 @@ struct ChapterVersesView: View {
 
     private var sideActionButtons: some View {
         VStack(spacing: 18) {
+            if let vm, let readerCoordinator {
+                Button(action: {
+                    if audio.isPlaying {
+                        audio.pause()
+                    } else {
+                        if audio.currentURL != nil {
+                            audio.toggle()
+                        } else {
+                            Task {
+                                await readerCoordinator.playEntireSurah(vm: vm)
+                            }
+                        }
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.Token.deepEmerald)
+                            .frame(width: 48, height: 48)
+                            .shadow(color: Color.Token.deepEmerald.opacity(0.3), radius: 6, y: 3)
+                        
+                        Image(systemName: audio.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+                .accessibilityLabel(audio.isPlaying ? "Pause recitation" : "Play recitation")
+            }
+            
             QFSideActionButton(icon: "text.book.closed.fill", label: "Hadith") {
                 guard let readerCoordinator, let vm else { return }
                 readerCoordinator.openHadithForCurrentAyah(in: vm)

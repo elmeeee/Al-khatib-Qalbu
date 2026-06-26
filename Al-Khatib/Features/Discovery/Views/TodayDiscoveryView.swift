@@ -108,11 +108,12 @@ struct TodayDiscoveryView: View {
             }
         }
         .background(Color.Token.deepEmerald.ignoresSafeArea(edges: .top))
+        .environmentObject(prayer)
         .navigationDestination(isPresented: $showingPrayerCalendar) {
             PrayerCalendarView().environmentObject(prayer)
         }
         .navigationDestination(isPresented: $showingTrackerCalendar) {
-            PrayerTrackerCalendarView()
+            PrayerTrackerCalendarView().environmentObject(prayer)
         }
         .animation(nil, value: audio.currentURL)
         .safeAreaInset(edge: .bottom) {
