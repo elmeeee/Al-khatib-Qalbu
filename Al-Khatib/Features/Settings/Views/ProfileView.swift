@@ -45,10 +45,16 @@ struct ProfileView: View {
 
     var body: some View {
         ZStack {
-            Color.Token.screenBackground.ignoresSafeArea()
+            // Subtle two-tone background
+            LinearGradient(
+                colors: [Color.Token.screenBackground, Color.Token.sageMist],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 28) {
                     headerSection
                     generalSection
                     prayerSettingsSection
@@ -59,8 +65,8 @@ struct ProfileView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .padding(.bottom, 40)
+                .padding(.top, 20)
+                .padding(.bottom, 48)
             }
         }
         .navigationTitle(preferSystemNavigationTitle ? languageManager.localize("tab_profile") : "")
@@ -191,7 +197,7 @@ struct ProfileView: View {
     }
 
     private var generalSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             ProfileSectionHeaderView(title: languageManager.localize("general"))
             VStack(spacing: 0) {
                 Button { showingFontScaleSheet = true } label: {
@@ -200,6 +206,7 @@ struct ProfileView: View {
                         title: languageManager.localize("font_size"),
                         subtitle: fontScaleLabel,
                         hasToggle: false,
+                        iconTint: Color.Token.indigoAccent,
                         isOn: .constant(false)
                     )
                 }
@@ -208,15 +215,16 @@ struct ProfileView: View {
                     label: AlKhatibAccessibility.Profile.fontSize,
                     hint: "Current size \(fontScaleLabel). Opens font size picker"
                 )
-                
-                Divider().padding(.leading, 64)
-                
+
+                Divider().padding(.leading, 66)
+
                 Button { showingAppLanguageSheet = true } label: {
                     ProfileRowView(
                         icon: "globe",
                         title: languageManager.localize("app_language"),
                         subtitle: languageManager.currentLanguage.displayName,
                         hasToggle: false,
+                        iconTint: Color.Token.teal,
                         isOn: .constant(false)
                     )
                 }
@@ -227,7 +235,7 @@ struct ProfileView: View {
     }
 
     private var prayerSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             ProfileSectionHeaderView(title: languageManager.localize("prayer_setting"))
             VStack(spacing: 0) {
                 NavigationLink {
@@ -238,12 +246,13 @@ struct ProfileView: View {
                         title: languageManager.localize("location_source"),
                         subtitle: "",
                         hasToggle: false,
+                        iconTint: Color.Token.teal,
                         isOn: .constant(false)
                     )
                 }
                 .buttonStyle(.plain)
 
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
 
                 NavigationLink {
                     PrayerCalculationSettingsView()
@@ -253,6 +262,7 @@ struct ProfileView: View {
                         title: languageManager.localize("prayer_calc"),
                         subtitle: selectedPrayerMethod.displayName,
                         hasToggle: false,
+                        iconTint: Color.Token.deepEmerald,
                         isOn: .constant(false)
                     )
                 }
@@ -262,17 +272,18 @@ struct ProfileView: View {
                     hint: "Current method \(selectedPrayerMethod.displayName). Choose how prayer times are calculated"
                 )
 
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
 
                 ProfileRowView(
                     icon: "book.pages",
                     title: languageManager.localize("show_translation"),
-                    subtitle: "English",
+                    subtitle: languageManager.localize("show_translation"),
                     hasToggle: true,
+                    iconTint: Color.Token.gold,
                     isOn: $showTranslation
                 )
 
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
 
                 Button { showingTranslatorSheet = true } label: {
                     ProfileRowView(
@@ -280,6 +291,7 @@ struct ProfileView: View {
                         title: languageManager.localize("translator"),
                         subtitle: selectedTranslationName,
                         hasToggle: false,
+                        iconTint: Color.Token.goldDeep,
                         isOn: .constant(false)
                     )
                 }
@@ -291,7 +303,7 @@ struct ProfileView: View {
                         : "Current translator \(selectedTranslationName)"
                 )
 
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
 
                 Button { showingAdhanVoiceSheet = true } label: {
                     ProfileRowView(
@@ -299,6 +311,7 @@ struct ProfileView: View {
                         title: languageManager.localize("adhan_voice"),
                         subtitle: adhanVoiceDisplayName,
                         hasToggle: false,
+                        iconTint: Color(hex: "#7C3AED"),
                         isOn: .constant(false)
                     )
                 }
@@ -356,7 +369,7 @@ struct ProfileView: View {
     }
 
     private var notificationsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             ProfileSectionHeaderView(title: languageManager.localize("notifications"))
             VStack(spacing: 0) {
                 ProfileRowView(
@@ -364,10 +377,11 @@ struct ProfileView: View {
                     title: languageManager.localize("verse_of_the_day"),
                     subtitle: dailyVerseNotificationSubtitle,
                     hasToggle: true,
+                    iconTint: Color.Token.gold,
                     isOn: $dailyVerseEnabled
                 )
                 if dailyVerseEnabled {
-                    Divider().padding(.leading, 64)
+                    Divider().padding(.leading, 66)
                     Button {
                         showingDailyVerseTimeSheet = true
                     } label: {
@@ -376,6 +390,7 @@ struct ProfileView: View {
                             title: languageManager.localize("morning_time"),
                             subtitle: dailyVerseTimeRowSubtitle,
                             hasToggle: false,
+                            iconTint: Color.Token.goldDeep,
                             isOn: .constant(false)
                         )
                     }
@@ -385,44 +400,49 @@ struct ProfileView: View {
                         hint: "Currently \(dailyVerseTimeRowSubtitle). Double tap to change."
                     )
                 }
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
                 ProfileRowView(
                     icon: "bell",
                     title: languageManager.localize("prayer_times"),
                     subtitle: languageManager.localize("prayer_times_sub"),
                     hasToggle: true,
+                    iconTint: Color.Token.teal,
                     isOn: $adzanEnabled
                 )
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
                 ProfileRowView(
                     icon: "bell.badge",
-                    title: "Imsak",
+                    title: languageManager.localize("imsak"),
                     subtitle: languageManager.localize("imsak_sub"),
                     hasToggle: true,
+                    iconTint: Color.Token.tealDark,
                     isOn: $imsakEnabled
                 )
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
                 ProfileRowView(
                     icon: "moon",
-                    title: "Midnight",
+                    title: languageManager.localize("midnight"),
                     subtitle: languageManager.localize("midnight_sub"),
                     hasToggle: true,
+                    iconTint: Color.Token.indigoDeep,
                     isOn: $midnightEnabled
                 )
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
                 ProfileRowView(
                     icon: "moon.stars",
-                    title: "First third of night",
+                    title: languageManager.localize("first_third_night"),
                     subtitle: languageManager.localize("first_third_sub"),
                     hasToggle: true,
+                    iconTint: Color(hex: "#4338CA"),
                     isOn: $firstThirdEnabled
                 )
-                Divider().padding(.leading, 64)
+                Divider().padding(.leading, 66)
                 ProfileRowView(
                     icon: "sparkles",
-                    title: "Last third (Tahajud)",
+                    title: languageManager.localize("tahajud"),
                     subtitle: languageManager.localize("tahajud_sub"),
                     hasToggle: true,
+                    iconTint: Color.Token.deepEmerald,
                     isOn: $tahajudEnabled
                 )
             }
@@ -515,7 +535,11 @@ struct AppLanguageSelectionSheet: View {
 private extension View {
     func profileCardStyle() -> some View {
         background(Color.Token.pureWhite)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .shadow(color: Color.black.opacity(0.04), radius: 10, y: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.Token.softGrey.opacity(0.5), lineWidth: 0.5)
+            )
     }
 }

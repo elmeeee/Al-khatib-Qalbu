@@ -93,10 +93,18 @@ class AppLanguageManager: ObservableObject {
         "notif_first_third": [.english: "First Third Notification", .indonesian: "Notifikasi Sepertiga Malam", .malay: "Notifikasi Sepertiga Malam"],
         "notif_tahajud": [.english: "Tahajud Notification", .indonesian: "Notifikasi Tahajud", .malay: "Notifikasi Tahajjud"],
         "notif_daily_verse": [.english: "Daily Verse Notification", .indonesian: "Notifikasi Ayat Harian", .malay: "Notifikasi Ayat Harian"],
-        
+
         "sign_in": [.english: "Sign In", .indonesian: "Masuk Akun", .malay: "Log Masuk"],
         "sign_out": [.english: "Sign Out", .indonesian: "Keluar Akun", .malay: "Log Keluar"],
-        
+        "sync_reflections": [.english: "Sync Reflections", .indonesian: "Sinkronkan Renungan", .malay: "Segerak Renungan"],
+        "sign_in_prompt": [.english: "Sign in to back up your progress.", .indonesian: "Masuk untuk menyimpan progres Anda.", .malay: "Log masuk untuk menyimpan kemajuan anda."],
+
+        "imsak": [.english: "Imsak", .indonesian: "Imsak", .malay: "Imsak"],
+        "midnight": [.english: "Midnight", .indonesian: "Tengah Malam", .malay: "Tengah Malam"],
+        "first_third_night": [.english: "First Third of Night", .indonesian: "Sepertiga Malam Pertama", .malay: "Sepertiga Malam Pertama"],
+        "tahajud": [.english: "Tahajud", .indonesian: "Tahajud", .malay: "Tahajjud"],
+
+
         // Settings details
         "system_default": [.english: "System Default", .indonesian: "Default Sistem", .malay: "Lalai Sistem"],
         "verse_of_the_day": [.english: "Verse of the day", .indonesian: "Ayat hari ini", .malay: "Ayat hari ini"],

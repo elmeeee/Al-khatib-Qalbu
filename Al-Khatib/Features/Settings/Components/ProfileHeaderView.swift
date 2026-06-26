@@ -30,128 +30,207 @@ struct ProfileHeaderView: View {
         }
     }
 
+    // ── Signed-in (full profile) ─────────────────────────────────────────
     private func signedInHeader(profile: UserProfilePayload) -> some View {
-        HStack(spacing: 16) {
-            ProfileAvatarView(url: profile.preferredAvatarURL, size: 80)
+        profileCard {
+            HStack(alignment: .top, spacing: 14) {
+                ProfileAvatarView(url: profile.preferredAvatarURL, size: 72)
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(profile.displayTitle)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color.Token.slate800)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(profile.displayTitle)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color.Token.deepEmerald)
+                        .lineLimit(1)
 
-                if let country = profile.country, country.isEmpty == false {
-                    countryChip(country)
-                }
-            }
-
-            Spacer()
-        }
-        .padding(.vertical, 8)
-    }
-
-    private func signedInFallbackHeader(name: String, avatarURL: URL?) -> some View {
-        HStack(spacing: 16) {
-            ProfileAvatarView(url: avatarURL, size: 80)
-            VStack(alignment: .leading, spacing: 6) {
-                Text(name)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color.Token.slate800)
-            }
-            Spacer()
-        }
-        .padding(.vertical, 8)
-    }
-
-    private var loadingHeader: some View {
-        HStack(spacing: 16) {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.Token.softGrey.opacity(0.35))
-                .frame(width: 52, height: 52)
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Token.softGrey.opacity(0.35))
-                    .frame(width: 140, height: 14)
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.Token.softGrey.opacity(0.25))
-                    .frame(width: 90, height: 10)
-            }
-            Spacer()
-            ProgressView().tint(Color.Token.teal)
-        }
-        .padding(16)
-        .background(Color.Token.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
-    }
-
-    private var signInHeader: some View {
-        HStack(spacing: 16) {
-            Image(systemName: "person.crop.circle.fill")
-                .font(.system(size: 40))
-                .foregroundColor(Color.Token.teal)
-                .frame(width: 52, height: 52)
-                .background(Color.Token.teal.opacity(0.1))
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Sync Reflections")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color.Token.slate800)
-                Text("Sign in to back up progress.")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            Button(action: onSignIn) {
-                HStack(spacing: 6) {
-                    if isOAuthPresenting {
-                        ProgressView().tint(.white)
+                    if let country = profile.country, country.isEmpty == false {
+                        countryChip(country)
                     }
-                    Text("Sign In")
-                        .font(.system(size: 13, weight: .bold))
+
+                    // Stats row
+                    let stats = makeStats(profile)
+                    if stats.isEmpty == false {
+                        HStack(spacing: 4) {
+                            ForEach(Array(stats.enumerated()), id: \.offset) { idx, stat in
+                                HStack(spacing: 2) {
+                                    Text("\(stat.value)")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(Color.Token.deepEmerald)
+                                    Text(stat.label)
+                                        .font(.system(size: 11))
+                                        .foregroundColor(Color.Token.slate500)
+                                }
+
+                                if idx < stats.count - 1 {
+                                    Text("·")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(Color.Token.softGrey)
+                                }
+                            }
+                        }
+                    }
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.Token.teal)
-                .clipShape(Capsule())
-                .shadow(color: Color.Token.teal.opacity(0.2), radius: 4, y: 2)
+
+                Spacer()
             }
-            .buttonStyle(PillPressStyle())
-            .disabled(isOAuthPresenting)
-            .alKhatibAccessibility(
-                label: AlKhatibAccessibility.Profile.signIn,
-                hint: "Back up reflections and sync your profile"
-            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
         }
-        .padding(16)
+    }
+
+    // ── Fallback (token session, no full profile) ─────────────────────────
+    private func signedInFallbackHeader(name: String, avatarURL: URL?) -> some View {
+        profileCard {
+            HStack(alignment: .center, spacing: 14) {
+                ProfileAvatarView(url: avatarURL, size: 72)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(name)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color.Token.deepEmerald)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+    }
+
+    // ── Loading skeleton ──────────────────────────────────────────────────
+    private var loadingHeader: some View {
+        profileCard {
+            HStack(spacing: 16) {
+                Circle()
+                    .fill(Color.Token.softGrey.opacity(0.4))
+                    .frame(width: 72, height: 72)
+                VStack(alignment: .leading, spacing: 8) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.Token.softGrey.opacity(0.45))
+                        .frame(width: 140, height: 14)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.Token.softGrey.opacity(0.3))
+                        .frame(width: 90, height: 10)
+                }
+                Spacer()
+                ProgressView().tint(Color.Token.teal)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .redacted(reason: .placeholder)
+        }
+    }
+
+    // ── Sign-in CTA ────────────────────────────────────────────────────────
+    private var signInHeader: some View {
+        profileCard {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(Color.Token.teal.opacity(0.12))
+                        .frame(width: 72, height: 72)
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.system(size: 44))
+                        .foregroundColor(Color.Token.teal.opacity(0.75))
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(AppLanguageManager.shared.localize("sync_reflections"))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(Color.Token.deepEmerald)
+                    Text(AppLanguageManager.shared.localize("sign_in_prompt"))
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(Color.Token.slate500)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Button(action: onSignIn) {
+                    Group {
+                        if isOAuthPresenting {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text(AppLanguageManager.shared.localize("sign_in"))
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 9)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.Token.teal, Color.Token.tealDark],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: Color.Token.teal.opacity(0.25), radius: 6, y: 3)
+                }
+                .buttonStyle(PillPressStyle())
+                .disabled(isOAuthPresenting)
+                .alKhatibAccessibility(
+                    label: AlKhatibAccessibility.Profile.signIn,
+                    hint: "Back up reflections and sync your profile"
+                )
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+    }
+
+    // ── Card container with gradient top bar ──────────────────────────────
+    @ViewBuilder
+    private func profileCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        VStack(spacing: 0) {
+            // Gradient top accent bar (matches Android)
+            LinearGradient(
+                colors: [Color.Token.deepEmerald, Color.Token.teal],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(height: 3)
+
+            content()
+                .padding(.top, 16)
+        }
         .background(Color.Token.pureWhite)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .shadow(color: Color.black.opacity(0.02), radius: 8, y: 4)
+        .shadow(color: Color.black.opacity(0.05), radius: 12, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.Token.softGrey.opacity(0.5), lineWidth: 1)
+        )
     }
 
     private func countryChip(_ country: String) -> some View {
         HStack(spacing: 4) {
             Image(systemName: "mappin.and.ellipse")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: 10, weight: .semibold))
             Text(country)
                 .font(.system(size: 12, weight: .medium))
-            Image(systemName: "chevron.right")
-                .font(.system(size: 8, weight: .bold))
         }
         .foregroundColor(Color.Token.teal)
         .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(Color.Token.teal.opacity(0.12))
+        .padding(.vertical, 4)
+        .background(Color.Token.teal.opacity(0.1))
         .clipShape(Capsule())
+    }
+
+    private struct Stat { let label: String; let value: Int }
+
+    private func makeStats(_ profile: UserProfilePayload) -> [Stat] {
+        var stats: [Stat] = []
+        if let posts = profile.postsCount { stats.append(Stat(label: "posts", value: posts)) }
+        if let followers = profile.followersCount { stats.append(Stat(label: "followers", value: followers)) }
+        if let likes = profile.likesCount { stats.append(Stat(label: "likes", value: likes)) }
+        return stats
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+
 struct ProfileAvatarView: View {
     let url: URL?
-    var size: CGFloat = 80
+    var size: CGFloat = 72
 
     var body: some View {
         Group {
@@ -173,12 +252,26 @@ struct ProfileAvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .shadow(color: Color.black.opacity(0.08), radius: 6, y: 3)
+        .overlay(
+            Circle()
+                .stroke(
+                    LinearGradient(
+                        colors: [Color.Token.teal, Color.Token.deepEmerald],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
+        )
+        .shadow(color: Color.black.opacity(0.1), radius: 6, y: 3)
     }
 
     private var placeholder: some View {
-        Image(systemName: "person.crop.circle.fill")
-            .font(.system(size: size * 0.9))
-            .foregroundColor(Color.Token.teal.opacity(0.85))
+        ZStack {
+            Circle().fill(Color.Token.teal.opacity(0.1))
+            Image(systemName: "person.crop.circle.fill")
+                .font(.system(size: size * 0.65))
+                .foregroundColor(Color.Token.teal.opacity(0.8))
+        }
     }
 }

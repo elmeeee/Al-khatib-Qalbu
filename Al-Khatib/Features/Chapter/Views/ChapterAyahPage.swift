@@ -22,7 +22,7 @@ struct ChapterAyahPage: View {
     @State private var arabicMeasuredHeight: CGFloat = 120
     @State private var layoutScale: Double = 1.0
 
-    private let contentSpacing: CGFloat = 14
+    private let contentSpacing: CGFloat = 16
     private let minimumLayoutScale: Double = 0.68
 
     private var hasAudio: Bool {
@@ -47,6 +47,14 @@ struct ChapterAyahPage: View {
         CGFloat(17 * effectiveFontScale)
     }
 
+    // Verse number display
+    private var verseDisplayNumber: String {
+        if let num = verse.resolvedVerseNumber {
+            return "\(num)"
+        }
+        return ""
+    }
+
     var body: some View {
         ZStack {
             ChapterReaderBackground()
@@ -56,6 +64,28 @@ struct ChapterAyahPage: View {
 
                 VStack(alignment: .center, spacing: 0) {
                     VStack(spacing: contentSpacing) {
+
+                        // ── Verse Number Pill ─────────────────────────
+                        if !verseDisplayNumber.isEmpty {
+                            HStack(spacing: 6) {
+                                ornamentDot
+                                Text(verseDisplayNumber)
+                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                    .foregroundColor(Color.Token.gold)
+                                ornamentDot
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.Token.gold.opacity(0.1))
+                                    .overlay(
+                                        Capsule().stroke(Color.Token.gold.opacity(0.25), lineWidth: 1)
+                                    )
+                            )
+                        }
+
+                        // ── Arabic WebBlock ───────────────────────────
                         AyahArabicWebBlock(
                             payload: verse,
                             style: .verseCard,
@@ -65,26 +95,54 @@ struct ChapterAyahPage: View {
                         )
                         .padding(.horizontal, 8)
 
+                        // ── Transliteration ───────────────────────────
                         if let latinText = verse.transliteration, latinText.isEmpty == false {
                             Text(latinText)
                                 .font(.system(size: CGFloat(15 * effectiveFontScale), weight: .medium, design: .serif))
-                                .foregroundColor(Color.Token.gold)
+                                .foregroundColor(Color.Token.gold.opacity(0.85))
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                                .padding(.vertical, 10)
                                 .background(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.Token.lightGrey.opacity(0.6))
+                                        .fill(Color.white.opacity(0.06))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.Token.gold.opacity(0.15), lineWidth: 1)
+                                        )
                                 )
                         }
 
+                        // ── Translation ───────────────────────────────
                         if let translationText {
-                            Text(justifiedTranslation(translationText))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .minimumScaleFactor(0.82)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 0) {
+                                // Accent bar
+                                HStack(spacing: 0) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [Color.Token.teal, Color.Token.teal.opacity(0.3)],
+                                                startPoint: .top,
+                                                endPoint: .bottom
+                                            )
+                                        )
+                                        .frame(width: 3)
+                                    Text(justifiedTranslation(translationText))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .minimumScaleFactor(0.82)
+                                        .lineLimit(nil)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 10)
+                                }
                                 .padding(.horizontal, 20)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white.opacity(0.05))
+                                )
+                                .padding(.horizontal, 4)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .top)
@@ -92,7 +150,7 @@ struct ChapterAyahPage: View {
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, chromeInsets.top)
+                .padding(.top, chromeInsets.top + 8)
                 .padding(.bottom, chromeInsets.bottom)
                 .frame(width: geometry.size.width, height: availableHeight, alignment: .top)
                 .contentShape(Rectangle())
@@ -114,44 +172,27 @@ struct ChapterAyahPage: View {
                 }
                 .onAppear {
                     layoutScale = 1.0
-                    recalculateLayoutScale(
-                        availableHeight: availableHeight,
-                        contentWidth: geometry.size.width
-                    )
+                    recalculateLayoutScale(availableHeight: availableHeight, contentWidth: geometry.size.width)
                 }
                 .onChange(of: availableHeight) { _, height in
-                    recalculateLayoutScale(
-                        availableHeight: height,
-                        contentWidth: geometry.size.width
-                    )
+                    recalculateLayoutScale(availableHeight: height, contentWidth: geometry.size.width)
                 }
                 .onChange(of: arabicMeasuredHeight) { _, _ in
-                    recalculateLayoutScale(
-                        availableHeight: availableHeight,
-                        contentWidth: geometry.size.width
-                    )
+                    recalculateLayoutScale(availableHeight: availableHeight, contentWidth: geometry.size.width)
                 }
                 .onChange(of: fontScale) { _, _ in
                     layoutScale = 1.0
-                    recalculateLayoutScale(
-                        availableHeight: availableHeight,
-                        contentWidth: geometry.size.width
-                    )
+                    recalculateLayoutScale(availableHeight: availableHeight, contentWidth: geometry.size.width)
                 }
                 .onChange(of: showTranslation) { _, _ in
-                    recalculateLayoutScale(
-                        availableHeight: availableHeight,
-                        contentWidth: geometry.size.width
-                    )
+                    recalculateLayoutScale(availableHeight: availableHeight, contentWidth: geometry.size.width)
                 }
                 .onChange(of: chromeInsets) { _, _ in
-                    recalculateLayoutScale(
-                        availableHeight: availableHeight,
-                        contentWidth: geometry.size.width
-                    )
+                    recalculateLayoutScale(availableHeight: availableHeight, contentWidth: geometry.size.width)
                 }
             }
 
+            // Tap feedback overlay
             if hasAudio {
                 Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 64))
@@ -164,19 +205,22 @@ struct ChapterAyahPage: View {
         .clipped()
     }
 
+    private var ornamentDot: some View {
+        Circle()
+            .fill(Color.Token.gold.opacity(0.5))
+            .frame(width: 4, height: 4)
+    }
+
     private func recalculateLayoutScale(availableHeight: CGFloat, contentWidth: CGFloat) {
         guard availableHeight > 0 else { return }
-
         let translationHeight = estimatedTranslationHeight(width: contentWidth - 72)
         let latinHeight = estimatedLatinHeight(width: contentWidth - 72)
         let budget = availableHeight - translationHeight - latinHeight - (contentSpacing * 2) - chromeInsets.top - chromeInsets.bottom
         guard budget > 0, arabicMeasuredHeight > 0 else { return }
-
         if arabicMeasuredHeight <= budget {
             layoutScale = 1.0
             return
         }
-
         let target = budget / arabicMeasuredHeight
         layoutScale = max(minimumLayoutScale, min(1.0, target))
     }
@@ -220,7 +264,7 @@ struct ChapterAyahPage: View {
             attributes: [.font: font],
             context: nil
         )
-        return ceil(rect.height) + 16 // add padding
+        return ceil(rect.height) + 16
     }
 
     private func pulseTapFeedback() {
