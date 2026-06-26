@@ -42,7 +42,8 @@ struct ChaptersView: View {
             guard let c = container, vm == nil else { return }
             let model = QuranChaptersViewModel(
                 content: c.content,
-                readingSessions: c.readingSessions
+                readingSessions: c.readingSessions,
+                language: languageManager.currentLanguage.rawValue
             )
             vm = model
             await model.refreshAll()
@@ -373,7 +374,7 @@ private struct ContinueReadingCard: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text("Ayah \(verseNumber)")
+                Text((AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah") + " \(verseNumber)")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -473,8 +474,11 @@ private struct QuranChapterRow: View {
                 HStack(spacing: 8) {
                     ChapterRevelationBadge(chapter: chapter)
 
-                    if let countLabel = chapter.versesCountLabel {
-                        Text(countLabel)
+                    if let count = chapter.versesCount {
+                        let label = count == 1
+                            ? (AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah")
+                            : AppLanguageManager.shared.localize("verses")
+                        Text("\(count) \(label)")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: true, vertical: false)
@@ -523,7 +527,7 @@ private struct JuzRow: View {
 
                         if let start = juz.startChapterAndAyah() {
                             let surahName = chapter?.displayComplexName ?? "Surah \(start.0)"
-                            Text("\(AppLanguageManager.shared.localize("starts_at")) \(surahName) \u{2022} Ayah \(start.1)")
+                            Text("\(AppLanguageManager.shared.localize("starts_at")) \(surahName) • \(AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah") \(start.1)")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.secondary)
                         }

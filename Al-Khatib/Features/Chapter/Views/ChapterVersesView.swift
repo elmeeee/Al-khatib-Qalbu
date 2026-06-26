@@ -11,6 +11,7 @@ import SwiftUI
 struct ChapterVersesView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     let chapter: QuranChapter?
     var juzNumber: Int? = nil
@@ -107,6 +108,7 @@ struct ChapterVersesView: View {
                 }
             }
         }
+        .id(languageManager.currentLanguage)
         .chapterReaderScreenBackground()
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -219,15 +221,29 @@ struct ChapterVersesView: View {
     }
 
     private var currentPositionLabel: String {
-        if let vm,
-           let currentVerse = readerCoordinator?.currentVerse(in: vm) {
+        guard let vm else { return "" }
+
+        if let currentVerse = readerCoordinator?.currentVerse(in: vm) {
             let verseNum = currentVerse.resolvedVerseNumber
-            if let juz = currentVerse.juzNumber {
-                return "Ayah \(String(describing: verseNum)) · Juz \(juz)"
+            let label = languageManager.currentLanguage == .english ? "Verse" : "Ayah"
+            if let verseNum {
+                if let juz = currentVerse.juzNumber {
+                    return "\(label) (\(verseNum)) • \(languageManager.localize("juz")) \(juz)"
+                }
+                return "\(label) \(verseNum)"
             }
-            return "Ayah \(String(describing: verseNum))"
         }
-        return readerCoordinator?.positionLabel(in: vm) ?? chapter?.versesCountLabel ?? ""
+
+        if let firstVerse = vm.verses.first,
+           let verseNum = firstVerse.resolvedVerseNumber {
+            let label = languageManager.currentLanguage == .english ? "Verse" : "Ayah"
+            if let juz = firstVerse.juzNumber {
+                return "\(label) (\(verseNum)) • \(languageManager.localize("juz")) \(juz)"
+            }
+            return "\(label) \(verseNum)"
+        }
+
+        return readerCoordinator?.positionLabel(in: vm) ?? ""
     }
 
     private var chapterHeader: some View {
@@ -237,15 +253,19 @@ struct ChapterVersesView: View {
                 dismiss()
             }
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(currentSurahName)
                     .font(.subheadline.weight(.bold))
                     .foregroundColor(Color.Token.slate900)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                Text(currentPositionLabel)
-                    .font(.caption)
-                    .foregroundColor(Color.Token.slate500)
+                if currentPositionLabel.isEmpty == false {
+                    Text(currentPositionLabel)
+                        .font(.caption)
+                        .foregroundColor(Color.Token.slate500)
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 8)
@@ -255,8 +275,8 @@ struct ChapterVersesView: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.top, 6)
-        .padding(.bottom, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
         .safeAreaPadding(.top, 4)
         .background(Color.Token.screenBackground.opacity(0.95))
     }

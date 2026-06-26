@@ -128,13 +128,18 @@ final class ChapterReaderCoordinator {
 
     func positionLabel(in vm: ChapterVersesViewModel?) -> String {
         guard let vm, let scrollPosition, scrollPosition != ScrollID.intro else {
-            return chapter?.versesCountLabel ?? ""
+            return ""
         }
         if let index = vm.verses.firstIndex(where: { $0.listIdentity == scrollPosition }) {
-            let total = chapter?.versesCount ?? vm.verses.count
-            return "Ayah \(index + 1) / \(total)"
+            let verse = vm.verses[index]
+            let verseNumber = verse.resolvedVerseNumber ?? (index + 1)
+            let label = AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah"
+            if let juz = verse.juzNumber {
+                return "\(label) (\(verseNumber)) • \(AppLanguageManager.shared.localize("juz")) \(juz)"
+            }
+            return "\(label) \(verseNumber)"
         }
-        return chapter?.versesCountLabel ?? ""
+        return ""
     }
 
     @MainActor

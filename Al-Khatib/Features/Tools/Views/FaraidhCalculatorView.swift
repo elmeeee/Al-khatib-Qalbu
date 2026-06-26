@@ -117,7 +117,7 @@ struct FaraidhCalculatorView: View {
                 }
                 .padding(.trailing, 8)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 16)
             .padding(.top, 8)
             
             // Tab Selector

@@ -39,6 +39,7 @@ final class ChapterVersesViewModel {
     }
 
     private let content: QuranContentRepository
+    private let language: String
     private var nextPage = 1
     private var hasMorePages = true
 
@@ -46,6 +47,7 @@ final class ChapterVersesViewModel {
         self.chapter = chapter
         self.juzNumber = juzNumber
         self.content = content
+        self.language = AppLanguageManager.shared.currentLanguage.rawValue
         let saved = UserDefaults.standard.integer(forKey: Self.recitationStorageKey)
         selectedRecitationId = saved > 0 ? saved : Self.defaultRecitationId
     }
@@ -59,7 +61,7 @@ final class ChapterVersesViewModel {
         hasMorePages = true
         defer { isLoading = false }
 
-        if let allChapters = try? await content.getChapters() {
+        if let allChapters = try? await content.getChapters(language: language) {
             var lookup: [Int: String] = [:]
             for ch in allChapters {
                 lookup[ch.id] = ch.displayComplexName

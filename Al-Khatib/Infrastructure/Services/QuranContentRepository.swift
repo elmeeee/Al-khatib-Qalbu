@@ -18,7 +18,7 @@ struct QuranContentRepository: Sendable {
     }
 
     func getChapters(language: String = "en") async throws -> [QuranChapter] {
-        let normalizedLang = language.hasPrefix("id") ? "id" : "en"
+        let normalizedLang = language.hasPrefix("id") || language.hasPrefix("ms") ? "id" : "en"
         let chapters = try await local.getChapters(language: normalizedLang)
         await MainActor.run { ChapterCatalog.register(chapters) }
         return chapters

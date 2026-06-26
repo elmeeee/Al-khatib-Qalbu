@@ -38,7 +38,7 @@ final class QuranChaptersViewModel {
     init(
         content: QuranContentRepository,
         readingSessions: ReadingSessionRepository,
-        language: String = "en"
+        language: String = AppLanguageManager.shared.currentLanguage.rawValue
     ) {
         self.content = content
         self.readingSessions = readingSessions
