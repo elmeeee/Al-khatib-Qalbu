@@ -47,110 +47,111 @@ struct QiyamTrackerView: View {
     @State private var weekLog: [QiyamDayLog] = []
     
     @State private var expandedReadings: Set<String> = []
-    
-    // Readings static list
-    private let readings = [
-        // Preparation
-        QiyamReading(
-            id: "when",
-            title: "Best time — last third of night",
-            body: "Sleep with intention to wake for tahajud. The last third of the night (between Isha and Fajr) is especially blessed. Even two rakah before Fajr count as tahajud.",
-            arabic: nil,
-            transliteration: nil,
-            category: .preparation
-        ),
-        QiyamReading(
-            id: "niat",
-            title: "Intention (niyyah)",
-            body: "Make intention in your heart before takbir. Example: I intend to pray sunnah tahajud for Allah.",
-            arabic: "نَوَيْتُ أَنْ أُصَلِّيَ سُنَّةَ التَّهَجُّدِ لِلَّهِ تَعَالَى",
-            transliteration: "Nawaytu an usalliya sunnata at-tahajjudi lillāhi taʿālā",
-            category: .preparation
-        ),
-        // Prayer
-        QiyamReading(
-            id: "takbir",
-            title: "Takbiratul ihram",
-            body: "Raise hands and say Allahu Akbar to begin each rakah pair. Face the qibla with wudu.",
-            arabic: "اللَّهُ أَكْبَرُ",
-            transliteration: "Allāhu akbar",
-            category: .prayer
-        ),
-        QiyamReading(
-            id: "iftitah",
-            title: "Opening supplication (optional)",
-            body: "After takbir, you may recite the opening dua before Al-Fatihah in the first rakah.",
-            arabic: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالَى جَدُّكَ، وَلَا إِلَٰهَ غَيْرُكَ",
-            transliteration: "Subḥānaka Allāhumma wa biḥamdika, wa tabāraka smuka, wa taʿālā jadduka, wa lā ilāha ghayruk",
-            category: .prayer
-        ),
-        QiyamReading(
-            id: "fatihah",
-            title: "Al-Fatihah",
-            body: "Recite Al-Fatihah in every rakah, then a short surah or a few verses in the first two rakah of each pair.",
-            arabic: nil,
-            transliteration: nil,
-            category: .prayer
-        ),
-        QiyamReading(
-            id: "surah",
-            title: "Short surahs (examples)",
-            body: "Common choices: Al-Ikhlas, Al-Falaq, An-Nas, Al-Kafirun, or any surah you know. Tahajud is prayed in pairs of two rakah — say salam after every two.",
-            arabic: nil,
-            transliteration: nil,
-            category: .prayer
-        ),
-        QiyamReading(
-            id: "ruku",
-            title: "Ruku",
-            body: "Bow with back straight, hands on knees. Say tasbih at least 3 times.",
-            arabic: "سُبْحَانَ رَبِّيَ الْعَظِيمِ",
-            transliteration: "Subḥāna rabbiyal ʿaẓīm",
-            category: .prayer
-        ),
-        QiyamReading(
-            id: "sujud",
-            title: "Sujud",
-            body: "Prostrate with forehead, nose, hands, knees, and toes on the ground. Say tasbih at least 3 times per sajdah.",
-            arabic: "سُبْحَانَ رَبِّيَ الْأَعْلَى",
-            transliteration: "Subḥāna rabbiyal aʿlā",
-            category: .prayer
-        ),
-        // Witr
-        QiyamReading(
-            id: "witr",
-            title: "Witr (closing odd prayer)",
-            body: "End the night with witr — minimum 1 rakah, commonly 3. In the final rakah, raise hands for qunut before ruku (per your madhab). After witr, do not pray more sunnah.",
-            arabic: nil,
-            transliteration: nil,
-            category: .witr
-        ),
-        QiyamReading(
-            id: "qunut",
-            title: "Qunut supplication (witr)",
-            body: "Recite qunut in the last rakah of witr while standing, before ruku. Many scholars allow a shorter dua if the full text is difficult to memorize.",
-            arabic: "اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ، وَعَافِنِي فِيمَنْ عَافَيْتَ، وَتَوَلَّنِي فِيمَنْ تَوَلَّتَ، وَبَارِكْ لِي فِيمَا أَعْطَيْتَ",
-            transliteration: "Allāhumma ihdinī fīman hadayta, wa ʿāfinī fīman ʿāfayta, wa tawallanī fīman tawallayta, wa bārik lī fīmā aʿṭayta",
-            category: .witr
-        ),
-        // Closing
-        QiyamReading(
-            id: "dhikr_after",
-            title: "Dhikr after prayer",
-            body: "After salam: Astaghfirullah ×3, Allahumma antas salam…, then 33× SubhanAllah, 33× Alhamdulillah, 34× Allahu Akbar (or combined to 100).",
-            arabic: nil,
-            transliteration: nil,
-            category: .closing
-        ),
-        QiyamReading(
-            id: "dua",
-            title: "Personal dua",
-            body: "The last third of the night is when Allah descends (in a manner befitting Him) and answers dua. Ask for forgiveness, guidance, family, and the ummah. Speak from the heart in any language.",
-            arabic: nil,
-            transliteration: nil,
-            category: .closing
-        )
-    ]
+        // Readings static list
+    private var readings: [QiyamReading] {
+        [
+            // Preparation
+            QiyamReading(
+                id: "when",
+                title: languageManager.localize("tahajud_when_title"),
+                body: languageManager.localize("tahajud_when_body"),
+                arabic: nil,
+                transliteration: nil,
+                category: .preparation
+            ),
+            QiyamReading(
+                id: "niat",
+                title: languageManager.localize("tahajud_niat_title"),
+                body: languageManager.localize("tahajud_niat_body"),
+                arabic: "نَوَيْتُ أَنْ أُصَلِّيَ سُنَّةَ التَّهَجُّدِ لِلَّهِ تَعَالَى",
+                transliteration: "Nawaytu an usalliya sunnata at-tahajjudi lillāhi taʿālā",
+                category: .preparation
+            ),
+            // Prayer
+            QiyamReading(
+                id: "takbir",
+                title: languageManager.localize("tahajud_takbir_title"),
+                body: languageManager.localize("tahajud_takbir_body"),
+                arabic: "اللَّهُ أَكْبَرُ",
+                transliteration: "Allāhu akbar",
+                category: .prayer
+            ),
+            QiyamReading(
+                id: "iftitah",
+                title: languageManager.localize("tahajud_iftitah_title"),
+                body: languageManager.localize("tahajud_iftitah_body"),
+                arabic: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالَى جَدُّكَ، وَلَا إِلَٰهَ غَيْرُكَ",
+                transliteration: "Subḥānaka Allāhumma wa biḥamdika, wa tabāraka smuka, wa taʿālā jadduka, wa lā ilāha ghayruk",
+                category: .prayer
+            ),
+            QiyamReading(
+                id: "fatihah",
+                title: languageManager.localize("tahajud_fatihah_title"),
+                body: languageManager.localize("tahajud_fatihah_body"),
+                arabic: nil,
+                transliteration: nil,
+                category: .prayer
+            ),
+            QiyamReading(
+                id: "surah",
+                title: languageManager.localize("tahajud_surah_title"),
+                body: languageManager.localize("tahajud_surah_body"),
+                arabic: nil,
+                transliteration: nil,
+                category: .prayer
+            ),
+            QiyamReading(
+                id: "ruku",
+                title: languageManager.localize("tahajud_ruku_title"),
+                body: languageManager.localize("tahajud_ruku_body"),
+                arabic: "سُبْحَان   رَبِّيَ الْعَظِيمِ",
+                transliteration: "Subḥāna rabbiyal ʿaẓīm",
+                category: .prayer
+            ),
+            QiyamReading(
+                id: "sujud",
+                title: languageManager.localize("tahajud_sujud_title"),
+                body: languageManager.localize("tahajud_sujud_body"),
+                arabic: "سُبْحَانَ رَبِّيَ الْأَعْلَى",
+                transliteration: "Subḥāna rabbiyal aʿlā",
+                category: .prayer
+            ),
+            // Witr
+            QiyamReading(
+                id: "witr",
+                title: languageManager.localize("tahajud_witr_title"),
+                body: languageManager.localize("tahajud_witr_body"),
+                arabic: nil,
+                transliteration: nil,
+                category: .witr
+            ),
+            QiyamReading(
+                id: "qunut",
+                title: languageManager.localize("tahajud_qunut_title"),
+                body: languageManager.localize("tahajud_qunut_body"),
+                arabic: "اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ، وَعَافِنِي فِيمَنْ عَافَيْتَ، وَتَوَلَّنِي فِيمَنْ تَوَلَّيْتَ، وَبَارِكْ لِي فِيمَا أَعْطَيْتَ",
+                transliteration: "Allāhumma ihdinī fīman hadayta, wa ʿāfinī fīman ʿāfayta, wa tawallanī fīman tawallayta, wa bārik lī fīmā aʿṭayta",
+                category: .witr
+            ),
+            // Closing
+            QiyamReading(
+                id: "dhikr_after",
+                title: languageManager.localize("tahajud_dhikr_title"),
+                body: languageManager.localize("tahajud_dhikr_body"),
+                arabic: nil,
+                transliteration: nil,
+                category: .closing
+            ),
+            QiyamReading(
+                id: "dua",
+                title: languageManager.localize("tahajud_dua_title"),
+                body: languageManager.localize("tahajud_dua_body"),
+                arabic: nil,
+                transliteration: nil,
+                category: .closing
+            )
+        ]
+    }
     
     var body: some View {
         VStack(spacing: 0) {
