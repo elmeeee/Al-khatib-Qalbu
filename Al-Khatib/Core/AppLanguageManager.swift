@@ -156,7 +156,14 @@ class AppLanguageManager: ObservableObject {
         "quran_title": [.english: "Quran", .indonesian: "Al-Quran", .malay: "Al-Quran"],
         "quran_subtitle": [.english: "114 Surahs · The Noble Quran", .indonesian: "114 Surah · Al-Quran Al-Karim", .malay: "114 Surah · Al-Quran Al-Karim"],
         "quran_subtitle_juz": [.english: "30 Juz · The Noble Quran", .indonesian: "30 Juz · Al-Quran Al-Karim", .malay: "30 Juz · Al-Quran Al-Karim"],
-        
+
+        // Search
+        "search_quran_placeholder": [.english: "Search surah, number or keyword…", .indonesian: "Cari surah, nomor, atau kata kunci…", .malay: "Cari surah, nombor atau kata kunci…"],
+        "search_quran_a11y": [.english: "Search Quran surah", .indonesian: "Cari surah Al-Quran", .malay: "Cari surah Al-Quran"],
+        "clear_search_a11y": [.english: "Clear search", .indonesian: "Hapus pencarian", .malay: "Kosongkan carian"],
+        "search_no_results": [.english: "No surah found for", .indonesian: "Tidak ada surah yang ditemukan untuk", .malay: "Tiada surah ditemui untuk"],
+
+
         // Faraidh
         "faraidh_title": [.english: "Inheritance Calculator", .indonesian: "Kalkulator Waris", .malay: "Kalkulator Waris"],
         "faraidh_profile": [.english: "Deceased Profile", .indonesian: "Profil Pewaris", .malay: "Profil Pewaris"],

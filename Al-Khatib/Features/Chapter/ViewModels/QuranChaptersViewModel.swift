@@ -21,6 +21,16 @@ final class QuranChaptersViewModel {
     var errorMessage: String?
     var errorMessageJuzs: String?
 
+    // ── Search ──────────────────────────────────────────────────────────
+    var searchText: String = ""
+    var isSearchActive: Bool = false
+
+    var filteredChapters: [QuranChapter] {
+        let q = searchText.trimmingCharacters(in: .whitespaces)
+        guard q.isEmpty == false else { return chapters }
+        return chapters.searchChapters(query: q)
+    }
+
     private let content: QuranContentRepository
     private let readingSessions: ReadingSessionRepository
     private let language: String
@@ -99,5 +109,13 @@ final class QuranChaptersViewModel {
         async let juzsTask: Void = loadJuzs(force: force)
         async let continueTask: Void = loadContinueReading()
         _ = await (chaptersTask, juzsTask, continueTask)
+    }
+    func setSearch(_ text: String) {
+        searchText = text
+    }
+
+    func clearSearch() {
+        searchText = ""
+        isSearchActive = false
     }
 }

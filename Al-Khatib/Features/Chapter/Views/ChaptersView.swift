@@ -13,6 +13,7 @@ struct ChaptersView: View {
     @State private var vm: QuranChaptersViewModel?
     @State private var navigationPath = NavigationPath()
     @State private var selectedTab: Int = 0
+    @State private var isSearchFocused: Bool = false
     @ObservedObject private var languageManager = AppLanguageManager.shared
 
     var body: some View {
@@ -53,8 +54,9 @@ struct ChaptersView: View {
         @Bindable var bindable = vm
 
         VStack(spacing: 0) {
-            header
-            
+            header(bindable)
+
+            // ── Tab Switcher ───────────────────────────────────────────────
             HStack(spacing: 4) {
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -147,7 +149,8 @@ struct ChaptersView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
-    private var header: some View {
+    @ViewBuilder
+    private func header(_ vm: QuranChaptersViewModel) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 HStack(spacing: 8) {
@@ -158,6 +161,7 @@ struct ChaptersView: View {
                         .font(.largeTitle.bold())
                         .foregroundColor(Color.Token.deepEmerald)
                 }
+                Spacer()
             }
 
             Text(selectedTab == 0 ? languageManager.localize("quran_subtitle") : languageManager.localize("quran_subtitle_juz"))
@@ -178,6 +182,20 @@ struct ChaptersView: View {
                 Spacer()
             }
             .padding(.top, 2)
+
+            // ── Search Bar ────────────────────────────────────────────
+            if selectedTab == 0 {
+                QuranSearchBar(
+                    text: Binding(
+                        get: { vm.searchText },
+                        set: { vm.setSearch($0) }
+                    ),
+                    isFocused: $isSearchFocused,
+                    onClear: { vm.clearSearch() }
+                )
+                .padding(.top, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
         .padding(.horizontal)
         .padding(.top, 24)
@@ -231,9 +249,11 @@ struct ChaptersView: View {
     }
 
     private func chaptersList(_ vm: QuranChaptersViewModel) -> some View {
-        ScrollView {
+        let displayed = vm.filteredChapters
+        return ScrollView {
             LazyVStack(spacing: 0) {
-                if let route = vm.continueReadingRoute(), let ch = route.chapter {
+                // Hide continue-reading card while searching
+                if vm.searchText.isEmpty, let route = vm.continueReadingRoute(), let ch = route.chapter {
                     NavigationLink(value: route) {
                         ContinueReadingCard(
                             chapter: ch,
@@ -244,17 +264,22 @@ struct ChaptersView: View {
                     .padding(.bottom, 16)
                 }
 
-                ForEach(Array(vm.chapters.enumerated()), id: \.element.id) { index, chapter in
-                    VStack(spacing: 0) {
-                        NavigationLink(value: ChapterReaderRoute(chapter: chapter, juzNumber: nil, initialVerseNumber: nil)) {
-                            QuranChapterRow(chapter: chapter)
-                        }
-                        .buttonStyle(.plain)
-                        
-                        if index < vm.chapters.count - 1 {
-                            Divider()
-                                .opacity(0.3)
-                                .padding(.leading, 56)
+                if displayed.isEmpty && vm.searchText.isEmpty == false {
+                    searchEmptyState(query: vm.searchText)
+                        .padding(.top, 32)
+                } else {
+                    ForEach(Array(displayed.enumerated()), id: \.element.id) { index, chapter in
+                        VStack(spacing: 0) {
+                            NavigationLink(value: ChapterReaderRoute(chapter: chapter, juzNumber: nil, initialVerseNumber: nil)) {
+                                QuranChapterRow(chapter: chapter)
+                            }
+                            .buttonStyle(.plain)
+
+                            if index < displayed.count - 1 {
+                                Divider()
+                                    .opacity(0.3)
+                                    .padding(.leading, 56)
+                            }
                         }
                     }
                 }
@@ -265,6 +290,24 @@ struct ChaptersView: View {
         .refreshable {
             await vm.refreshAll(force: true)
         }
+    }
+
+    @ViewBuilder
+    private func searchEmptyState(query: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 36, weight: .light))
+                .foregroundColor(Color.Token.deepEmerald.opacity(0.4))
+            Text(languageManager.localize("search_no_results"))
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color.Token.slate800)
+            Text("\"\(query)\"")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func juzsList(_ vm: QuranChaptersViewModel) -> some View {
