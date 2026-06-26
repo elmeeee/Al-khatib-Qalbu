@@ -231,6 +231,21 @@ struct ProfileView: View {
             ProfileSectionHeaderView(title: languageManager.localize("prayer_setting"))
             VStack(spacing: 0) {
                 NavigationLink {
+                    LocationSettingsView()
+                } label: {
+                    ProfileRowView(
+                        icon: "location.circle",
+                        title: languageManager.localize("location_source"),
+                        subtitle: "",
+                        hasToggle: false,
+                        isOn: .constant(false)
+                    )
+                }
+                .buttonStyle(.plain)
+
+                Divider().padding(.leading, 64)
+
+                NavigationLink {
                     PrayerCalculationSettingsView()
                 } label: {
                     ProfileRowView(

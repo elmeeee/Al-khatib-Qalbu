@@ -1,6 +1,6 @@
 //
 //  AppLanguageManager.swift
-//  Al-Khatib
+//  Sāat
 //
 //  Created by Elmee on 25/06/2026.
 //  Copyright © 2026 Elmee. All rights reserved.
@@ -113,7 +113,7 @@ class AppLanguageManager: ObservableObject {
         "font_extra_large": [.english: "Extra large", .indonesian: "Sangat besar", .malay: "Sangat besar"],
         
         "notif_disabled_title": [.english: "Notifications disabled", .indonesian: "Notifikasi dinonaktifkan", .malay: "Notifikasi dinyahaktifkan"],
-        "notif_disabled_msg": [.english: "Allow notifications for Al-Khatib in Settings to receive reminders.", .indonesian: "Izinkan notifikasi untuk Al-Khatib di Pengaturan untuk menerima pengingat.", .malay: "Benarkan notifikasi untuk Al-Khatib di Tetapan untuk menerima peringatan."],
+        "notif_disabled_msg": [.english: "Allow notifications for Sāat in Settings to receive reminders.", .indonesian: "Izinkan notifikasi untuk Sāat di Pengaturan untuk menerima pengingat.", .malay: "Benarkan notifikasi untuk Sāat di Tetapan untuk menerima peringatan."],
         "open_settings": [.english: "Open Settings", .indonesian: "Buka Pengaturan", .malay: "Buka Tetapan"],
         "close": [.english: "Close", .indonesian: "Tutup", .malay: "Tutup"],
         "cancel": [.english: "Cancel", .indonesian: "Batal", .malay: "Batal"],
@@ -161,7 +161,7 @@ class AppLanguageManager: ObservableObject {
         "faraidh_btn_calc": [.english: "Calculate Inheritance Shares", .indonesian: "Hitung Pembagian Waris", .malay: "Kira Bahagian Waris"],
         
         // Onboarding
-        "onboarding_welcome_title": [.english: "Welcome to Al-Khatib", .indonesian: "Selamat Datang di Al-Khatib", .malay: "Selamat Datang di Al-Khatib"],
+        "onboarding_welcome_title": [.english: "Welcome to Sāat", .indonesian: "Selamat Datang di Sāat", .malay: "Selamat Datang di Sāat"],
         "onboarding_welcome_subtitle": [.english: "Your premium, offline companion to reflect on the Holy Quran and track spiritual habits.", .indonesian: "Pendamping ibadah luring premium Anda untuk merenungkan Al-Quran & mencatat kebiasaan spiritual harian.", .malay: "Pendamping ibadah luar talian premium anda untuk merenungkan Al-Quran & mencatat tabiat spiritual harian."],
         "onboarding_select_language": [.english: "Select Language", .indonesian: "Pilih Bahasa", .malay: "Pilih Bahasa"],
         "onboarding_location_title": [.english: "Accurate Prayer Times", .indonesian: "Waktu Shalat Akurat", .malay: "Waktu Solat Tepat"],
@@ -368,7 +368,44 @@ class AppLanguageManager: ObservableObject {
         "qiyam_cat_closing": [.english: "After prayer", .indonesian: "Setelah Shalat", .malay: "Selepas Solat"],
         "qiyam_streak": [.english: "Day streak", .indonesian: "Streak Hari", .malay: "Streak Hari"],
         "qiyam_this_month": [.english: "This month", .indonesian: "Bulan Ini", .malay: "Bulan Ini"],
-        "qiyam_last_7_days": [.english: "Last 7 days", .indonesian: "7 Hari Terakhir", .malay: "7 Hari Terakhir"]
+        "qiyam_last_7_days": [.english: "Last 7 days", .indonesian: "7 Hari Terakhir", .malay: "7 Hari Terakhir"],
+        
+        // Location Settings
+        "location_settings_title": [.english: "Location Settings", .indonesian: "Pengaturan Lokasi", .malay: "Tetapan Lokasi"],
+        "location_source": [.english: "Location Source", .indonesian: "Sumber Lokasi", .malay: "Sumber Lokasi"],
+        "use_gps": [.english: "Use GPS Location", .indonesian: "Gunakan Lokasi GPS", .malay: "Gunakan Lokasi GPS"],
+        "set_manually": [.english: "Set Location Manually", .indonesian: "Atur Lokasi Manual", .malay: "Tetapkan Lokasi Manual"],
+        "latitude": [.english: "Latitude", .indonesian: "Lintang (Latitude)", .malay: "Latitud"],
+        "longitude": [.english: "Longitude", .indonesian: "Bujur (Longitude)", .malay: "Longitud"],
+        "city_name": [.english: "City Name", .indonesian: "Nama Kota", .malay: "Nama Bandar"],
+        "save_location": [.english: "Save Location", .indonesian: "Simpan Lokasi", .malay: "Simpan Lokasi"],
+        "preset_cities": [.english: "Preset Major Cities", .indonesian: "Pilihan Kota Besar", .malay: "Pilihan Bandar Utama"],
+        "mecca": [.english: "Mecca", .indonesian: "Mekkah", .malay: "Mekah"],
+        "jakarta": [.english: "Jakarta", .indonesian: "Jakarta", .malay: "Jakarta"],
+        "kuala_lumpur": [.english: "Kuala Lumpur", .indonesian: "Kuala Lumpur", .malay: "Kuala Lumpur"],
+        "singapore": [.english: "Singapore", .indonesian: "Singapura", .malay: "Singapura"],
+        "gps_status": [.english: "GPS Status", .indonesian: "Status GPS", .malay: "Status GPS"],
+        "gps_active": [.english: "Active (Using GPS)", .indonesian: "Aktif (Menggunakan GPS)", .malay: "Aktif (Menggunakan GPS)"],
+        "manual_active": [.english: "Active (Manual Override)", .indonesian: "Aktif (Override Manual)", .malay: "Aktif (Override Manual)"],
+        
+        // Today & Reflections
+        "greeting_morning": [.english: "Good Morning", .indonesian: "Selamat Pagi", .malay: "Selamat Pagi"],
+        "greeting_afternoon": [.english: "Good Afternoon", .indonesian: "Selamat Siang", .malay: "Selamat Tengah Hari"],
+        "greeting_evening": [.english: "Good Evening", .indonesian: "Selamat Malam", .malay: "Selamat Malam"],
+        "locating": [.english: "Locating...", .indonesian: "Mencari Lokasi...", .malay: "Mencari Lokasi..."],
+        "loading": [.english: "Loading...", .indonesian: "Memuat...", .malay: "Memuatkan..."],
+        "reflection_signin_prompt": [.english: "Sign in to Reflect", .indonesian: "Masuk untuk Menulis Refleksi", .malay: "Log Masuk untuk Menulis Refleksi"],
+        "reflection_placeholder": [.english: "Write your reflection here...", .indonesian: "Tulis refleksi Anda di sini...", .malay: "Tulis refleksi anda di sini..."],
+        "post_reflection": [.english: "Post Reflection", .indonesian: "Kirim Refleksi", .malay: "Hantar Refleksi"],
+        "your_reflection": [.english: "Your Reflection", .indonesian: "Refleksi Anda", .malay: "Refleksi Anda"],
+        "revelation_makkah": [.english: "Makkah", .indonesian: "Makkah", .malay: "Mekah"],
+        "revelation_madinah": [.english: "Madinah", .indonesian: "Madinah", .malay: "Madinah"],
+        
+        // Quran Reader & Intro
+        "tap_to_begin": [.english: "Tap to begin recitation", .indonesian: "Ketuk untuk memulai tilawah", .malay: "Ketik untuk memula bacaan"],
+        "swipe_up_intro": [.english: "Swipe up to continue", .indonesian: "Usap ke atas untuk melanjutkan", .malay: "Sapu ke atas untuk meneruskan"],
+        "audio_playing": [.english: "Playing recitation", .indonesian: "Memutar tilawah", .malay: "Memutar bacaan"],
+        "audio_paused": [.english: "Recitation paused", .indonesian: "Tilawah dihentikan", .malay: "Bacaan dijeda"]
     ]
 }
 

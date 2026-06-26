@@ -32,9 +32,11 @@ struct ChaptersView: View {
                     juzNumber: route.juzNumber,
                     initialVerseNumber: route.initialVerseNumber
                 )
+                .toolbar(.hidden, for: .tabBar)
                 .toolbarBackground(.hidden, for: .navigationBar)
             }
         }
+        .id(languageManager.currentLanguage)
         .task {
             guard let c = container, vm == nil else { return }
             let model = QuranChaptersViewModel(

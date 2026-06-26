@@ -15,7 +15,7 @@ internal import UIKit
 private let oauthLog = Logger(subsystem: "co.kamy.Al-Khatib", category: "OAuth")
 
 private func oauthConsole(_ message: String) {
-    print("[AL-Khatib] \(message)")
+    print("[Sāat] \(message)")
 }
 
 enum QFOAuthError: LocalizedError {

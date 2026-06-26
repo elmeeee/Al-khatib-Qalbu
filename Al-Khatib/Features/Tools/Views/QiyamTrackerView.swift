@@ -16,6 +16,7 @@ enum QiyamGuideCategory: String, CaseIterable, Identifiable {
     
     var id: String { self.rawValue }
     
+    @MainActor
     var localizedName: String {
         switch self {
         case .preparation: return AppLanguageManager.shared.localize("qiyam_cat_prep")

@@ -55,6 +55,11 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     var followingPrayerName: String? { followingPrayer?.name }
     var followingPrayerTime: String? { followingPrayer.map { shortTime($0.date) } }
 
+    @AppStorage("use_manual_location") private var useManualLocation = false
+    @AppStorage("manual_latitude") private var manualLatitude = 3.1390 // default KL
+    @AppStorage("manual_longitude") private var manualLongitude = 101.6869
+    @AppStorage("manual_city_name") private var manualCityName = "Kuala Lumpur"
+
     private let locationManager = CLLocationManager()
     private let notificationScheduler = PrayerNotificationScheduler()
     private var hasRequestedThisSession = false
@@ -152,6 +157,14 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     }
 
     private func refetchPrayerTimesIfPossible() {
+        if useManualLocation {
+            isLoading = true
+            let manualLoc = CLLocation(latitude: manualLatitude, longitude: manualLongitude)
+            lastKnownLocation = manualLoc
+            cityName = manualCityName.isEmpty ? Self.coordinateLabel(for: manualLoc) : manualCityName
+            Task { await fetchPrayerTimes(for: manualLoc, bypassDedupe: true) }
+            return
+        }
         guard let location = lastKnownLocation else { return }
         guard !isLoading else { return }
         isLoading = true
@@ -160,6 +173,15 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
 
     func refreshIfNeeded() {
         guard !isLoading else { return }
+
+        if useManualLocation {
+            isLoading = true
+            let manualLoc = CLLocation(latitude: manualLatitude, longitude: manualLongitude)
+            lastKnownLocation = manualLoc
+            cityName = manualCityName.isEmpty ? Self.coordinateLabel(for: manualLoc) : manualCityName
+            Task { await fetchPrayerTimes(for: manualLoc, bypassDedupe: false) }
+            return
+        }
 
         if let cachedLocation = lastKnownLocation {
             isLoading = true
@@ -173,6 +195,15 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     }
 
     func forceRefresh() async {
+        if useManualLocation {
+            guard !isLoading else { return }
+            isLoading = true
+            let manualLoc = CLLocation(latitude: manualLatitude, longitude: manualLongitude)
+            lastKnownLocation = manualLoc
+            cityName = manualCityName.isEmpty ? Self.coordinateLabel(for: manualLoc) : manualCityName
+            await fetchPrayerTimes(for: manualLoc, bypassDedupe: true)
+            return
+        }
         if let location = lastKnownLocation {
             guard !isLoading else { return }
             isLoading = true
@@ -183,6 +214,14 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     }
 
     private func requestLocation() {
+        if useManualLocation {
+            let manualLoc = CLLocation(latitude: manualLatitude, longitude: manualLongitude)
+            lastKnownLocation = manualLoc
+            cityName = manualCityName.isEmpty ? Self.coordinateLabel(for: manualLoc) : manualCityName
+            isLoading = true
+            Task { await fetchPrayerTimes(for: manualLoc, bypassDedupe: false) }
+            return
+        }
         switch locationManager.authorizationStatus {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
@@ -195,17 +234,20 @@ final class PrayerTimesController: NSObject, ObservableObject, CLLocationManager
     }
 
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        guard !useManualLocation else { return }
         guard status == .authorizedAlways || status == .authorizedWhenInUse else { return }
         isLoading = true
         manager.requestLocation()
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        guard !useManualLocation else { return }
         isLoading = false
         errorMessage = error.localizedDescription
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard !useManualLocation else { return }
         guard let location = locations.last else {
             isLoading = false
             return
