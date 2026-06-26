@@ -24,9 +24,12 @@ struct DoaZikirView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel = DoaZikirViewModel()
     @State private var activeTab = "daftar" // "daftar" or "mulai_dzikir"
+    
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     private var language: String {
-        return (Locale.preferredLanguages.first?.hasPrefix("id") == true) ? "id" : "en"
+        let raw = languageManager.currentLanguage.rawValue
+        return (raw == "id" || raw == "ms") ? "id" : "en"
     }
 
     private var selectedCategory: DoaCatalogEntry? {

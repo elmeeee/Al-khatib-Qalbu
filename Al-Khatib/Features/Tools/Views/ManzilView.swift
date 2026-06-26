@@ -25,6 +25,8 @@ struct ManzilView: View {
     @Environment(\.appContainer) private var container
     @Environment(\.dismiss) private var dismiss
     
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     @State private var expandedSections: Set<Int> = []
     @State private var versesMap: [Int: [RandomAyahPayload]] = [:]
     @State private var loadingSections: Set<Int> = []
@@ -72,7 +74,7 @@ struct ManzilView: View {
                 
                 Spacer()
                 
-                Text("Manzil Protection Verses")
+                Text(languageManager.localize("tool_manzil"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(Color.Token.slate800)
                 
@@ -92,11 +94,11 @@ struct ManzilView: View {
                     
                     // Header text
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Quranic Protection")
+                        Text(languageManager.localize("manzil_quranic_protection"))
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(Color.Token.deepEmerald)
                         
-                        Text("Selected verses for protection from sihr, jinn, and harm.")
+                        Text(languageManager.localize("manzil_quranic_protection_sub"))
                             .font(.system(size: 13))
                             .foregroundColor(Color.Token.slate500)
                     }
@@ -159,7 +161,6 @@ struct ManzilView: View {
         } catch {
             errorSections[section.id] = "Failed to load verses."
         }
-        
         loadingSections.remove(section.id)
     }
 }
@@ -167,6 +168,7 @@ struct ManzilView: View {
 // MARK: - About Manzil Card
 struct AboutManzilCard: View {
     @Binding var isExpanded: Bool
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     
     private let manzilRows = [
         ("١ — ف (fa')", "Juz 1–6", "Al-Fatihah – An-Nisa'"),
@@ -187,11 +189,11 @@ struct AboutManzilCard: View {
             }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("About Manzil Al-Quran")
+                        Text(languageManager.localize("manzil_about"))
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(Color.Token.slate800)
                         
-                        Text("Definition, 7-day division & practice guide")
+                        Text(languageManager.localize("manzil_about_sub"))
                             .font(.system(size: 12))
                             .foregroundColor(Color.Token.slate500)
                     }
@@ -214,11 +216,11 @@ struct AboutManzilCard: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Definition
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("What is Manzil?")
+                        Text(languageManager.localize("manzil_what_is"))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Color.Token.indigoDeep)
                         
-                        Text("Manzil (Arabic: منزل) is a system for dividing the recitation of the Quran to facilitate completing (khatam) the Quran over seven days (one week). This tradition is widely practiced in South Asian Muslim communities and has been popularized by scholars such as Shah Waliullah al-Dehlawi.\n\nNote: \"Manzil\" here refers to the 7-part Quran division for khatam, and is different from the protection verses (Manzil ruqyah) compiled by Maulana Zakariyya Kandhlawi. This section in the app covers the protection verses.")
+                        Text(languageManager.localize("manzil_what_is_desc"))
                             .font(.system(size: 13))
                             .foregroundColor(Color.Token.slate600)
                             .lineSpacing(4)
@@ -226,11 +228,11 @@ struct AboutManzilCard: View {
                     
                     // Fami bi Syauqin
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Fami bi Syauqin (فَمِي بِشَوْقٍ)")
+                        Text(languageManager.localize("manzil_fami"))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Color.Token.indigoDeep)
                         
-                        Text("A mnemonic phrase meaning \"My mouth longs to recite (the Quran)\". The 7 letters — ف م ي ب ش و ق — are the first letters of the surah that begins each of the 7 Manzils: Al-Fatihah, Al-Ma'idah, Yunus, Al-Isra', Asy-Syu'ara, Ash-Shaffat, and Qaf.")
+                        Text(languageManager.localize("manzil_fami_desc"))
                             .font(.system(size: 13))
                             .foregroundColor(Color.Token.slate600)
                             .lineSpacing(4)
@@ -238,18 +240,18 @@ struct AboutManzilCard: View {
                     
                     // 7-Day Division Table
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("7-Day Manzil Division")
+                        Text(languageManager.localize("manzil_7day"))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Color.Token.indigoDeep)
                         
                         VStack(spacing: 0) {
                             // Header Row
                             HStack {
-                                Text("Manzil")
+                                Text(languageManager.localize("manzil_column"))
                                     .frame(width: 90, alignment: .leading)
-                                Text("Juz")
+                                Text(languageManager.localize("juz"))
                                     .frame(width: 80, alignment: .leading)
-                                Text("Surah Range")
+                                Text(languageManager.localize("manzil_surah_range"))
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .font(.system(size: 11, weight: .bold))
@@ -264,7 +266,7 @@ struct AboutManzilCard: View {
                                 HStack {
                                     Text(row.0)
                                         .frame(width: 90, alignment: .leading)
-                                    Text(row.1)
+                                    Text(row.1.replacingOccurrences(of: "Juz", with: languageManager.localize("juz")))
                                         .frame(width: 80, alignment: .leading)
                                     Text(row.2)
                                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -289,11 +291,11 @@ struct AboutManzilCard: View {
                     
                     // How to Practice
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("How to Practice")
+                        Text(languageManager.localize("manzil_how_to"))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Color.Token.indigoDeep)
                         
-                        Text("Each day, recite one Manzil in sequence from Monday to Sunday, completing the entire Quran in one week. You may recite it in one sitting or spread it across multiple sessions during the day (e.g. after Fajr, Zuhr, Asr, Maghrib, and Isya').\n\nTo begin, start with Manzil 1 (Juz 1–6) and proceed to the next Manzil each day. Consistency is key — even if you cannot complete a full Manzil in a day, try to at least read a portion and continue the next day.")
+                        Text(languageManager.localize("manzil_how_to_desc"))
                             .font(.system(size: 13))
                             .foregroundColor(Color.Token.slate600)
                             .lineSpacing(4)
@@ -301,16 +303,16 @@ struct AboutManzilCard: View {
                     
                     // Virtues & Benefits
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Virtues & Benefits")
+                        Text(languageManager.localize("manzil_virtues"))
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Color.Token.indigoDeep)
                         
                         let benefits = [
-                            "Enables regular completion (khatam) of the Quran — once per week.",
-                            "Builds a strong, consistent relationship with the Book of Allah.",
-                            "Reciting the entire Quran regularly earns great reward and forgiveness.",
-                            "Encourages daily reflection on different parts of the Quran.",
-                            "A structured approach recommended by classical scholars and passed down through generations."
+                            languageManager.localize("manzil_benefit_1"),
+                            languageManager.localize("manzil_benefit_2"),
+                            languageManager.localize("manzil_benefit_3"),
+                            languageManager.localize("manzil_benefit_4"),
+                            languageManager.localize("manzil_benefit_5")
                         ]
                         
                         ForEach(benefits, id: \.self) { benefit in
@@ -350,6 +352,8 @@ struct SectionCard: View {
     let verses: [RandomAyahPayload]
     let onTap: () -> Void
     
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: onTap) {
@@ -365,7 +369,7 @@ struct SectionCard: View {
                                 .foregroundColor(Color.Token.slate800)
                         }
                         
-                        Text(section.description)
+                        Text(languageManager.localize("manzil_sec_\(section.id)_desc"))
                             .font(.system(size: 12))
                             .foregroundColor(Color.Token.slate500)
                             .lineLimit(isExpanded ? nil : 2)
@@ -402,7 +406,7 @@ struct SectionCard: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 // Verses metadata/label
                                 HStack {
-                                    Text("Ayah \(verse.resolvedVerseNumber ?? 0)")
+                                    Text("\(languageManager.localize("verses")) \(verse.resolvedVerseNumber ?? 0)")
                                         .font(.system(size: 11, weight: .semibold))
                                         .foregroundColor(Color.Token.slate400)
                                         .padding(.horizontal, 8)

@@ -15,6 +15,15 @@ enum QiyamGuideCategory: String, CaseIterable, Identifiable {
     case closing = "After prayer"
     
     var id: String { self.rawValue }
+    
+    var localizedName: String {
+        switch self {
+        case .preparation: return AppLanguageManager.shared.localize("qiyam_cat_prep")
+        case .prayer: return AppLanguageManager.shared.localize("qiyam_cat_prayer")
+        case .witr: return AppLanguageManager.shared.localize("qiyam_cat_witr")
+        case .closing: return AppLanguageManager.shared.localize("qiyam_cat_closing")
+        }
+    }
 }
 
 struct QiyamReading: Identifiable {
@@ -28,6 +37,8 @@ struct QiyamReading: Identifiable {
 
 struct QiyamTrackerView: View {
     @Environment(\.dismiss) private var dismiss
+    
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     
     @State private var selectedTab = 0 // 0: Tracker, 1: Readings
     @State private var loggedTonight = false
@@ -154,11 +165,11 @@ struct QiyamTrackerView: View {
                 Spacer()
                 
                 VStack(spacing: 2) {
-                    Text("Qiyam / Tahajud")
+                    Text(languageManager.localize("tool_qiyam"))
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(Color.Token.slate800)
                     
-                    Text("Night prayer tracker & guide")
+                    Text(languageManager.localize("qiyam_tracker_subtitle"))
                         .font(.system(size: 11))
                         .foregroundColor(Color.Token.slate500)
                 }
@@ -179,8 +190,8 @@ struct QiyamTrackerView: View {
                     
                     // Tab selection
                     Picker("Qiyam tabs", selection: $selectedTab) {
-                        Text("Tracker").tag(0)
-                        Text("Readings").tag(1)
+                        Text(languageManager.localize("qiyam_tab_tracker")).tag(0)
+                        Text(languageManager.localize("qiyam_tab_readings")).tag(1)
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
@@ -189,7 +200,7 @@ struct QiyamTrackerView: View {
                     if selectedTab == 0 {
                         // Tracker Tab
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("The last third of the night is a blessed time for dua and extra rakah. Log here when you stand for qiyam tonight.")
+                            Text(languageManager.localize("qiyam_tracker_desc"))
                                 .font(.system(size: 13))
                                 .foregroundColor(Color.Token.slate500)
                                 .lineSpacing(4)
@@ -199,11 +210,11 @@ struct QiyamTrackerView: View {
                             Button(action: toggleTonight) {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("Prayed qiyam tonight")
+                                        Text(languageManager.localize("qiyam_prayed_tonight"))
                                             .font(.system(size: 15, weight: .semibold))
                                             .foregroundColor(Color.Token.deepEmerald)
                                         
-                                        Text("Private tracker")
+                                        Text(languageManager.localize("qiyam_private_tracker"))
                                             .font(.system(size: 12))
                                             .foregroundColor(Color.Token.slate500)
                                     }
@@ -226,7 +237,7 @@ struct QiyamTrackerView: View {
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16)
                                         .stroke(Color.Token.softGrey.opacity(0.5), lineWidth: 1)
-                                )
+                                  )
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -234,14 +245,14 @@ struct QiyamTrackerView: View {
                     } else {
                         // Readings Tab
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Expand each section for Arabic text, transliteration, and step-by-step guidance for tahajud / qiyam.")
+                            Text(languageManager.localize("qiyam_readings_desc"))
                                 .font(.system(size: 13))
                                 .foregroundColor(Color.Token.slate500)
                                 .lineSpacing(4)
                                 .padding(.horizontal, 4)
                             
                             ForEach(QiyamGuideCategory.allCases) { category in
-                                Text(category.rawValue)
+                                Text(category.localizedName)
                                     .font(.system(size: 15, weight: .bold))
                                     .foregroundColor(Color.Token.deepEmerald)
                                     .padding(.top, 8)
@@ -295,6 +306,7 @@ struct QiyamTrackerView: View {
 struct QiyamHeroCardView: View {
     let snapshot: QiyamMonthSnapshot
     let weekLog: [QiyamDayLog]
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     
     var body: some View {
         VStack(spacing: 16) {
@@ -305,7 +317,7 @@ struct QiyamHeroCardView: View {
                 
                 Spacer().frame(width: 10)
                 
-                Text("Qiyam is voluntary night prayer — often called tahajud when prayed after sleep.")
+                Text(languageManager.localize("qiyam_what_is"))
                     .font(.system(size: 13))
                     .foregroundColor(.white.opacity(0.9))
                     .lineLimit(nil)
@@ -315,15 +327,15 @@ struct QiyamHeroCardView: View {
             // Stat Blocks
             HStack(spacing: 0) {
                 Spacer()
-                StatBlock(value: "\(snapshot.streak)", label: "Day streak")
+                StatBlock(value: "\(snapshot.streak)", label: languageManager.localize("qiyam_streak"))
                 Spacer()
                 Divider().frame(height: 35).background(Color.white.opacity(0.2))
                 Spacer()
-                StatBlock(value: "\(snapshot.nightsThisMonth)", label: "This month")
+                StatBlock(value: "\(snapshot.nightsThisMonth)", label: languageManager.localize("qiyam_this_month"))
                 Spacer()
                 Divider().frame(height: 35).background(Color.white.opacity(0.2))
                 Spacer()
-                StatBlock(value: "\(snapshot.nightsLast7Days)", label: "Last 7 days")
+                StatBlock(value: "\(snapshot.nightsLast7Days)", label: languageManager.localize("qiyam_last_7_days"))
                 Spacer()
             }
             

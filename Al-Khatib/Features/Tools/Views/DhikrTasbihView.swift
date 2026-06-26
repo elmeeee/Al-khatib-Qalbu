@@ -11,12 +11,15 @@ import SwiftUI
 struct DhikrTasbihView: View {
     @Environment(\.dismiss) private var dismiss
     
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     @State private var selectedIndex = 0
     @State private var count = 0
     @State private var pulseKey = 0
 
     private var language: String {
-        return (Locale.preferredLanguages.first?.hasPrefix("id") == true) ? "id" : "en"
+        let raw = languageManager.currentLanguage.rawValue
+        return (raw == "id" || raw == "ms") ? raw : "en"
     }
 
     private var currentPreset: DhikrPreset {
@@ -37,11 +40,11 @@ struct DhikrTasbihView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(language == "id" ? "Dzikir" : "Dhikr")
+                    Text(languageManager.localize("dhikr_title"))
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Color.Token.slate900)
                     
-                    Text(language == "id" ? "Tasbih digital" : "Premium digital tasbih")
+                    Text(languageManager.localize("dhikr_subtitle"))
                         .font(.system(size: 12, weight: .regular))
                         .foregroundColor(Color.Token.slate500)
                 }
@@ -233,11 +236,11 @@ struct DhikrStatsRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(language == "id" ? "\(progressPercent)% dari target" : "\(progressPercent)% of target")
+                Text((language == "id" || language == "ms") ? "\(progressPercent)% dari target" : "\(progressPercent)% of target")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(Color.Token.deepEmerald)
                 
-                Text(language == "id" ? "Total: \(lifetime)" : "Lifetime: \(lifetime)")
+                Text((language == "id" || language == "ms") ? "Total: \(lifetime)" : "Lifetime: \(lifetime)")
                     .font(.system(size: 11, weight: .regular))
                     .foregroundColor(Color.Token.slate500)
             }
@@ -248,7 +251,7 @@ struct DhikrStatsRow: View {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 12, weight: .semibold))
-                    Text(language == "id" ? "Reset" : "Reset")
+                    Text("Reset")
                 }
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(Color.Token.deepEmerald)

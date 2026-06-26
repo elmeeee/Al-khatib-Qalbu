@@ -23,15 +23,15 @@ internal struct DhikrPreset: Identifiable, Sendable {
     internal let meaningId: String
     
     internal func label(for language: String) -> String {
-        return language == "id" ? labelId : labelEn
+        return (language == "id" || language == "ms") ? labelId : labelEn
     }
     
     internal func translit(for language: String) -> String {
-        return language == "id" ? translitId : translitEn
+        return (language == "id" || language == "ms") ? translitId : translitEn
     }
     
     internal func meaning(for language: String) -> String {
-        return language == "id" ? meaningId : meaningEn
+        return (language == "id" || language == "ms") ? meaningId : meaningEn
     }
 }
 

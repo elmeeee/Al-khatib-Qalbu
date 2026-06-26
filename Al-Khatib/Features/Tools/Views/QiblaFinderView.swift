@@ -90,6 +90,8 @@ struct QiblaFinderView: View {
     @StateObject private var manager = QiblaLocationHeadingManager()
     @State private var selectedMode = 0 // 0 for AR, 1 for Compass
     
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     var body: some View {
         ZStack {
             // Background View
@@ -118,7 +120,7 @@ struct QiblaFinderView: View {
                             .background(Circle().fill(Color.white.opacity(0.12)))
                     }
                     
-                    Text("Qibla Finder")
+                    Text(languageManager.localize("tool_qibla"))
                         .font(.title3.bold())
                         .foregroundColor(.white)
                     
@@ -129,8 +131,8 @@ struct QiblaFinderView: View {
                 
                 // Mode Picker
                 Picker("Mode", selection: $selectedMode) {
-                    Text("AR Mode").tag(0)
-                    Text("Compass Mode").tag(1)
+                    Text(languageManager.localize("qibla_ar_mode")).tag(0)
+                    Text(languageManager.localize("qibla_compass_mode")).tag(1)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 24)
@@ -141,7 +143,7 @@ struct QiblaFinderView: View {
                 if manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted {
                     locationRequiredOverlay
                 } else if manager.latitude == nil {
-                    ProgressView("Locating...")
+                    ProgressView(languageManager.localize("qibla_locating"))
                         .tint(.white)
                         .foregroundColor(.white)
                 } else {
@@ -169,12 +171,12 @@ struct QiblaFinderView: View {
             Image(systemName: "location.slash.fill")
                 .font(.system(size: 40))
                 .foregroundColor(.red)
-            Text("Location permission is required to calculate the direction of the Qibla.")
+            Text(languageManager.localize("qibla_location_required"))
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.white)
                 .padding(.horizontal, 40)
-            Button("Open Settings") {
+            Button(languageManager.localize("open_settings")) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
@@ -240,7 +242,7 @@ struct QiblaFinderView: View {
             .frame(width: 300, height: 300)
             
             // Bearing label HUD inside dial area
-            Text("Kaaba Bearing: \(Int(manager.bearing.rounded()))°")
+            Text(String(format: languageManager.localize("qibla_bearing_format"), Int(manager.bearing.rounded())))
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.white)
                 .padding(.horizontal, 16)
@@ -252,12 +254,12 @@ struct QiblaFinderView: View {
     private var bottomIndicatorCard: some View {
         VStack(spacing: 8) {
             if manager.isAligned {
-                Text("ALIGNED WITH KAABA")
+                Text(languageManager.localize("qibla_aligned"))
                     .font(.subheadline.bold())
                     .foregroundColor(Color.Token.gold)
                     .tracking(2.0)
             } else {
-                Text("ROTATE PHONE")
+                Text(languageManager.localize("qibla_rotate_phone"))
                     .font(.subheadline.bold())
                     .foregroundColor(.white.opacity(0.6))
                     .tracking(1.5)
@@ -265,7 +267,7 @@ struct QiblaFinderView: View {
             
             HStack(spacing: 24) {
                 VStack(spacing: 3) {
-                    Text("Heading")
+                    Text(languageManager.localize("qibla_heading"))
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.5))
                     Text("\(Int(manager.heading.rounded()))°")
@@ -278,7 +280,7 @@ struct QiblaFinderView: View {
                     .background(Color.white.opacity(0.15))
                 
                 VStack(spacing: 3) {
-                    Text("Distance")
+                    Text(languageManager.localize("qibla_distance"))
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.5))
                     Text(String(format: "%.0f km", manager.distanceKm))

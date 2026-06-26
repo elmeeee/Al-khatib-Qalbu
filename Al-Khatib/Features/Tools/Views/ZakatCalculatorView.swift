@@ -4,6 +4,8 @@ struct ZakatCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab = 0 // 0: Zakat Maal, 1: Zakat Fitrah
     
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     // Zakat Maal Inputs
     @State private var cashSavings = ""
     @State private var goldWeightGrams = ""
@@ -66,7 +68,7 @@ struct ZakatCalculatorView: View {
                         .background(Circle().fill(Color.white))
                 }
                 
-                Text("Zakat Calculator")
+                Text(languageManager.localize("tool_zakat"))
                     .font(.title3.bold())
                     .foregroundColor(Color.Token.deepEmerald)
                 
@@ -88,8 +90,8 @@ struct ZakatCalculatorView: View {
             
             // Tab Selector
             HStack(spacing: 0) {
-                tabButton(title: "Zakat Maal", index: 0)
-                tabButton(title: "Zakat Fitrah", index: 1)
+                tabButton(title: languageManager.localize("zakat_maal"), index: 0)
+                tabButton(title: languageManager.localize("zakat_fitrah"), index: 1)
             }
             .background(Color.white)
             .padding(.vertical, 8)
@@ -139,7 +141,7 @@ struct ZakatCalculatorView: View {
                         .font(.title3)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Live Gold Price")
+                        Text(languageManager.localize("zakat_live_gold"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -147,11 +149,11 @@ struct ZakatCalculatorView: View {
                             Text("IDR \(formatCurrency(Decimal(quote.goldPerGramIdr))) / gram")
                                 .font(.subheadline.bold())
                                 .foregroundColor(.primary)
-                            Text("Source: \(quote.sourceLabel)")
+                            Text(String(format: languageManager.localize("zakat_source_format"), quote.sourceLabel))
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                         } else {
-                            Text("IDR \(formatCurrency(Decimal(goldPricePerGram))) / gram (Default)")
+                            Text(String(format: languageManager.localize("zakat_gold_default_format"), formatCurrency(Decimal(goldPricePerGram))))
                                 .font(.subheadline.bold())
                                 .foregroundColor(.primary)
                         }
@@ -166,15 +168,15 @@ struct ZakatCalculatorView: View {
                 
                 // Form Card
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Assets & Liabilities")
+                    Text(languageManager.localize("zakat_assets_liabilities"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     VStack(spacing: 8) {
-                        moneyTextField("Cash & Savings", text: $cashSavings)
+                        moneyTextField(languageManager.localize("zakat_cash_savings"), text: $cashSavings)
                         
                         HStack {
-                            Text("Gold Owned (grams)")
+                            Text(languageManager.localize("zakat_gold_owned"))
                                 .font(.subheadline)
                             Spacer()
                             TextField("0.0", text: $goldWeightGrams)
@@ -185,7 +187,7 @@ struct ZakatCalculatorView: View {
                         }
                         
                         HStack {
-                            Text("Silver Owned (grams)")
+                            Text(languageManager.localize("zakat_silver_owned"))
                                 .font(.subheadline)
                             Spacer()
                             TextField("0.0", text: $silverWeightGrams)
@@ -195,12 +197,12 @@ struct ZakatCalculatorView: View {
                                 .textFieldStyle(.roundedBorder)
                         }
                         
-                        moneyTextField("Investments / Stocks", text: $investmentsValue)
-                        moneyTextField("Outstanding Debts", text: $debtsValue)
+                        moneyTextField(languageManager.localize("zakat_investments"), text: $investmentsValue)
+                        moneyTextField(languageManager.localize("zakat_debts"), text: $debtsValue)
                         
                         Divider().padding(.vertical, 4)
                         
-                        moneyTextField("Custom Gold Price", text: $customGoldPrice)
+                        moneyTextField(languageManager.localize("zakat_custom_gold"), text: $customGoldPrice)
                     }
                 }
                 .padding(16)
@@ -210,14 +212,14 @@ struct ZakatCalculatorView: View {
                 
                 // Calculations Card
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Maal Results")
+                    Text(languageManager.localize("zakat_maal_results"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     let res = maalResult
                     
                     HStack {
-                        Text("Zakatable Net Wealth")
+                        Text(languageManager.localize("zakat_net_wealth"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -226,7 +228,7 @@ struct ZakatCalculatorView: View {
                     }
                     
                     HStack {
-                        Text("Nisab Limit (85g Gold)")
+                        Text(languageManager.localize("zakat_nisab_limit"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -237,26 +239,26 @@ struct ZakatCalculatorView: View {
                     Divider()
                     
                     HStack {
-                        Text("Status")
+                        Text(languageManager.localize("zakat_status"))
                             .font(.subheadline.bold())
                         Spacer()
                         if res.meetsNisab {
                             HStack(spacing: 4) {
                                 Image(systemName: "checkmark.seal.fill")
                                     .foregroundColor(.green)
-                                Text("Meets Nisab")
+                                Text(languageManager.localize("zakat_meets_nisab"))
                                     .font(.subheadline.bold())
                                     .foregroundColor(.green)
                             }
                         } else {
-                            Text("Does not meet Nisab")
+                            Text(languageManager.localize("zakat_no_nisab"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                     }
                     
                     HStack {
-                        Text("Zakat Maal Due")
+                        Text(languageManager.localize("zakat_due"))
                             .font(.title3.bold())
                             .foregroundColor(Color.Token.deepEmerald)
                         Spacer()
@@ -283,12 +285,12 @@ struct ZakatCalculatorView: View {
             VStack(spacing: 16) {
                 // Form Card
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Fitrah Specifications")
+                    Text(languageManager.localize("zakat_fitrah_specs"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     HStack {
-                        Text("Family Members")
+                        Text(languageManager.localize("zakat_family_members"))
                             .font(.subheadline)
                         Spacer()
                         Stepper("\(familyCount)", value: $familyCount, in: 1...30)
@@ -298,10 +300,10 @@ struct ZakatCalculatorView: View {
                             .frame(width: 24, alignment: .trailing)
                     }
                     
-                    moneyTextField("Staple Price / kg", text: $ricePricePerKg)
+                    moneyTextField(languageManager.localize("zakat_staple_price"), text: $ricePricePerKg)
                     
                     HStack {
-                        Text("Staple Weight / Person")
+                        Text(languageManager.localize("zakat_staple_weight"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -317,14 +319,14 @@ struct ZakatCalculatorView: View {
                 
                 // Calculations Card
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Fitrah Results")
+                    Text(languageManager.localize("zakat_fitrah_results"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     let res = fitrahResult
                     
                     HStack {
-                        Text("Total Staple Required")
+                        Text(languageManager.localize("zakat_total_staple"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -335,7 +337,7 @@ struct ZakatCalculatorView: View {
                     Divider()
                     
                     HStack {
-                        Text("Total Zakat Fitrah Due")
+                        Text(languageManager.localize("zakat_fitrah_due"))
                             .font(.title3.bold())
                             .foregroundColor(Color.Token.deepEmerald)
                         Spacer()

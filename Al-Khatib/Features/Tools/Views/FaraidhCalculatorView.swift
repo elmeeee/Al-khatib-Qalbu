@@ -4,6 +4,8 @@ struct FaraidhCalculatorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab = 0 // 0: Form, 1: Shares, 2: Family & Proofs
     
+    @ObservedObject private var languageManager = AppLanguageManager.shared
+    
     // Inputs
     @State private var deceasedName = ""
     @State private var gender: DeceasedGender = .male
@@ -102,7 +104,7 @@ struct FaraidhCalculatorView: View {
                         .background(Circle().fill(Color.white))
                 }
                 
-                Text("Inheritance Calculator")
+                Text(languageManager.localize("tool_faraidh"))
                     .font(.title3.bold())
                     .foregroundColor(Color.Token.deepEmerald)
                 
@@ -120,9 +122,9 @@ struct FaraidhCalculatorView: View {
             
             // Tab Selector
             HStack(spacing: 0) {
-                tabButton(title: "Form", index: 0)
-                tabButton(title: "Shares", index: 1)
-                tabButton(title: "Proofs", index: 2)
+                tabButton(title: languageManager.localize("faraidh_tab_form"), index: 0)
+                tabButton(title: languageManager.localize("faraidh_tab_shares"), index: 1)
+                tabButton(title: languageManager.localize("faraidh_tab_proofs"), index: 2)
             }
             .background(Color.white)
             .padding(.vertical, 8)
@@ -166,19 +168,19 @@ struct FaraidhCalculatorView: View {
             VStack(spacing: 16) {
                 // Deceased Info
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Deceased Profile")
+                    Text(languageManager.localize("faraidh_profile"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
-                    TextField("Deceased Name", text: $deceasedName)
+                    TextField(languageManager.localize("faraidh_name"), text: $deceasedName)
                         .textFieldStyle(.roundedBorder)
                     
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Gender").font(.caption).foregroundColor(.secondary)
+                            Text(languageManager.localize("faraidh_gender")).font(.caption).foregroundColor(.secondary)
                             Picker("Gender", selection: $gender) {
-                                Text("Male").tag(DeceasedGender.male)
-                                Text("Female").tag(DeceasedGender.female)
+                                Text(languageManager.localize("faraidh_male")).tag(DeceasedGender.male)
+                                Text(languageManager.localize("faraidh_female")).tag(DeceasedGender.female)
                             }
                             .pickerStyle(.menu)
                             .frame(maxWidth: .infinity)
@@ -187,12 +189,12 @@ struct FaraidhCalculatorView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Madhhab").font(.caption).foregroundColor(.secondary)
+                            Text(languageManager.localize("faraidh_madhhab")).font(.caption).foregroundColor(.secondary)
                             Picker("Madhhab", selection: $madhhab) {
-                                Text("Shafi'i").tag(FaraidhMadhhab.shafii)
-                                Text("Hanafi").tag(FaraidhMadhhab.hanafi)
-                                Text("Maliki").tag(FaraidhMadhhab.maliki)
-                                Text("Hanbali").tag(FaraidhMadhhab.hanbali)
+                                Text(languageManager.localize("faraidh_shafii")).tag(FaraidhMadhhab.shafii)
+                                Text(languageManager.localize("faraidh_hanafi")).tag(FaraidhMadhhab.hanafi)
+                                Text(languageManager.localize("faraidh_maliki")).tag(FaraidhMadhhab.maliki)
+                                Text(languageManager.localize("faraidh_hanbali")).tag(FaraidhMadhhab.hanbali)
                             }
                             .pickerStyle(.menu)
                             .frame(maxWidth: .infinity)
@@ -201,7 +203,7 @@ struct FaraidhCalculatorView: View {
                         }
                     }
                     
-                    Toggle("Deceased Born Out of Wedlock", isOn: $bornOutOfWedlock)
+                    Toggle(languageManager.localize("faraidh_out_wedlock"), isOn: $bornOutOfWedlock)
                         .tint(Color.Token.deepEmerald)
                         .font(.subheadline)
                 }
@@ -212,23 +214,23 @@ struct FaraidhCalculatorView: View {
                 
                 // Estate / Net Assets Info
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Estate & Deductions")
+                    Text(languageManager.localize("faraidh_estate"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     VStack(spacing: 8) {
-                        moneyTextField("Cash/Savings", text: $cashSavings)
-                        moneyTextField("Gold Assets", text: $goldJewelry)
-                        moneyTextField("Property Value", text: $propertyValue)
-                        moneyTextField("Business Assets", text: $businessAssets)
-                        moneyTextField("Other Assets", text: $otherAssets)
+                        moneyTextField(languageManager.localize("faraidh_cash"), text: $cashSavings)
+                        moneyTextField(languageManager.localize("faraidh_gold"), text: $goldJewelry)
+                        moneyTextField(languageManager.localize("faraidh_property"), text: $propertyValue)
+                        moneyTextField(languageManager.localize("faraidh_business"), text: $businessAssets)
+                        moneyTextField(languageManager.localize("faraidh_other"), text: $otherAssets)
                         
                         Divider().padding(.vertical, 4)
                         
-                        moneyTextField("Funeral Costs", text: $funeralCosts)
-                        moneyTextField("Debts / Liabilities", text: $debts)
-                        moneyTextField("Unpaid Zakat", text: $unpaidZakat)
-                        moneyTextField("Bequest (Wasiat)", text: $wasiatBequest)
+                        moneyTextField(languageManager.localize("faraidh_funeral"), text: $funeralCosts)
+                        moneyTextField(languageManager.localize("faraidh_debts"), text: $debts)
+                        moneyTextField(languageManager.localize("faraidh_zakat"), text: $unpaidZakat)
+                        moneyTextField(languageManager.localize("faraidh_wasiat"), text: $wasiatBequest)
                     }
                 }
                 .padding(16)
@@ -238,36 +240,36 @@ struct FaraidhCalculatorView: View {
                 
                 // Heirs checklist
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Select Surviving Heirs")
+                    Text(languageManager.localize("faraidh_heirs"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     VStack(spacing: 10) {
                         if gender == .female {
-                            heirStepper("Husband", count: $husbandCount, range: 0...1)
+                            heirStepper(languageManager.localize("faraidh_heir_husband"), count: $husbandCount, range: 0...1)
                         } else {
-                            heirStepper("Wives", count: $wifeCount, range: 0...4)
+                            heirStepper(languageManager.localize("faraidh_heir_wives"), count: $wifeCount, range: 0...4)
                         }
                         
-                        heirStepper("Father", count: $fatherCount, range: 0...1)
-                        heirStepper("Mother", count: $motherCount, range: 0...1)
-                        heirStepper("Grandfather", count: $grandfatherCount, range: 0...1)
+                        heirStepper(languageManager.localize("faraidh_heir_father"), count: $fatherCount, range: 0...1)
+                        heirStepper(languageManager.localize("faraidh_heir_mother"), count: $motherCount, range: 0...1)
+                        heirStepper(languageManager.localize("faraidh_heir_grandfather"), count: $grandfatherCount, range: 0...1)
                         
                         Divider().padding(.vertical, 4)
                         
-                        heirStepper("Sons", count: $sonCount, range: 0...20)
-                        heirStepper("Daughters", count: $daughterCount, range: 0...20)
-                        heirStepper("Grandsons (via Son)", count: $grandsonCount, range: 0...20)
-                        heirStepper("Granddaughters (via Son)", count: $granddaughterCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_sons"), count: $sonCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_daughters"), count: $daughterCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_grandsons"), count: $grandsonCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_granddaughters"), count: $granddaughterCount, range: 0...20)
                         
                         Divider().padding(.vertical, 4)
                         
-                        heirStepper("Full Brothers", count: $fullBrotherCount, range: 0...20)
-                        heirStepper("Full Sisters", count: $fullSisterCount, range: 0...20)
-                        heirStepper("Paternal Brothers", count: $paternalBrotherCount, range: 0...20)
-                        heirStepper("Paternal Sisters", count: $paternalSisterCount, range: 0...20)
-                        heirStepper("Maternal Brothers", count: $maternalBrotherCount, range: 0...20)
-                        heirStepper("Maternal Sisters", count: $maternalSisterCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_full_brothers"), count: $fullBrotherCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_full_sisters"), count: $fullSisterCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_paternal_brothers"), count: $paternalBrotherCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_paternal_sisters"), count: $paternalSisterCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_maternal_brothers"), count: $maternalBrotherCount, range: 0...20)
+                        heirStepper(languageManager.localize("faraidh_heir_maternal_sisters"), count: $maternalSisterCount, range: 0...20)
                     }
                 }
                 .padding(16)
@@ -276,7 +278,7 @@ struct FaraidhCalculatorView: View {
                 .shadow(color: Color.black.opacity(0.02), radius: 6, y: 3)
                 
                 Button(action: { selectedTab = 1 }) {
-                    Text("Calculate Inheritance Shares")
+                    Text(languageManager.localize("faraidh_btn_calc"))
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -328,22 +330,22 @@ struct FaraidhCalculatorView: View {
             VStack(spacing: 16) {
                 // Estate Summary Card
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Estate Summary")
+                    Text(languageManager.localize("faraidh_estate_summary"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     let comp = result.deceased.estate ?? FaraidhEstateCalculator.compute(input: EstateAssetInput())
                     
-                    summaryRow(label: "Gross Assets", amount: comp.grossAssets)
-                    summaryRow(label: "Funeral Costs", amount: comp.funeralCosts, isMinus: true)
-                    summaryRow(label: "Debts / Liabilities", amount: comp.debts, isMinus: true)
-                    summaryRow(label: "Unpaid Zakat", amount: comp.unpaidZakat, isMinus: true)
-                    summaryRow(label: "Bequest (Wasiat)", amount: comp.wasiatApplied, isMinus: true)
+                    summaryRow(label: languageManager.localize("faraidh_gross_assets"), amount: comp.grossAssets)
+                    summaryRow(label: languageManager.localize("faraidh_funeral"), amount: comp.funeralCosts, isMinus: true)
+                    summaryRow(label: languageManager.localize("faraidh_debts"), amount: comp.debts, isMinus: true)
+                    summaryRow(label: languageManager.localize("faraidh_zakat"), amount: comp.unpaidZakat, isMinus: true)
+                    summaryRow(label: languageManager.localize("faraidh_wasiat"), amount: comp.wasiatApplied, isMinus: true)
                     
                     Divider().padding(.vertical, 4)
                     
                     HStack {
-                        Text("Net Inheritable Estate")
+                        Text(languageManager.localize("faraidh_net_estate"))
                             .font(.subheadline.bold())
                             .foregroundColor(Color.Token.deepEmerald)
                         Spacer()
@@ -362,7 +364,7 @@ struct FaraidhCalculatorView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "star.fill")
                             .foregroundColor(Color.Token.gold)
-                        Text("Detected Case: \(classicalCaseName(classical))")
+                        Text(String(format: languageManager.localize("faraidh_case_format"), classicalCaseName(classical)))
                             .font(.subheadline.bold())
                             .foregroundColor(Color.Token.deepEmerald)
                         Spacer()
@@ -374,12 +376,12 @@ struct FaraidhCalculatorView: View {
                 
                 // Inheriting shares
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Heir Distributions")
+                    Text(languageManager.localize("faraidh_distributions"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     if result.activeShares.isEmpty {
-                        Text("No active inheriting heirs. Total will fallback to Baitul Mal.")
+                        Text(languageManager.localize("faraidh_fallback_baitulmal"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .padding(.vertical, 12)
@@ -395,7 +397,10 @@ struct FaraidhCalculatorView: View {
                                     Text(heirNameLabel(share.type))
                                         .font(.subheadline.bold())
                                         .foregroundColor(.primary)
-                                    Text("\(share.headCount) Person\(share.headCount > 1 ? "s" : "") \u{2022} \(share.isAsabah ? "Asabah (Residue)" : "Fixed Share")")
+                                    
+                                    let countLabel = share.headCount > 1 ? languageManager.localize("faraidh_heir_count_plural") : languageManager.localize("faraidh_heir_count_singular")
+                                    let shareTypeLabel = share.isAsabah ? languageManager.localize("faraidh_type_asabah") : languageManager.localize("faraidh_type_fixed")
+                                    Text("\(share.headCount) \(countLabel) \u{2022} \(shareTypeLabel)")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -427,12 +432,12 @@ struct FaraidhCalculatorView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(result.adjustment == .awl ? "Aul Deficit Adjustment" : "Radd Surplus Adjustment")
+                            Text(result.adjustment == .awl ? languageManager.localize("faraidh_aul") : languageManager.localize("faraidh_radd"))
                                 .font(.subheadline.bold())
                                 .foregroundColor(.primary)
                             Text(result.adjustment == .awl ?
-                                 "Deficit in fixed shares resolved by increasing the denominator." :
-                                 "Surplus residue distributed back to eligible Quranic heirs.")
+                                 languageManager.localize("faraidh_aul_desc") :
+                                 languageManager.localize("faraidh_radd_desc"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -466,12 +471,12 @@ struct FaraidhCalculatorView: View {
             VStack(spacing: 16) {
                 // Blocked / Excluded Heirs
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Blocked / Excluded Heirs")
+                    Text(languageManager.localize("faraidh_blocked_heirs"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
                     if result.blockedHeirs.isEmpty {
-                        Text("No heirs were blocked or excluded.")
+                        Text(languageManager.localize("faraidh_no_blocked"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .padding(.vertical, 8)
@@ -481,7 +486,8 @@ struct FaraidhCalculatorView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(heirNameLabel(blocked.type))
                                         .font(.subheadline.bold())
-                                    Text("\(blocked.headCount) Person\(blocked.headCount > 1 ? "s" : "")")
+                                    let personLabel = blocked.headCount > 1 ? languageManager.localize("faraidh_heir_count_plural") : languageManager.localize("faraidh_heir_count_singular")
+                                    Text("\(blocked.headCount) \(personLabel)")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -505,7 +511,7 @@ struct FaraidhCalculatorView: View {
                 
                 // Silsilah Family Tree Nodes list
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Kinship Hierarchy (Silsilah)")
+                    Text(languageManager.localize("faraidh_silsilah"))
                         .font(.headline)
                         .foregroundColor(Color.Token.deepEmerald)
                     
@@ -532,7 +538,7 @@ struct FaraidhCalculatorView: View {
                                 }
                                 
                                 if let frac = node.shareFraction, let pct = node.sharePercentage {
-                                    Text("Indiv Share: \(frac) (\(pct))")
+                                    Text("\(languageManager.localize("faraidh_indiv_share")): \(frac) (\(pct))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -597,54 +603,54 @@ struct FaraidhCalculatorView: View {
     
     private func heirNameLabel(_ type: HeirType) -> String {
         switch type {
-        case .husband: return "Husband"
-        case .wife: return "Wife"
-        case .father: return "Father"
-        case .grandfather: return "Grandfather"
-        case .mother: return "Mother"
-        case .son: return "Son"
-        case .daughter: return "Daughter"
-        case .grandson: return "Grandson (via Son)"
-        case .granddaughter: return "Granddaughter (via Son)"
-        case .fullBrother: return "Full Brother"
-        case .fullSister: return "Full Sister"
-        case .paternalBrother: return "Paternal Brother"
-        case .paternalSister: return "Paternal Sister"
-        case .maternalSibling: return "Maternal Sibling"
-        case .stepChild: return "Baitul Mal / Excluded Kindred"
-        case .unbornFetus: return "Unborn Fetus"
+        case .husband: return languageManager.localize("faraidh_heir_husband")
+        case .wife: return languageManager.localize("faraidh_heir_wives")
+        case .father: return languageManager.localize("faraidh_heir_father")
+        case .grandfather: return languageManager.localize("faraidh_heir_grandfather")
+        case .mother: return languageManager.localize("faraidh_heir_mother")
+        case .son: return languageManager.localize("faraidh_heir_sons")
+        case .daughter: return languageManager.localize("faraidh_heir_daughters")
+        case .grandson: return languageManager.localize("faraidh_heir_grandsons")
+        case .granddaughter: return languageManager.localize("faraidh_heir_granddaughters")
+        case .fullBrother: return languageManager.localize("faraidh_heir_full_brothers")
+        case .fullSister: return languageManager.localize("faraidh_heir_full_sisters")
+        case .paternalBrother: return languageManager.localize("faraidh_heir_paternal_brothers")
+        case .paternalSister: return languageManager.localize("faraidh_heir_paternal_sisters")
+        case .maternalSibling: return languageManager.localize("faraidh_heir_maternal_sibling")
+        case .stepChild: return languageManager.localize("faraidh_heir_baitul_mal_or_excluded")
+        case .unbornFetus: return languageManager.localize("faraidh_heir_unborn_fetus")
         }
     }
     
     private func nodeLabel(_ type: HeirType) -> String {
         if type == .son && deceasedName.isEmpty == false {
-            return "Deceased: \(deceasedName)"
+            return "\(languageManager.localize("faraidh_deceased")): \(deceasedName)"
         }
         return heirNameLabel(type)
     }
     
     private func blockingReasonText(_ reason: BlockingReasonKey) -> String {
         switch reason {
-        case .bySon: return "Blocked by Son"
-        case .byChildren: return "Blocked by Child"
-        case .byFather: return "Blocked by Father"
-        case .byGrandfather: return "Blocked by Grandfather"
-        case .byGrandchildrenSubstitute: return "Excluded"
-        case .genderMismatch: return "Gender Mismatch"
-        case .noShareRemainder: return "No Share Remainder"
-        case .outOfWedlock: return "Born Out of Wedlock"
-        case .homicide: return "Excluded by Homicide"
-        case .differenceOfReligion: return "Difference of Religion"
-        case .simultaneousDeath: return "Simultaneous Death"
+        case .bySon: return languageManager.localize("faraidh_reason_by_son")
+        case .byChildren: return languageManager.localize("faraidh_reason_by_children")
+        case .byFather: return languageManager.localize("faraidh_reason_by_father")
+        case .byGrandfather: return languageManager.localize("faraidh_reason_by_grandfather")
+        case .byGrandchildrenSubstitute: return languageManager.localize("faraidh_reason_excluded")
+        case .genderMismatch: return languageManager.localize("faraidh_reason_gender_mismatch")
+        case .noShareRemainder: return languageManager.localize("faraidh_reason_no_remainder")
+        case .outOfWedlock: return languageManager.localize("faraidh_reason_out_of_wedlock")
+        case .homicide: return languageManager.localize("faraidh_reason_homicide")
+        case .differenceOfReligion: return languageManager.localize("faraidh_reason_religion")
+        case .simultaneousDeath: return languageManager.localize("faraidh_reason_simultaneous")
         }
     }
     
     private func classicalCaseName(_ value: ClassicalCase) -> String {
         switch value {
-        case .alMinbariyah: return "Al-Minbariyah"
-        case .alAkdariyah: return "Al-Akdariyah"
-        case .alMarwaniyah: return "Al-Marwaniyah"
-        case .umariyatain: return "Al-Umariyatain"
+        case .alMinbariyah: return languageManager.localize("faraidh_case_minbariyah")
+        case .alAkdariyah: return languageManager.localize("faraidh_case_akdariyah")
+        case .alMarwaniyah: return languageManager.localize("faraidh_case_marwaniyah")
+        case .umariyatain: return languageManager.localize("faraidh_case_umariyatain")
         }
     }
 }

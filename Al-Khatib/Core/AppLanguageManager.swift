@@ -55,7 +55,13 @@ class AppLanguageManager: ObservableObject {
     
     func localize(_ key: String) -> String {
         let dict = translations[key]
-        return dict?[currentLanguage] ?? dict?[.english] ?? key
+        if let val = dict?[currentLanguage] {
+            return val
+        }
+        if currentLanguage == .malay, let idVal = dict?[.indonesian] {
+            return idVal
+        }
+        return dict?[.english] ?? key
     }
     
     private let translations: [String: [AppLanguage: String]] = [
@@ -170,7 +176,199 @@ class AppLanguageManager: ObservableObject {
         "onboarding_widgets_subtitle": [.english: "Pin custom widgets to your home screen to see today's verse and countdowns to the next prayer times.", .indonesian: "Sematkan widget khusus di layar beranda untuk memantau ayat pilihan hari ini dan hitung mundur waktu shalat.", .malay: "Sematkan widget khas di skrin utama untuk memantau ayat pilihan hari ini dan hitung mundur waktu solat."],
         "onboarding_get_started": [.english: "Get Started", .indonesian: "Mulai Sekarang", .malay: "Mula Sekarang"],
         "onboarding_continue": [.english: "Continue", .indonesian: "Lanjutkan", .malay: "Teruskan"],
-        "onboarding_step": [.english: "Step %d of 4", .indonesian: "Langkah %d dari 4", .malay: "Langkah %d dari 4"]
+        "onboarding_step": [.english: "Step %d of 4", .indonesian: "Langkah %d dari 4", .malay: "Langkah %d dari 4"],
+        
+        // Qibla Finder
+        "qibla_ar_mode": [.english: "AR Mode", .indonesian: "Mode AR", .malay: "Mod AR"],
+        "qibla_compass_mode": [.english: "Compass Mode", .indonesian: "Mode Kompas", .malay: "Mod Kompas"],
+        "qibla_locating": [.english: "Locating...", .indonesian: "Mencari lokasi...", .malay: "Mencari lokasi..."],
+        "qibla_location_required": [.english: "Location permission is required to calculate the direction of the Qibla.", .indonesian: "Izin lokasi diperlukan untuk menghitung arah Kiblat.", .malay: "Kebenaran lokasi diperlukan untuk mengira arah Kiblat."],
+        "qibla_bearing_format": [.english: "Kaaba Bearing: %d°", .indonesian: "Arah Ka'bah: %d°", .malay: "Arah Kaabah: %d°"],
+        "qibla_aligned": [.english: "ALIGNED WITH KAABA", .indonesian: "SEJAJAR DENGAN KA'BAH", .malay: "SEJAJAR DENGAN KAABAH"],
+        "qibla_rotate_phone": [.english: "ROTATE PHONE", .indonesian: "PUTAR PONSEL", .malay: "PUTAR TELEFON"],
+        "qibla_heading": [.english: "Heading", .indonesian: "Arah Hadap", .malay: "Arah Hadap"],
+        "qibla_distance": [.english: "Distance", .indonesian: "Jarak", .malay: "Jarak"],
+
+        // Zakat Calculator
+        "zakat_maal": [.english: "Zakat Maal", .indonesian: "Zakat Maal", .malay: "Zakat Maal"],
+        "zakat_fitrah": [.english: "Zakat Fitrah", .indonesian: "Zakat Fitrah", .malay: "Zakat Fitrah"],
+        "zakat_live_gold": [.english: "Live Gold Price", .indonesian: "Harga Emas Live", .malay: "Harga Emas Live"],
+        "zakat_source_format": [.english: "Source: %@", .indonesian: "Sumber: %@", .malay: "Sumber: %@"],
+        "zakat_gold_default_format": [.english: "IDR %@ / gram (Default)", .indonesian: "IDR %@ / gram (Default)", .malay: "IDR %@ / gram (Lalai)"],
+        "zakat_assets_liabilities": [.english: "Assets & Liabilities", .indonesian: "Harta & Kewajiban", .malay: "Harta & Liabiliti"],
+        "zakat_cash_savings": [.english: "Cash & Savings", .indonesian: "Uang Tunai & Tabungan", .malay: "Wang Tunai & Simpanan"],
+        "zakat_gold_owned": [.english: "Gold Owned (grams)", .indonesian: "Emas Dimiliki (gram)", .malay: "Emas Dimiliki (gram)"],
+        "zakat_silver_owned": [.english: "Silver Owned (grams)", .indonesian: "Perak Dimiliki (gram)", .malay: "Perak Dimiliki (gram)"],
+        "zakat_investments": [.english: "Investments / Stocks", .indonesian: "Investasi / Saham", .malay: "Pelaburan / Saham"],
+        "zakat_debts": [.english: "Outstanding Debts", .indonesian: "Utang Jatuh Tempo", .malay: "Hutang Terhutang"],
+        "zakat_custom_gold": [.english: "Custom Gold Price", .indonesian: "Harga Emas Kustom", .malay: "Harga Emas Kustom"],
+        "zakat_maal_results": [.english: "Maal Results", .indonesian: "Hasil Zakat Maal", .malay: "Keputusan Zakat Maal"],
+        "zakat_net_wealth": [.english: "Zakatable Net Wealth", .indonesian: "Kekayaan Wajib Zakat", .malay: "Kekayaan Wajib Zakat"],
+        "zakat_nisab_limit": [.english: "Nisab Limit (85g Gold)", .indonesian: "Batas Nisab (85g Emas)", .malay: "Had Nisab (85g Emas)"],
+        "zakat_status": [.english: "Status", .indonesian: "Status", .malay: "Status"],
+        "zakat_meets_nisab": [.english: "Meets Nisab", .indonesian: "Mencapai Nisab", .malay: "Melepasi Nisab"],
+        "zakat_no_nisab": [.english: "Does not meet Nisab", .indonesian: "Tidak Mencapai Nisab", .malay: "Tidak Melepasi Nisab"],
+        "zakat_due": [.english: "Zakat Maal Due", .indonesian: "Zakat Mal Wajib", .malay: "Zakat Mal Wajib"],
+        "zakat_fitrah_specs": [.english: "Fitrah Specifications", .indonesian: "Spesifikasi Fitrah", .malay: "Spesifikasi Fitrah"],
+        "zakat_family_members": [.english: "Family Members", .indonesian: "Anggota Keluarga", .malay: "Ahli Keluarga"],
+        "zakat_staple_price": [.english: "Staple Price / kg", .indonesian: "Harga Makanan Pokok / kg", .malay: "Harga Makanan Pokok / kg"],
+        "zakat_staple_weight": [.english: "Staple Weight / Person", .indonesian: "Berat Staples / Orang", .malay: "Berat Staples / Orang"],
+        "zakat_fitrah_results": [.english: "Fitrah Results", .indonesian: "Hasil Zakat Fitrah", .malay: "Keputusan Zakat Fitrah"],
+        "zakat_total_staple": [.english: "Total Staple Required", .indonesian: "Total Staples Dibutuhkan", .malay: "Jumlah Staples Diperlukan"],
+        "zakat_fitrah_due": [.english: "Total Zakat Fitrah Due", .indonesian: "Zakat Fitrah Wajib", .malay: "Zakat Fitrah Wajib"],
+
+        // Dhikr Tasbih
+        "dhikr_title": [.english: "Dhikr", .indonesian: "Dzikir", .malay: "Zikir"],
+        "dhikr_subtitle": [.english: "Premium digital tasbih", .indonesian: "Tasbih digital premium", .malay: "Tasbih digital premium"],
+
+        // Doa & Zikir
+        "dzikir_start": [.english: "Start Dhikr", .indonesian: "Mulai Zikir", .malay: "Mula Zikir"],
+        "dzikir_empty": [.english: "Dhikr is empty", .indonesian: "Zikir kosong", .malay: "Zikir kosong"],
+        "dzikir_progress_format": [.english: "Dhikr %d of %d", .indonesian: "Dzikir %d dari %d", .malay: "Zikir %d dari %d"],
+        "dzikir_completed_desc": [.english: "You have successfully completed the entire dhikr series. May Allah accept your worship.", .indonesian: "Anda telah menyelesaikan seluruh rangkaian zikir dengan baik. Semoga Allah menerima amal ibadah Anda.", .malay: "Anda telah menyelesaikan seluruh rangkaian zikir dengan baik. Semoga Allah menerima amal ibadah anda."],
+        "dzikir_repeat": [.english: "Repeat Dhikr", .indonesian: "Ulangi Zikir", .malay: "Ulangi Zikir"],
+        "dzikir_back_to_menu": [.english: "Back to Menu", .indonesian: "Kembali ke Menu", .malay: "Kembali ke Menu"],
+
+        // Manzil Protection
+        "manzil_quranic_protection": [.english: "Quranic Protection", .indonesian: "Perlindungan Al-Quran", .malay: "Perlindungan Al-Quran"],
+        "manzil_quranic_protection_sub": [.english: "Selected verses for protection from sihr, jinn, and harm.", .indonesian: "Ayat-ayat pilihan untuk perlindungan dari sihir, jin, dan bahaya.", .malay: "Ayat-ayat pilihan untuk perlindungan daripada sihir, jin, dan bahaya."],
+        "manzil_about": [.english: "About Manzil Al-Quran", .indonesian: "Tentang Manzil Al-Quran", .malay: "Tentang Manzil Al-Quran"],
+        "manzil_about_sub": [.english: "Definition, 7-day division & practice guide", .indonesian: "Definisi, pembagian 7 hari & panduan amalan", .malay: "Definisi, pembahagian 7 hari & panduan amalan"],
+        "manzil_what_is": [.english: "What is Manzil?", .indonesian: "Apa itu Manzil?", .malay: "Apa itu Manzil?"],
+        "manzil_what_is_desc": [.english: "Manzil (Arabic: منزل) is a system for dividing the recitation of the Quran to facilitate completing (khatam) the Quran over seven days (one week). This tradition is widely practiced in South Asian Muslim communities.\n\nNote: \"Manzil\" here refers to the 7-part Quran division for khatam, and is different from the protection verses (Manzil ruqyah) compiled by Maulana Zakariyya Kandhlawi. This section in the app covers the protection verses.", .indonesian: "Manzil (Arab: منزل) adalah sistem pembagian bacaan Al-Quran untuk memudahkan khatam Al-Quran dalam tujuh hari (satu minggu). Tradisi ini banyak diamalkan di kalangan umat Islam.\n\nCatatan: \"Manzil\" di sini mengacu pada pembagian Al-Quran 7 bagian untuk khatam, dan berbeda dengan ayat-ayat ruqyah (Manzil ruqyah) yang disusun oleh Maulana Zakariyya Kandhlawi. Bagian ini membahas tentang ayat perlindungan.", .malay: "Manzil (Arab: منزل) ialah sistem pembahagian bacaan Al-Quran untuk memudahkan khatam Al-Quran dalam tujuh hari (satu minggu). Tradisi ini banyak diamalkan di kalangan umat Islam.\n\nNota: \"Manzil\" di sini merujuk kepada pembahagian Al-Quran 7 bahagian untuk khatam, dan berbeza dengan ayat-ayat ruqyah (Manzil ruqyah) yang disusun oleh Maulana Zakariyya Kandhlawi. Bahagian ini membincangkan tentang ayat perlindungan."],
+        "manzil_fami": [.english: "Fami bi Syauqin (فَمِي بِشَوْقٍ)", .indonesian: "Fami bi Syauqin (فَمِي بِشَوْقٍ)", .malay: "Fami bi Syauqin (فَمِي بِشَوْقٍ)"],
+        "manzil_fami_desc": [.english: "A mnemonic phrase meaning \"My mouth longs to recite (the Quran)\". The 7 letters — ف م ي ب ش و ق — are the first letters of the surah that begins each of the 7 Manzils: Al-Fatihah, Al-Ma'idah, Yunus, Al-Isra', Asy-Syu'ara, Ash-Shaffat, and Qaf.", .indonesian: "Ungkapan mnemonik yang berarti \"Mulutku rindu membaca (Al-Quran)\". Ke-7 huruf tersebut — ف م ي ب ش w ق — adalah huruf pertama dari surah yang memulai masing-masing dari 7 Manzil: Al-Fatihah, Al-Ma'idah, Yunus, Al-Isra', Asy-Syu'ara, Ash-Shaffat, dan Qaf.", .malay: "Ungkapan mnemonik yang bermaksud \"Mulutku rindu membaca (Al-Quran)\". Ke-7 huruf tersebut — ف م ي b ش w q — adalah huruf pertama dari surah yang memulakan masing-masing daripada 7 Manzil: Al-Fatihah, Al-Ma'idah, Yunus, Al-Isra', Asy-Syu'ara, Ash-Shaffat, dan Qaf."],
+        "manzil_7day": [.english: "7-Day Manzil Division", .indonesian: "Pembagian Manzil 7 Hari", .malay: "Pembahagian Manzil 7 Hari"],
+        "manzil_column": [.english: "Manzil", .indonesian: "Manzil", .malay: "Manzil"],
+        "manzil_surah_range": [.english: "Surah Range", .indonesian: "Cakupan Surah", .malay: "Cakupan Surah"],
+        "manzil_how_to": [.english: "How to Practice", .indonesian: "Cara Mengamalkan", .malay: "Cara Mengamalkan"],
+        "manzil_how_to_desc": [.english: "Each day, recite one Manzil in sequence from Monday to Sunday, completing the entire Quran in one week. You may recite it in one sitting or spread it across multiple sessions during the day.", .indonesian: "Setiap hari, bacalah satu Manzil secara berurutan dari Senin hingga Minggu, untuk menyelesaikan seluruh Al-Quran dalam satu minggu. Anda dapat membacanya sekaligus atau membaginya dalam beberapa sesi dalam sehari.", .malay: "Setiap hari, bacalah satu Manzil secara berurutan dari Isnin hingga Ahad, untuk menyelesaikan seluruh Al-Quran dalam satu minggu. Anda boleh membacanya sekaligus atau membaginya dalam beberapa sesi dalam sehari."],
+        "manzil_virtues": [.english: "Virtues & Benefits", .indonesian: "Keutamaan & Manfaat", .malay: "Keutamaan & Manfaat"],
+        
+        "manzil_benefit_1": [.english: "Enables regular completion (khatam) of the Quran — once per week.", .indonesian: "Memungkinkan khatam Al-Quran secara teratur — seminggu sekali."],
+        "manzil_benefit_2": [.english: "Builds a strong, consistent relationship with the Book of Allah.", .indonesian: "Membangun hubungan yang kuat dan konsisten dengan Kitabullah."],
+        "manzil_benefit_3": [.english: "Reciting the entire Quran regularly earns great reward and forgiveness.", .indonesian: "Membaca seluruh Al-Quran secara teratur mendatangkan pahala dan ampunan besar."],
+        "manzil_benefit_4": [.english: "Encourages daily reflection on different parts of the Quran.", .indonesian: "Mendorong tadabur harian pada berbagai bagian Al-Quran."],
+        "manzil_benefit_5": [.english: "A structured approach recommended by classical scholars and passed down through generations.", .indonesian: "Pendekatan terstruktur yang direkomendasikan oleh para ulama terdahulu."],
+        
+        "manzil_sec_1_desc": [.english: "Begin Manzil with Al-Fatihah — the greatest surah, recited in every rakah. A cure and protection.", .indonesian: "Mulai Manzil dengan Al-Fatihah — surah teragung, dibaca di setiap rakaat. Penawar dan perlindungan."],
+        "manzil_sec_2_desc": [.english: "Continue with the opening of Al-Baqarah — guidance for the God-conscious and the path to success.", .indonesian: "Lanjutkan dengan awal Al-Baqarah — petunjuk bagi orang yang bertakwa dan jalan menuju kesuksesan."],
+        "manzil_sec_3_desc": [.english: "Your God is One — there is no deity but Him, the Most Gracious, the Most Merciful.", .indonesian: "Tuhanmu adalah Tuhan Yang Maha Esa — tidak ada tuhan selain Dia, Yang Maha Pengasih lagi Maha Penyayang."],
+        "manzil_sec_4_desc": [.english: "The greatest verse in the Quran — a fortress of protection. Whoever recites it at night remains under Allah's protection until morning.", .indonesian: "Ayat paling agung dalam Al-Quran — benteng perlindungan. Barangsiapa membacanya di malam hari akan senantiasa dalam penjagaan Allah hingga pagi."],
+        "manzil_sec_5_desc": [.english: "There is no compulsion in religion — truth has become clear from falsehood.", .indonesian: "Tidak ada paksaan dalam menganut agama — kebenaran telah tampak jelas dari kesesatan."],
+        "manzil_sec_6_desc": [.english: "Allah is the Protector of the believers, bringing them from darkness into light.", .indonesian: "Allah adalah Pelindung bagi orang-orang yang beriman, mengeluarkan mereka dari kegelapan menuju cahaya."],
+        "manzil_sec_7_desc": [.english: "To Allah belongs all that is in the heavens and earth — He will call you to account for what is in your hearts.", .indonesian: "Milik Allah segala apa yang ada di langit dan di bumi — Dia akan memperhitungkan apa yang ada di dalam hatimu."],
+        "manzil_sec_8_desc": [.english: "The Messenger and believers have faith in what was revealed — we hear and we obey, seeking Your forgiveness.", .indonesian: "Rasul dan orang-orang mukmin beriman kepada apa yang diturunkan — kami dengar dan kami taat, memohon ampunan-Mu."],
+        "manzil_sec_9_desc": [.english: "Allah does not burden a soul beyond its capacity — the closing supplication of Al-Baqarah for forgiveness and help.", .indonesian: "Allah tidak membebani seseorang melainkan sesuai kesanggupannya — doa penutup Al-Baqarah memohon ampunan dan pertolongan."],
+        "manzil_sec_10_desc": [.english: "Allah testifies that there is no deity but Him — the Almighty, the All-Wise.", .indonesian: "Allah menyatakan bahwa tidak ada tuhan selain Dia — Yang Maha Perkasa lagi Maha Bijaksana."],
+        "manzil_sec_11_desc": [.english: "Say: O Allah, Owner of sovereignty — You give honour and power to whom You will.", .indonesian: "Katakanlah: Wahai Allah Pemilik kekuasaan — Engkau muliakan siapa yang Engkau kehendaki."],
+        "manzil_sec_12_desc": [.english: "You cause the night to enter the day and bring the living from the dead — You provide for whom You will without measure.", .indonesian: "Engkau masukkan malam ke dalam siang dan Engkau keluarkan yang hidup dari yang mati — Engkau beri rezeki tanpa batas."],
+        "manzil_sec_13_desc": [.english: "Your Lord created the heavens and earth in six days — call upon Him humbly and in secret.", .indonesian: "Tuhanmu menciptakan langit dan bumi dalam enam masa — berdoalah kepada-Nya dengan rendah hati dan suara lembut."],
+        "manzil_sec_14_desc": [.english: "Call upon Allah or Ar-Rahman — to Him belong the Most Beautiful Names. Praise be to Him who has no son nor partner.", .indonesian: "Serulah Allah atau Ar-Rahman — milik-Nya Nama-Nama yang Terbaik. Segala puji bagi Allah yang tidak mempunyai anak/sekutu."],
+        "manzil_sec_15_desc": [.english: "Were you created without purpose? Exalted is Allah, the True King — seek His forgiveness and mercy.", .indonesian: "Apakah kamu mengira bahwa kamu diciptakan sia-sia? Maha Tinggi Allah, Raja Yang Sebenarnya — mohonlah ampunan dan rahmat-Nya."],
+        "manzil_sec_16_desc": [.english: "By the angels ranged in rows — your God is One, Lord of the heavens and the earth.", .indonesian: "Demi (rombongan malaikat) yang berbaris bersaf-saf — Tuhanmu benar-benar Esa, Tuhan langit dan bumi."],
+        "manzil_sec_17_desc": [.english: "O assembly of jinn and men — none can escape Allah's authority. Which of your Lord's favours will you deny?", .indonesian: "Wahai golongan jin dan manusia — kamu tidak dapat menembus penjuru langit melainkan dengan kekuatan. Nikmat Tuhan mana yang kamu dustakan?"],
+        "manzil_sec_18_desc": [.english: "If this Quran were sent upon a mountain, it would crumble — He is Allah, the Creator, the Bestower of Forms, the Most Beautiful Names.", .indonesian: "Sekiranya Kami turunkan Al-Quran ini kepada gunung, niscaya ia tunduk pecah berserakan — Dialah Allah Yang Menciptakan, Maha Indah Nama-Nya."],
+        "manzil_sec_19_desc": [.english: "A group of jinn heard the Quran, believed, and declared their faith — our Lord has no spouse or child.", .indonesian: "Sekelompok jin mendengarkan Al-Quran lalu mereka beriman — Tuhan kami tidak beristri dan tidak beranak."],
+        "manzil_sec_20_desc": [.english: "A declaration of disavowal from disbelief — to you your religion, to me mine.", .indonesian: "Pernyataan berlepas diri dari kekafiran — bagimu agamamu, bagiku agamaku."],
+        "manzil_sec_21_desc": [.english: "The essence of Tawheed — He is Allah, the One, the Eternal Refuge, who begets not nor is begotten.", .indonesian: "Inti dari Tauhid — Dialah Allah Yang Maha Esa, tempat bergantung, tidak melahirkan dan tidak dilahirkan."],
+        "manzil_sec_22_desc": [.english: "Seek refuge with the Lord of daybreak from the evil of creation, darkness, sorcery, and envy.", .indonesian: "Mohon perlindungan kepada Tuhan yang menguasai subuh dari kejahatan makhluk, kegelapan, tukang sihir, dan pendengki."],
+        "manzil_sec_23_desc": [.english: "Seek refuge with the Lord of mankind, the King of mankind, from the whisperer who withdraws.", .indonesian: "Mohon perlindungan kepada Tuhan manusia, Raja manusia, dari kejahatan bisikan syetan yang bersembunyi."],
+
+        // Qiyam Tracker
+        "qiyam_tracker_subtitle": [.english: "Night prayer tracker & guide", .indonesian: "Pencatat & panduan shalat malam", .malay: "Pencatat & panduan solat malam"],
+        "qiyam_tab_tracker": [.english: "Tracker", .indonesian: "Jurnal", .malay: "Diari"],
+        "qiyam_tab_readings": [.english: "Readings", .indonesian: "Bacaan", .malay: "Bacaan"],
+        "qiyam_tracker_desc": [.english: "The last third of the night is a blessed time for dua and extra rakah. Log here when you stand for qiyam tonight.", .indonesian: "Sepertiga malam terakhir adalah waktu utama untuk berdoa dan shalat malam. Catat di sini ketika Anda melaksanakan qiyam malam ini.", .malay: "Sepertiga malam terakhir ialah waktu utama untuk berdoa dan solat malam. Catat di sini apabila anda melaksanakan qiyam malam ini."],
+        "qiyam_prayed_tonight": [.english: "Prayed qiyam tonight", .indonesian: "Sudah shalat malam ini", .malay: "Sudah solat malam ini"],
+        "qiyam_private_tracker": [.english: "Private tracker", .indonesian: "Jurnal pribadi luring", .malay: "Jurnal peribadi luar talian"],
+        "qiyam_readings_desc": [.english: "Expand each section for Arabic text, transliteration, and step-by-step guidance for tahajud / qiyam.", .indonesian: "Buka setiap bagian untuk melihat teks Arab, transliterasi, dan panduan langkah demi langkah untuk tahajud / qiyam.", .malay: "Buka setiap bahagian untuk melihat teks Arab, transliterasi, dan panduan langkah demi langkah untuk tahajud / qiyam."],
+        "qiyam_what_is": [.english: "Qiyam is voluntary night prayer — often called tahajud when prayed after sleep.", .indonesian: "Qiyamul lail adalah shalat malam sunnah — sering disebut tahajud jika dikerjakan setelah tidur.", .malay: "Qiyamullail ialah solat malam sunat — sering dipanggil tahajjud jika dikerjakan selepas tidur."],
+
+        // Faraidh Additional
+        "faraidh_tab_form": [.english: "Form", .indonesian: "Formulir", .malay: "Borang"],
+        "faraidh_tab_shares": [.english: "Shares", .indonesian: "Pembagian", .malay: "Bahagian"],
+        "faraidh_tab_proofs": [.english: "Proofs", .indonesian: "Silsilah", .malay: "Silsilah"],
+        "faraidh_shafii": [.english: "Shafi'i", .indonesian: "Syafi'i", .malay: "Syafi'i"],
+        "faraidh_hanafi": [.english: "Hanafi", .indonesian: "Hanafi", .malay: "Hanafi"],
+        "faraidh_maliki": [.english: "Maliki", .indonesian: "Maliki", .malay: "Maliki"],
+        "faraidh_hanbali": [.english: "Hanbali", .indonesian: "Hambali", .malay: "Hambali"],
+        "faraidh_estate_summary": [.english: "Estate Summary", .indonesian: "Ringkasan Harta", .malay: "Ringkasan Harta"],
+        "faraidh_net_estate": [.english: "Net Inheritable Estate", .indonesian: "Harta Bersih Waris", .malay: "Harta Bersih Waris"],
+        "faraidh_distributions": [.english: "Heir Distributions", .indonesian: "Pembagian Ahli Waris", .malay: "Pembahagian Ahli Waris"],
+        "faraidh_fallback_baitulmal": [.english: "No active inheriting heirs. Total will fallback to Baitul Mal.", .indonesian: "Tidak ada ahli waris yang berhak menerima. Harta diserahkan ke Baitul Mal.", .malay: "Tiada ahli waris yang berhak menerima. Harta diserahkan ke Baitul Mal."],
+        "faraidh_aul": [.english: "Aul Deficit Adjustment", .indonesian: "Penyesuaian Defisit Aul", .malay: "Penyesuaian Defisit Aul"],
+        "faraidh_radd": [.english: "Radd Surplus Adjustment", .indonesian: "Penyesuaian Surplus Radd", .malay: "Penyesuaian Surplus Radd"],
+        "faraidh_blocked_heirs": [.english: "Blocked / Excluded Heirs", .indonesian: "Ahli Waris Terhijab (Terhalang)", .malay: "Ahli Waris Terhijab (Terhalang)"],
+        "faraidh_no_blocked": [.english: "No heirs were blocked or excluded.", .indonesian: "Tidak ada ahli waris yang terhalang.", .malay: "Tiada ahli waris yang terhalang."],
+        "faraidh_silsilah": [.english: "Kinship Hierarchy (Silsilah)", .indonesian: "Silsilah Kekerabatan", .malay: "Silsilah Kekerabatan"],
+        "faraidh_gross_assets": [.english: "Gross Assets", .indonesian: "Aset Kotor", .malay: "Aset Kasar"],
+        "faraidh_case_format": [.english: "Detected Case: %@", .indonesian: "Kasus Terdeteksi: %@", .malay: "Kes Terkesan: %@"],
+        "faraidh_heir_count_singular": [.english: "Person", .indonesian: "Orang", .malay: "Orang"],
+        "faraidh_heir_count_plural": [.english: "People", .indonesian: "Orang", .malay: "Orang"],
+        "faraidh_type_asabah": [.english: "Asabah (Residue)", .indonesian: "Asabah (Sisa)", .malay: "Asabah (Baki)"],
+        "faraidh_type_fixed": [.english: "Fixed Share", .indonesian: "Bagian Tetap", .malay: "Bahagian Tetap"],
+        "faraidh_aul_desc": [.english: "Deficit in fixed shares resolved by increasing the denominator.", .indonesian: "Kekurangan bagian tetap diselesaikan dengan menaikkan penyebut.", .malay: "Kekurangan bahagian tetap diselesaikan dengan menaikkan penyebut."],
+        "faraidh_radd_desc": [.english: "Surplus residue distributed back to eligible Quranic heirs.", .indonesian: "Kelebihan baki dibagikan kembali kepada ahli waris Dzawil Furud.", .malay: "Kelebihan baki dibahagikan kembali kepada ahli waris Dzawil Furud."],
+        
+        // Faraidh fields & heirs
+        "faraidh_cash": [.english: "Cash/Savings", .indonesian: "Uang Tunai/Tabungan", .malay: "Wang Tunai/Simpanan"],
+        "faraidh_gold": [.english: "Gold Assets", .indonesian: "Aset Emas", .malay: "Aset Emas"],
+        "faraidh_property": [.english: "Property Value", .indonesian: "Nilai Properti", .malay: "Nilai Hartanah"],
+        "faraidh_business": [.english: "Business Assets", .indonesian: "Aset Bisnis", .malay: "Aset Perniagaan"],
+        "faraidh_other": [.english: "Other Assets", .indonesian: "Aset Lainnya", .malay: "Aset Lain-lain"],
+        "faraidh_funeral": [.english: "Funeral Costs", .indonesian: "Biaya Pengurusan Jenazah", .malay: "Kos Pengurusan Jenazah"],
+        "faraidh_debts": [.english: "Debts / Liabilities", .indonesian: "Utang / Kewajiban", .malay: "Hutang / Liabiliti"],
+        "faraidh_zakat": [.english: "Unpaid Zakat", .indonesian: "Zakat Belum Dibayar", .malay: "Zakat Belum Dibayar"],
+        "faraidh_wasiat": [.english: "Bequest (Wasiat)", .indonesian: "Wasiat", .malay: "Wasiat"],
+        
+        "faraidh_heir_husband": [.english: "Husband", .indonesian: "Suami", .malay: "Suami"],
+        "faraidh_heir_wives": [.english: "Wives", .indonesian: "Istri-istri", .malay: "Isteri-isteri"],
+        "faraidh_heir_father": [.english: "Father", .indonesian: "Ayah", .malay: "Bapa"],
+        "faraidh_heir_mother": [.english: "Mother", .indonesian: "Ibu", .malay: "Ibu"],
+        "faraidh_heir_grandfather": [.english: "Grandfather", .indonesian: "Kakek", .malay: "Datuk"],
+        "faraidh_heir_sons": [.english: "Sons", .indonesian: "Anak Laki-laki", .malay: "Anak Lelaki"],
+        "faraidh_heir_daughters": [.english: "Daughters", .indonesian: "Anak Perempuan", .malay: "Anak Perempuan"],
+        "faraidh_heir_grandsons": [.english: "Grandsons (via Son)", .indonesian: "Cucu Laki-laki (dari Anak Laki)", .malay: "Cucu Lelaki (daripada Anak Lelaki)"],
+        "faraidh_heir_granddaughters": [.english: "Granddaughters (via Son)", .indonesian: "Cucu Perempuan (dari Anak Laki)", .malay: "Cucu Perempuan (daripada Anak Lelaki)"],
+        "faraidh_heir_full_brothers": [.english: "Full Brothers", .indonesian: "Saudara Kandung Laki-laki", .malay: "Saudara Kandung Lelaki"],
+        "faraidh_heir_full_sisters": [.english: "Full Sisters", .indonesian: "Saudara Kandung Perempuan", .malay: "Saudara Kandung Perempuan"],
+        "faraidh_heir_paternal_brothers": [.english: "Paternal Brothers", .indonesian: "Saudara Seayah Laki-laki", .malay: "Saudara Sebapa Lelaki"],
+        "faraidh_heir_paternal_sisters": [.english: "Paternal Sisters", .indonesian: "Saudara Seayah Perempuan", .malay: "Saudara Sebapa Perempuan"],
+        "faraidh_heir_maternal_brothers": [.english: "Maternal Brothers", .indonesian: "Saudara Seibu Laki-laki", .malay: "Saudara Seibu Lelaki"],
+        "faraidh_heir_maternal_sisters": [.english: "Maternal Sisters", .indonesian: "Saudara Seibu Perempuan", .malay: "Saudara Seibu Perempuan"],
+        
+        "faraidh_heir_maternal_sibling": [.english: "Maternal Sibling", .indonesian: "Saudara Seibu", .malay: "Saudara Seibu"],
+        "faraidh_heir_baitul_mal_or_excluded": [.english: "Baitul Mal / Excluded Kindred", .indonesian: "Baitul Mal / Ahli Waris Terhalang", .malay: "Baitul Mal / Ahli Waris Terhalang"],
+        "faraidh_heir_unborn_fetus": [.english: "Unborn Fetus", .indonesian: "Janin dalam Kandungan", .malay: "Janin dalam Kandungan"],
+        "faraidh_deceased": [.english: "Deceased", .indonesian: "Pewaris", .malay: "Pewaris"],
+        "faraidh_indiv_share": [.english: "Indiv Share", .indonesian: "Bagian Per Orang", .malay: "Bahagian Per Orang"],
+        
+        "faraidh_reason_by_son": [.english: "Blocked by Son", .indonesian: "Terhalang oleh Anak Laki-laki", .malay: "Terhalang oleh Anak Lelaki"],
+        "faraidh_reason_by_children": [.english: "Blocked by Child", .indonesian: "Terhalang oleh Anak", .malay: "Terhalang oleh Anak"],
+        "faraidh_reason_by_father": [.english: "Blocked by Father", .indonesian: "Terhalang oleh Ayah", .malay: "Terhalang oleh Bapa"],
+        "faraidh_reason_by_grandfather": [.english: "Blocked by Grandfather", .indonesian: "Terhalang oleh Kakek", .malay: "Terhalang oleh Datuk"],
+        "faraidh_reason_excluded": [.english: "Excluded", .indonesian: "Terhalang", .malay: "Terhalang"],
+        "faraidh_reason_gender_mismatch": [.english: "Gender Mismatch", .indonesian: "Ketidaksesuaian Jantina", .malay: "Ketidaksesuaian Jantina"],
+        "faraidh_reason_no_remainder": [.english: "No Share Remainder", .indonesian: "Tidak Ada Sisa Bagian", .malay: "Tiada Baki Bahagian"],
+        "faraidh_reason_out_of_wedlock": [.english: "Born Out of Wedlock", .indonesian: "Lahir di Luar Nikah", .malay: "Lahir Luar Nikah"],
+        "faraidh_reason_homicide": [.english: "Excluded by Homicide", .indonesian: "Terhalang karena Membunuh", .malay: "Terhalang kerana Membunuh"],
+        "faraidh_reason_religion": [.english: "Difference of Religion", .indonesian: "Perbedaan Agama", .malay: "Perbezaan Agama"],
+        "faraidh_reason_simultaneous": [.english: "Simultaneous Death", .indonesian: "Meninggal Bersamaan", .malay: "Meninggal Bersama"],
+        
+        "faraidh_case_minbariyah": [.english: "Al-Minbariyah", .indonesian: "Al-Minbariyah", .malay: "Al-Minbariyah"],
+        "faraidh_case_akdariyah": [.english: "Al-Akdariyah", .indonesian: "Al-Akdariyah", .malay: "Al-Akdariyah"],
+        "faraidh_case_marwaniyah": [.english: "Al-Marwaniyah", .indonesian: "Al-Marwaniyah", .malay: "Al-Marwaniyah"],
+        "faraidh_case_umariyatain": [.english: "Al-Umariyatain", .indonesian: "Al-Umariyatain", .malay: "Al-Umariyatain"],
+        
+        // Qiyam Additional
+        "qiyam_cat_prep": [.english: "Preparation", .indonesian: "Persiapan", .malay: "Persiapan"],
+        "qiyam_cat_prayer": [.english: "Prayer (2 rakah pairs)", .indonesian: "Shalat (Kelipatan 2 Rakaat)", .malay: "Solat (Kelipatan 2 Rakaat)"],
+        "qiyam_cat_witr": [.english: "Witr", .indonesian: "Witir", .malay: "Witir"],
+        "qiyam_cat_closing": [.english: "After prayer", .indonesian: "Setelah Shalat", .malay: "Selepas Solat"],
+        "qiyam_streak": [.english: "Day streak", .indonesian: "Streak Hari", .malay: "Streak Hari"],
+        "qiyam_this_month": [.english: "This month", .indonesian: "Bulan Ini", .malay: "Bulan Ini"],
+        "qiyam_last_7_days": [.english: "Last 7 days", .indonesian: "7 Hari Terakhir", .malay: "7 Hari Terakhir"]
     ]
 }
 
