@@ -44,8 +44,8 @@
 		36DC5CFD2FBC1881007DDF44 /* Exceptions for "Al-Khatib" folder in "Al-Khatib" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"al-khatib-icon.icon",
 				Info.plist,
+				Logo.icon,
 			);
 			target = 3600CD242F9C5791001EC262 /* Al-Khatib */;
 		};
@@ -437,7 +437,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 36A1B2C42F9E0001001EC262 /* Debug.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Logo;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -502,7 +502,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 36A1B2C52F9E0001001EC262 /* Release.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Logo;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

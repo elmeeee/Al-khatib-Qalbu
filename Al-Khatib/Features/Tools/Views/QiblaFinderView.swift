@@ -1,6 +1,6 @@
 import SwiftUI
 import CoreLocation
-import AVFoundation
+@preconcurrency import AVFoundation
 import Combine
 
 @MainActor
