@@ -11,6 +11,7 @@ import SwiftUI
 struct TranslatorSelectionSheetView: View {
     @Binding var selectedTranslationId: Int
     @Binding var selectedTranslationName: String
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: TranslatorSelectionViewModel
@@ -36,7 +37,7 @@ struct TranslatorSelectionSheetView: View {
 
                     if viewModel.isLoading {
                         Spacer()
-                        ProgressView("Loading translators...")
+                        ProgressView(languageManager.localize("loading_translators"))
                             .tint(Color.Token.teal)
                         Spacer()
                     } else if let errorMessage = viewModel.errorMessage {
@@ -46,11 +47,11 @@ struct TranslatorSelectionSheetView: View {
                     }
                 }
             }
-            .navigationTitle("Select Translator")
+            .navigationTitle(languageManager.localize("select_translator"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Close") { dismiss() }
+                    Button(languageManager.localize("close")) { dismiss() }
                         .tint(Color.Token.teal)
                 }
             }
@@ -65,7 +66,7 @@ struct TranslatorSelectionSheetView: View {
         return HStack {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
-            TextField("Search translators or languages...", text: $viewModel.searchQuery)
+            TextField(languageManager.localize("search_translators_placeholder"), text: $viewModel.searchQuery)
                 .textFieldStyle(.plain)
                 .autocorrectionDisabled()
             if viewModel.searchQuery.isEmpty == false {
@@ -129,7 +130,7 @@ struct TranslatorSelectionSheetView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
 
-                Button("Try Again") {
+                Button(languageManager.localize("try_again")) {
                     Task { await viewModel.loadTranslations() }
                 }
                 .tint(Color.Token.teal)

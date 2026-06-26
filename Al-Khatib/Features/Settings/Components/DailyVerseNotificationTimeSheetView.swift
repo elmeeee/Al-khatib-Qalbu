@@ -10,20 +10,21 @@ struct DailyVerseNotificationTimeSheetView: View {
     @Binding var minute: Int
     var onSaved: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     @State private var pickerDate = Date()
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                Text("Choose when you want your daily verse reminder.")
+                Text(languageManager.localize("daily_verse_reminder_desc"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
                 DatePicker(
-                    "Morning reminder",
+                    languageManager.localize("morning_reminder"),
                     selection: $pickerDate,
                     displayedComponents: .hourAndMinute
                 )
@@ -34,14 +35,14 @@ struct DailyVerseNotificationTimeSheetView: View {
                 Spacer(minLength: 0)
             }
             .padding(.top, 16)
-            .navigationTitle("Reminder time")
+            .navigationTitle(languageManager.localize("reminder_time"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(languageManager.localize("cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(languageManager.localize("save")) {
                         applyPickerToBindings()
                         onSaved()
                         dismiss()

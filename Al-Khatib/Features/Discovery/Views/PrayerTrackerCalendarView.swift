@@ -11,6 +11,7 @@ import SwiftUI
 struct PrayerTrackerCalendarView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appContainer) private var container
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     
     @State private var currentYear = Calendar.current.component(.year, from: Date())
     @State private var currentMonth = Calendar.current.component(.month, from: Date())
@@ -24,12 +25,15 @@ struct PrayerTrackerCalendarView: View {
     private var monthName: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "LLLL"
+        formatter.locale = Locale(identifier: languageManager.currentLanguage.rawValue)
         return formatter.monthSymbols[currentMonth - 1]
     }
     
     private var shiftedWeekdaySymbols: [String] {
-        let symbols = calendar.veryShortWeekdaySymbols
-        let first = calendar.firstWeekday - 1
+        var localCalendar = Calendar.current
+        localCalendar.locale = Locale(identifier: languageManager.currentLanguage.rawValue)
+        let symbols = localCalendar.veryShortWeekdaySymbols
+        let first = localCalendar.firstWeekday - 1
         return Array(symbols[first...] + symbols[..<first])
     }
     
@@ -73,11 +77,11 @@ struct PrayerTrackerCalendarView: View {
                 Spacer()
                 
                 VStack(spacing: 2) {
-                    Text("Prayer Tracker History")
+                    Text(languageManager.localize("prayer_tracker_history"))
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(Color.Token.slate800)
                     
-                    Text("Check your monthly completion rate")
+                    Text(languageManager.localize("prayer_tracker_history_sub"))
                         .font(.system(size: 11))
                         .foregroundColor(Color.Token.slate500)
                 }
@@ -108,7 +112,7 @@ struct PrayerTrackerCalendarView: View {
                                         .foregroundColor(Color.Token.deepEmerald)
                                 }
                                 
-                                Text("Current streak")
+                                Text(languageManager.localize("current_streak"))
                                     .font(.system(size: 11))
                                     .foregroundColor(Color.Token.slate500)
                             }
@@ -130,7 +134,7 @@ struct PrayerTrackerCalendarView: View {
                                         .foregroundColor(Color.Token.deepEmerald)
                                 }
                                 
-                                Text("Best streak")
+                                Text(languageManager.localize("best_streak"))
                                     .font(.system(size: 11))
                                     .foregroundColor(Color.Token.slate500)
                             }
@@ -141,7 +145,7 @@ struct PrayerTrackerCalendarView: View {
                         // Next Challenge text
                         let target = challengeTarget(for: streak)
                         VStack(spacing: 4) {
-                            Text("Next Challenge Target: \(target) days")
+                            Text(String(format: languageManager.localize("next_challenge_target"), target))
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(Color.Token.deepEmerald)
                             

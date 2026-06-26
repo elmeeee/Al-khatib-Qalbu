@@ -24,6 +24,7 @@ final class PrayerDashboardViewModel: ObservableObject {
     private let controller: PrayerTimesController
     private var controllerCancellable: AnyCancellable?
     private var tickerCancellable: AnyCancellable?
+    private var languageCancellable: AnyCancellable?
     
     init(controller: PrayerTimesController) {
         self.controller = controller
@@ -50,6 +51,14 @@ final class PrayerDashboardViewModel: ObservableObject {
             .sink { [weak self] now in
                 guard let self = self else { return }
                 self.recalculate(at: now)
+            }
+
+        // Language change observer
+        self.languageCancellable = NotificationCenter.default.publisher(for: .appLanguageDidChange)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.recalculate(at: Date())
             }
         
         recalculate(at: Date())
@@ -112,15 +121,9 @@ final class PrayerDashboardViewModel: ObservableObject {
     }
     
     private func mapToSoutheastAsianName(_ original: String) -> String {
-        switch original {
-        case "Fajr": return "Fajr"
-        case "Sunrise": return "Sunrise"
-        case "Dhuhr": return "Dhuhr"
-        case "Asr": return "Asr"
-        case "Maghrib": return "Maghrib"
-        case "Isha": return "Isha"
-        default: return original
-        }
+        let key = "prayer_" + original.lowercased()
+        let localized = AppLanguageManager.shared.localize(key)
+        return localized == key ? original : localized
     }
     
     private func computeCountdownString(at now: Date) -> String? {

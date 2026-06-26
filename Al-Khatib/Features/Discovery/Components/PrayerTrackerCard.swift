@@ -11,17 +11,18 @@ import SwiftUI
 struct PrayerTrackerCard: View {
     @ObservedObject var viewModel: PrayerTrackerViewModel
     let onOpenCalendar: () -> Void
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header row
             HStack(alignment: .center, spacing: 0) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Daily Prayer Tracker")
+                    Text(languageManager.localize("daily_prayer_tracker"))
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color.Token.deepEmerald)
                     
-                    Text("\(viewModel.state.todayProgress.completedCount) of \(viewModel.state.todayProgress.totalCount) completed")
+                    Text(String(format: languageManager.localize("prayer_completed_format"), viewModel.state.todayProgress.completedCount, viewModel.state.todayProgress.totalCount))
                         .font(.system(size: 11, weight: .regular))
                         .foregroundColor(Color.Token.slate500)
                 }
@@ -69,7 +70,7 @@ struct PrayerTrackerCard: View {
                     
                     Spacer()
                     PrayerCheckChip(
-                        label: prayer.rawValue,
+                        label: languageManager.localize("prayer_" + prayer.rawValue.lowercased()),
                         completed: done,
                         enabled: enabled,
                         onClick: {

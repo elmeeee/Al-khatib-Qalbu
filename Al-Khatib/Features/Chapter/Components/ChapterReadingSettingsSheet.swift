@@ -49,6 +49,7 @@ struct ChapterReadingSettingsSheet: View {
     let isApplyingPreferences: Bool
 
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     private let fontScaleRange: ClosedRange<Double> = 0.85 ... 1.35
 
@@ -60,7 +61,7 @@ struct ChapterReadingSettingsSheet: View {
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Text size")
+                            Text(languageManager.localize("text_size"))
                             Spacer()
                             Text(fontScaleLabel)
                                 .font(.subheadline.weight(.medium))
@@ -70,18 +71,18 @@ struct ChapterReadingSettingsSheet: View {
                     }
                     .padding(.vertical, 4)
                 } header: {
-                    Text("Arabic & translation")
+                    Text(languageManager.localize("arabic_translation_header"))
                 }
 
                 Section {
-                    Toggle("Show translation", isOn: $showTranslation)
+                    Toggle(languageManager.localize("show_translation"), isOn: $showTranslation)
                 }
             }
-            .navigationTitle("Reading")
+            .navigationTitle(languageManager.localize("reading_settings"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button(languageManager.localize("done")) { dismiss() }
                 }
             }
         }
@@ -98,11 +99,11 @@ struct ChapterReadingSettingsSheet: View {
                 }
                 .listRowBackground(Color.clear)
             } else if recitations.isEmpty {
-                Text("Reciters unavailable")
+                Text(languageManager.localize("reciters_unavailable"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
-                Picker("Reciter", selection: $selectedRecitationId) {
+                Picker(languageManager.localize("reciter"), selection: $selectedRecitationId) {
                     ForEach(recitations, id: \.identifiableId) { recitation in
                         Text(recitation.displayName).tag(recitation.identifiableId)
                     }
@@ -114,22 +115,22 @@ struct ChapterReadingSettingsSheet: View {
             if isApplyingPreferences {
                 HStack(spacing: 10) {
                     ProgressView()
-                    Text("Loading verses…")
+                    Text(languageManager.localize("loading_verses"))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }
         } footer: {
-            Text("Updates audio for all verses in this surah.")
+            Text(languageManager.localize("reciter_audio_update_desc"))
         }
     }
 
     private var fontScaleLabel: String {
         switch fontScale {
-        case ..<0.95: "Small"
-        case 0.95 ..< 1.1: "Medium"
-        case 1.1 ..< 1.22: "Large"
-        default: "Extra large"
+        case ..<0.95: languageManager.localize("font_small")
+        case 0.95 ..< 1.1: languageManager.localize("font_medium")
+        case 1.1 ..< 1.22: languageManager.localize("font_large")
+        default: languageManager.localize("font_extra_large")
         }
     }
 }

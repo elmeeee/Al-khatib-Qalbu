@@ -19,78 +19,73 @@ struct SpiritualToolsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text(languageManager.localize("tools_title"))
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(Color.Token.deepEmerald)
-                    .padding(.horizontal)
-                    .padding(.top, 10)
-                
                 Text(languageManager.localize("tools_desc"))
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color.Token.slate500)
                     .padding(.horizontal)
+                    .padding(.top, 8)
                 
                 LazyVGrid(columns: columns, spacing: 16) {
                     NavigationLink(destination: DhikrTasbihView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_tasbih"),
-                            subtitle: languageManager.localize("tool_tasbih_sub"),
-                            iconName: "circle.circle",
-                            color: Color.Token.deepEmerald
+                             title: languageManager.localize("tool_tasbih"),
+                             subtitle: languageManager.localize("tool_tasbih_sub"),
+                             iconName: "circle.circle",
+                             color: Color.Token.deepEmerald
                         )
                     }
                     
                     NavigationLink(destination: DoaZikirView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_doa_zikir"),
-                            subtitle: languageManager.localize("tool_doa_zikir_sub"),
-                            iconName: "book.pages",
-                            color: Color.Token.teal
+                             title: languageManager.localize("tool_doa_zikir"),
+                             subtitle: languageManager.localize("tool_doa_zikir_sub"),
+                             iconName: "book.pages",
+                             color: Color.Token.teal
                         )
                     }
                     
                     NavigationLink(destination: QiblaFinderView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_qibla"),
-                            subtitle: languageManager.localize("tool_qibla_sub"),
-                            iconName: "safari",
-                            color: Color.Token.goldDeep
+                             title: languageManager.localize("tool_qibla"),
+                             subtitle: languageManager.localize("tool_qibla_sub"),
+                             iconName: "safari",
+                             color: Color.Token.goldDeep
                         )
                     }
                     
                     NavigationLink(destination: ZakatCalculatorView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_zakat"),
-                            subtitle: languageManager.localize("tool_zakat_sub"),
-                            iconName: "percent",
-                            color: Color.Token.indigoAccent
+                             title: languageManager.localize("tool_zakat"),
+                             subtitle: languageManager.localize("tool_zakat_sub"),
+                             iconName: "percent",
+                             color: Color.Token.indigoAccent
                         )
                     }
                     
                     NavigationLink(destination: QiyamTrackerView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_qiyam"),
-                            subtitle: languageManager.localize("tool_qiyam_sub"),
-                            iconName: "moon.stars",
-                            color: Color.Token.indigoDeep
+                             title: languageManager.localize("tool_qiyam"),
+                             subtitle: languageManager.localize("tool_qiyam_sub"),
+                             iconName: "moon.stars",
+                             color: Color.Token.indigoDeep
                         )
                     }
                     
                     NavigationLink(destination: FaraidhCalculatorView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_faraidh"),
-                            subtitle: languageManager.localize("tool_faraidh_sub"),
-                            iconName: "doc.text",
-                            color: Color.Token.slate900
+                             title: languageManager.localize("tool_faraidh"),
+                             subtitle: languageManager.localize("tool_faraidh_sub"),
+                             iconName: "doc.text",
+                             color: Color.Token.slate900
                         )
                     }
 
                     NavigationLink(destination: ManzilView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
-                            title: languageManager.localize("tool_manzil"),
-                            subtitle: languageManager.localize("tool_manzil_sub"),
-                            iconName: "shield.checkerboard",
-                            color: Color.Token.deepEmerald
+                             title: languageManager.localize("tool_manzil"),
+                             subtitle: languageManager.localize("tool_manzil_sub"),
+                             iconName: "shield.checkerboard",
+                             color: Color.Token.deepEmerald
                         )
                     }
                 }
@@ -99,7 +94,8 @@ struct SpiritualToolsView: View {
             .padding(.bottom, 30)
         }
         .background(Color.Token.screenBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle(languageManager.localize("tools_title"))
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 

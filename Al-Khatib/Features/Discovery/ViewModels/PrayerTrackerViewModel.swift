@@ -37,12 +37,19 @@ internal final class PrayerTrackerViewModel: ObservableObject {
     private let store: PrayerTrackerStore
     private let controller: PrayerTimesController
     private var controllerCancellable: AnyCancellable?
+    private var languageCancellable: AnyCancellable?
 
     internal init(appGroupIdentifier: String?, controller: PrayerTimesController) {
         self.store = PrayerTrackerStore(appGroupIdentifier: appGroupIdentifier)
         self.controller = controller
 
         self.controllerCancellable = controller.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.refresh()
+            }
+        
+        self.languageCancellable = NotificationCenter.default.publisher(for: .appLanguageDidChange)
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.refresh()
@@ -90,7 +97,8 @@ internal final class PrayerTrackerViewModel: ObservableObject {
         
         let nowCompleted = store.isCompleted(prayer: prayer, dayKey: today)
         if nowCompleted {
-            self.toastMessage = "Marked \(prayer.rawValue) as completed"
+            let prayerName = AppLanguageManager.shared.localize("prayer_" + prayer.rawValue.lowercased())
+            self.toastMessage = String(format: AppLanguageManager.shared.localize("toast_marked_completed"), prayerName)
         }
         refresh()
     }
@@ -141,8 +149,8 @@ internal final class PrayerTrackerViewModel: ObservableObject {
             
             guard applicable else { return nil }
 
-            let label = (habit == .qiyamulLail) ? "Qiyamul Lail" :
-                        (habit == .mondayThursdayFast ? "Monday/Thursday Fast" : "Ayyamul Bidh Fast")
+            let label = (habit == .qiyamulLail) ? AppLanguageManager.shared.localize("habit_qiyamul_lail") :
+                        (habit == .mondayThursdayFast ? AppLanguageManager.shared.localize("habit_monday_thursday_fast") : AppLanguageManager.shared.localize("habit_ayyamul_bidh_fast"))
 
             return OptionalHabitUiItem(
                 habit: habit,

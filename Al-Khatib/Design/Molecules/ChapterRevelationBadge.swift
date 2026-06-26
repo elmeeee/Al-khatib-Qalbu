@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ChapterRevelationBadge: View {
     let chapter: QuranChapter
+    var isOnDark: Bool = false
 
     var body: some View {
         if chapter.revelationLabel.isEmpty == false {
@@ -20,11 +21,15 @@ struct ChapterRevelationBadge: View {
                 .fixedSize(horizontal: true, vertical: false)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Capsule().fill(foregroundColor.opacity(0.12)))
+                .background(Capsule().fill(foregroundColor.opacity(isOnDark ? 0.18 : 0.12)))
         }
     }
 
     private var foregroundColor: Color {
-        chapter.isMeccan ? Color.Token.gold : Color.Token.blueLink
+        if isOnDark {
+            return chapter.isMeccan ? Color.Token.goldBright : Color.Token.teal
+        } else {
+            return chapter.isMeccan ? Color.Token.gold : Color.Token.blueLink
+        }
     }
 }

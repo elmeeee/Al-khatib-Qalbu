@@ -104,6 +104,51 @@ class AppLanguageManager: ObservableObject {
         "first_third_night": [.english: "First Third of Night", .indonesian: "Sepertiga Malam Pertama", .malay: "Sepertiga Malam Pertama"],
         "tahajud": [.english: "Tahajud", .indonesian: "Tahajud", .malay: "Tahajjud"],
 
+        // Reflection
+        "sign_in_to_reflect": [.english: "Sign in to Reflect", .indonesian: "Masuk ke Ruang Renungan", .malay: "Log Masuk ke Ruang Renungan"],
+        "quran_reflect_desc": [.english: "Connect your Quran Reflect account to browse reflections and share your own.", .indonesian: "Hubungkan akun Quran Reflect Anda untuk membaca renungan dan membagikan tulisan Anda sendiri.", .malay: "Sambungkan akaun Quran Reflect anda untuk membaca renungan dan berkongsi tulisan anda sendiri."],
+        "reflect_on_verse": [.english: "Reflect on this Verse", .indonesian: "Renungkan Ayat Ini", .malay: "Renungkan Ayat Ini"],
+        "your_reflection": [.english: "Your reflection", .indonesian: "Renungan Anda", .malay: "Renungan Anda"],
+        "post_reflection": [.english: "Post Reflection", .indonesian: "Kirim Renungan", .malay: "Hantar Renungan"],
+
+        // General / Buttons
+        "done": [.english: "Done", .indonesian: "Selesai", .malay: "Selesai"],
+        "save": [.english: "Save", .indonesian: "Simpan", .malay: "Simpan"],
+        "verse_singular": [.english: "Verse", .indonesian: "Ayat", .malay: "Ayat"],
+
+        // Typography Bottom Sheet
+        "sample_arabic_typography": [.english: "Sample Arabic Typography", .indonesian: "Contoh Tipografi Arab", .malay: "Contoh Tipografi Arab"],
+        "basmalah_translation": [.english: "In the name of Allah, the Entirely Merciful, the Especially Merciful.", .indonesian: "Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang.", .malay: "Dengan nama Allah Yang Maha Pemurah lagi Maha Penyayang."],
+
+        // Adhan Voice
+        "select_adhan_voice": [.english: "Select Adhan Voice", .indonesian: "Pilih Suara Adzan", .malay: "Pilih Suara Azan"],
+        "adhan_voice_desc": [.english: "Choose the sound for your prayer time notifications.", .indonesian: "Pilih suara untuk notifikasi waktu shalat Anda.", .malay: "Pilih suara untuk notifikasi waktu solat anda."],
+        "system_default_notification": [.english: "System Default Notification", .indonesian: "Notifikasi Default Sistem", .malay: "Notifikasi Lalai Sistem"],
+        "adhan_ust_daeng": [.english: "Ust. Daeng Syawal (Indonesia)", .indonesian: "Ust. Daeng Syawal (Indonesia)", .malay: "Ust. Daeng Syawal (Indonesia)"],
+        "adhan_sadid_ahmad": [.english: "Ustaz Sadid Ahmad Dahri (Singapore)", .indonesian: "Ustaz Sadid Ahmad Dahri (Singapura)", .malay: "Ustaz Sadid Ahmad Dahri (Singapura)"],
+        "adhan_omar_hisham": [.english: "Omar Hisham Al Arabi", .indonesian: "Omar Hisham Al Arabi", .malay: "Omar Hisham Al Arabi"],
+        "adhan_abdul_karim": [.english: "Sheikh Abdul Karim (Malaysia)", .indonesian: "Sheikh Abdul Karim (Malaysia)", .malay: "Sheikh Abdul Karim (Malaysia)"],
+        "adhan_fajr_mishary": [.english: "Mishary Alafasy (Fajr Only)", .indonesian: "Mishary Alafasy (Khusus Subuh)", .malay: "Mishary Alafasy (Khusus Subuh)"],
+
+        // Reminder Time
+        "reminder_time": [.english: "Reminder time", .indonesian: "Waktu Pengingat", .malay: "Waktu Peringatan"],
+        "daily_verse_reminder_desc": [.english: "Choose when you want your daily verse reminder.", .indonesian: "Pilih kapan Anda ingin menerima pengingat ayat harian.", .malay: "Pilih masa yang anda mahukan untuk peringatan ayat harian."],
+        "morning_reminder": [.english: "Morning reminder", .indonesian: "Pengingat pagi", .malay: "Peringatan pagi"],
+
+        // Translator
+        "loading_translators": [.english: "Loading translators...", .indonesian: "Memuat penerjemah...", .malay: "Memuatkan penterjemah..."],
+        "select_translator": [.english: "Select Translator", .indonesian: "Pilih Penerjemah", .malay: "Pilih Penterjemah"],
+        "search_translators_placeholder": [.english: "Search translators or languages...", .indonesian: "Cari penerjemah atau bahasa...", .malay: "Cari penterjemah atau bahasa..."],
+
+        // Reading settings
+        "reading_settings": [.english: "Reading", .indonesian: "Pengaturan Bacaan", .malay: "Tetapan Bacaan"],
+        "text_size": [.english: "Text size", .indonesian: "Ukuran Teks", .malay: "Saiz Teks"],
+        "arabic_translation_header": [.english: "Arabic & translation", .indonesian: "Arab & Terjemahan", .malay: "Arab & Terjemahan"],
+        "reciters_unavailable": [.english: "Reciters unavailable", .indonesian: "Qori tidak tersedia", .malay: "Qari tidak tersedia"],
+        "reciter": [.english: "Reciter", .indonesian: "Pilihan Qori", .malay: "Pilihan Qari"],
+        "loading_verses": [.english: "Loading verses…", .indonesian: "Memuat ayat…", .malay: "Memuatkan ayat…"],
+        "reciter_audio_update_desc": [.english: "Updates audio for all verses in this surah.", .indonesian: "Memperbarui audio untuk semua ayat dalam surah ini.", .malay: "Mengemas kini audio untuk semua ayat dalam surah ini."],
+
 
         // Settings details
         "system_default": [.english: "System Default", .indonesian: "Default Sistem", .malay: "Lalai Sistem"],
@@ -291,6 +336,27 @@ class AppLanguageManager: ObservableObject {
         "manzil_sec_21_desc": [.english: "The essence of Tawheed — He is Allah, the One, the Eternal Refuge, who begets not nor is begotten.", .indonesian: "Inti dari Tauhid — Dialah Allah Yang Maha Esa, tempat bergantung, tidak melahirkan dan tidak dilahirkan."],
         "manzil_sec_22_desc": [.english: "Seek refuge with the Lord of daybreak from the evil of creation, darkness, sorcery, and envy.", .indonesian: "Mohon perlindungan kepada Tuhan yang menguasai subuh dari kejahatan makhluk, kegelapan, tukang sihir, dan pendengki."],
         "manzil_sec_23_desc": [.english: "Seek refuge with the Lord of mankind, the King of mankind, from the whisperer who withdraws.", .indonesian: "Mohon perlindungan kepada Tuhan manusia, Raja manusia, dari kejahatan bisikan syetan yang bersembunyi."],
+        // Prayer tracker & times
+        "prayer_fajr": [.english: "Fajr", .indonesian: "Subuh", .malay: "Subuh"],
+        "prayer_sunrise": [.english: "Sunrise", .indonesian: "Syuruk", .malay: "Syuruk"],
+        "prayer_dhuhr": [.english: "Dhuhr", .indonesian: "Dzuhur", .malay: "Zohor"],
+        "prayer_asr": [.english: "Asr", .indonesian: "Ashar", .malay: "Asar"],
+        "prayer_maghrib": [.english: "Maghrib", .indonesian: "Maghrib", .malay: "Maghrib"],
+        "prayer_isha": [.english: "Isha", .indonesian: "Isya", .malay: "Isyak"],
+        "prayer_imsak": [.english: "Imsak", .indonesian: "Imsak", .malay: "Imsak"],
+        "prayer_midnight": [.english: "Midnight", .indonesian: "Tengah Malam", .malay: "Tengah Malam"],
+        "time_remaining_before": [.english: "Time remaining before prayer %@", .indonesian: "Sisa waktu sebelum shalat %@", .malay: "Sisa waktu sebelum solat %@"],
+        "daily_prayer_tracker": [.english: "Daily Prayer Tracker", .indonesian: "Jurnal Shalat Harian", .malay: "Jurnal Solat Harian"],
+        "prayer_completed_format": [.english: "%d of %d completed", .indonesian: "%d dari %d selesai", .malay: "%d daripada %d selesai"],
+        "prayer_tracker_history": [.english: "Prayer Tracker History", .indonesian: "Riwayat Jurnal Shalat", .malay: "Sejarah Diari Solat"],
+        "prayer_tracker_history_sub": [.english: "Check your monthly completion rate", .indonesian: "Pantau tingkat penyelesaian bulanan Anda", .malay: "Semak kadar penyelesaian bulanan anda"],
+        "current_streak": [.english: "Current streak", .indonesian: "Streak saat ini", .malay: "Streak semasa"],
+        "best_streak": [.english: "Best streak", .indonesian: "Streak terbaik", .malay: "Streak terbaik"],
+        "next_challenge_target": [.english: "Next Challenge Target: %d days", .indonesian: "Target Tantangan Berikutnya: %d hari", .malay: "Sasaran Cabaran Seterusnya: %d hari"],
+        "habit_qiyamul_lail": [.english: "Qiyamul Lail", .indonesian: "Qiyamul Lail", .malay: "Qiyamullail"],
+        "habit_monday_thursday_fast": [.english: "Monday/Thursday Fast", .indonesian: "Puasa Senin-Kamis", .malay: "Puasa Isnin-Khamis"],
+        "habit_ayyamul_bidh_fast": [.english: "Ayyamul Bidh Fast", .indonesian: "Puasa Ayyamul Bidh", .malay: "Puasa Ayyamul Bidh"],
+        "toast_marked_completed": [.english: "Marked %@ as completed", .indonesian: "Menandai %@ selesai", .malay: "Menandai %@ selesai"],
 
         // Qiyam Tracker
         "qiyam_tracker_subtitle": [.english: "Night prayer tracker & guide", .indonesian: "Pencatat & panduan shalat malam", .malay: "Pencatat & panduan solat malam"],

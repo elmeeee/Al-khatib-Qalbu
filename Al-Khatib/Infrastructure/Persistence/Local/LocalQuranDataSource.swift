@@ -38,7 +38,7 @@ internal final class LocalQuranDataSource: Sendable {
             let tname = row["tname"] as? String ?? ""
             let enameId = row["ename"] as? String ?? ""
             let enameEnglish = row["ename_english"] as? String ?? ""
-            let ayas = row["ayas"] as? Int ?? 0
+            let ayas = (row["ayas"] as? Int) ?? Int(row["ayas"] as? String ?? "") ?? 0
             let type = row["type"] as? String ?? ""
             let firstPage = row["first_page"] as? Int ?? 1
             let lastPage = row["last_page"] as? Int ?? firstPage

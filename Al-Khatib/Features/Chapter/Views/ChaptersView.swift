@@ -374,7 +374,7 @@ private struct ContinueReadingCard: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text((AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah") + " \(verseNumber)")
+                Text("\(AppLanguageManager.shared.localize("verse_singular")) \(verseNumber)")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -476,7 +476,7 @@ private struct QuranChapterRow: View {
 
                     if let count = chapter.versesCount {
                         let label = count == 1
-                            ? (AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah")
+                            ? AppLanguageManager.shared.localize("verse_singular")
                             : AppLanguageManager.shared.localize("verses")
                         Text("\(count) \(label)")
                             .font(.system(size: 12, weight: .medium))
@@ -521,13 +521,13 @@ private struct JuzRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .top, spacing: 10) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Juz \(juz.juzNumber)")
+                        Text("\(AppLanguageManager.shared.localize("juz")) \(juz.juzNumber)")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.primary)
 
                         if let start = juz.startChapterAndAyah() {
                             let surahName = chapter?.displayComplexName ?? "Surah \(start.0)"
-                            Text("\(AppLanguageManager.shared.localize("starts_at")) \(surahName) • \(AppLanguageManager.shared.currentLanguage == .english ? "Verse" : "Ayah") \(start.1)")
+                            Text("\(AppLanguageManager.shared.localize("starts_at")) \(surahName) • \(AppLanguageManager.shared.localize("verse_singular")) \(start.1)")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.secondary)
                         }

@@ -81,8 +81,8 @@ struct ReflectionView: View {
         switch tabViewModel.screen {
         case .signIn:
             SignInPromptView(
-                title: "Sign in to Reflect",
-                message: "Connect your Quran Reflect account to browse reflections and share your own.",
+                title: AppLanguageManager.shared.localize("sign_in_to_reflect"),
+                message: AppLanguageManager.shared.localize("quran_reflect_desc"),
                 isLoading: verseState.isLoggingIn
             ) {
                 Task { await verseState.signIn(container: container) }
@@ -208,7 +208,7 @@ struct ShareReflectionSheet: View {
                                 if isPosting {
                                     ProgressView().tint(.white)
                                 }
-                                Text("Post Reflection")
+                                Text(AppLanguageManager.shared.localize("post_reflection"))
                                     .font(.headline)
                             }
                             .frame(maxWidth: .infinity)
@@ -233,7 +233,7 @@ struct ShareReflectionSheet: View {
                     .padding(.bottom, 32)
                 }
             }
-            .navigationTitle("Reflect on this Verse")
+            .navigationTitle(AppLanguageManager.shared.localize("reflect_on_verse"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -280,7 +280,7 @@ struct ShareReflectionSheet: View {
 
     private var editorCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Your reflection")
+            Text(AppLanguageManager.shared.localize("your_reflection"))
                 .font(.caption.weight(.semibold))
                 .foregroundColor(.secondary)
 

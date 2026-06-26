@@ -10,6 +10,7 @@ import SwiftUI
 
 struct PrayerDashboardCard: View {
     @ObservedObject var viewModel: PrayerDashboardViewModel
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     
     init(viewModel: PrayerDashboardViewModel) {
         self.viewModel = viewModel
@@ -82,7 +83,7 @@ struct PrayerDashboardCard: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                 
-                Text("Time remaining before prayer \(viewModel.nextPrayerDisplayName)")
+                Text(String(format: languageManager.localize("time_remaining_before"), viewModel.nextPrayerDisplayName))
                     .font(.system(size: 13, weight: .regular))
                     .foregroundColor(.white.opacity(0.8))
                     .lineLimit(2)

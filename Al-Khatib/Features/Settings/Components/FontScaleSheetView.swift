@@ -11,13 +11,14 @@ import SwiftUI
 struct FontScaleSheetView: View {
     @Binding var fontScale: Double
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var languageManager = AppLanguageManager.shared
 
     private let fontScaleRange: ClosedRange<Double> = 0.85 ... 1.35
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                Text("Sample Arabic Typography")
+                Text(languageManager.localize("sample_arabic_typography"))
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
                     .padding(.top, 8)
@@ -28,7 +29,7 @@ struct FontScaleSheetView: View {
                         .foregroundColor(Color.Token.deepEmerald)
                         .multilineTextAlignment(.center)
 
-                    Text("In the name of Allah, the Entirely Merciful, the Especially Merciful.")
+                    Text(languageManager.localize("basmalah_translation"))
                         .font(.system(size: 14 * fontScale))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -63,7 +64,7 @@ struct FontScaleSheetView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Done")
+                    Text(languageManager.localize("done"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -74,11 +75,11 @@ struct FontScaleSheetView: View {
                 .padding(.top, 12)
             }
             .padding(24)
-            .navigationTitle("Font Size")
+            .navigationTitle(languageManager.localize("font_size"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Close") { dismiss() }
+                    Button(languageManager.localize("close")) { dismiss() }
                         .tint(Color.Token.teal)
                 }
             }
@@ -88,10 +89,10 @@ struct FontScaleSheetView: View {
 
     private var fontScaleLabel: String {
         switch fontScale {
-        case ..<0.95: "Small"
-        case 0.95 ..< 1.1: "Medium"
-        case 1.1 ..< 1.22: "Large"
-        default: "Extra large"
+        case ..<0.95: languageManager.localize("font_small")
+        case 0.95 ..< 1.1: languageManager.localize("font_medium")
+        case 1.1 ..< 1.22: languageManager.localize("font_large")
+        default: languageManager.localize("font_extra_large")
         }
     }
 }

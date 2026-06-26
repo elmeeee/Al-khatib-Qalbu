@@ -17,32 +17,35 @@ struct AdhanVoiceOption: Identifiable, Sendable {
 
 struct AdhanVoiceSelectionSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var languageManager = AppLanguageManager.shared
     
     @State private var selectedSoundName = UserDefaults.standard.string(forKey: "selected_adhan_sound") ?? "default"
     @State private var audioPlayer: AVAudioPlayer? = nil
     @State private var playingOptionId: String? = nil
     
-    private let options = [
-        AdhanVoiceOption(id: "default", displayName: "System Default Notification", fileName: "default"),
-        AdhanVoiceOption(id: "ust_daeng", displayName: "Ust. Daeng Syawal (Indonesia)", fileName: "adhan_ust_daeng_syawal_indonesia"),
-        AdhanVoiceOption(id: "sadid_ahmad", displayName: "Ustaz Sadid Ahmad Dahri (Singapore)", fileName: "adhan_ustaz_sadid_ahmad_dahri_singapore"),
-        AdhanVoiceOption(id: "omar_hisham", displayName: "Omar Hisham Al Arabi", fileName: "adhan_omar_hisham_al_arabi"),
-        AdhanVoiceOption(id: "abdul_karim", displayName: "Sheikh Abdul Karim (Malaysia)", fileName: "adhan_sheikh_abdul_karim_malaysia"),
-        AdhanVoiceOption(id: "fajr_mishary", displayName: "Mishary Alafasy (Fajr Only)", fileName: "adhan_fajr_mishary_alafasy")
-    ]
+    private var options: [AdhanVoiceOption] {
+        [
+            AdhanVoiceOption(id: "default", displayName: languageManager.localize("system_default_notification"), fileName: "default"),
+            AdhanVoiceOption(id: "ust_daeng", displayName: languageManager.localize("adhan_ust_daeng"), fileName: "adhan_ust_daeng_syawal_indonesia"),
+            AdhanVoiceOption(id: "sadid_ahmad", displayName: languageManager.localize("adhan_sadid_ahmad"), fileName: "adhan_ustaz_sadid_ahmad_dahri_singapore"),
+            AdhanVoiceOption(id: "omar_hisham", displayName: languageManager.localize("adhan_omar_hisham"), fileName: "adhan_omar_hisham_al_arabi"),
+            AdhanVoiceOption(id: "abdul_karim", displayName: languageManager.localize("adhan_abdul_karim"), fileName: "adhan_sheikh_abdul_karim_malaysia"),
+            AdhanVoiceOption(id: "fajr_mishary", displayName: languageManager.localize("adhan_fajr_mishary"), fileName: "adhan_fajr_mishary_alafasy")
+        ]
+    }
     
     var body: some View {
         VStack(spacing: 0) {
             // Sheet Header
             HStack {
-                Text("Select Adhan Voice")
+                Text(languageManager.localize("select_adhan_voice"))
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(Color.Token.slate800)
                 
                 Spacer()
                 
                 Button(action: { dismiss() }) {
-                    Text("Done")
+                    Text(languageManager.localize("done"))
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color.Token.deepEmerald)
                 }
@@ -54,7 +57,7 @@ struct AdhanVoiceSelectionSheet: View {
             
             ScrollView {
                 VStack(spacing: 12) {
-                    Text("Choose the sound for your prayer time notifications.")
+                    Text(languageManager.localize("adhan_voice_desc"))
                         .font(.system(size: 13))
                         .foregroundColor(Color.Token.slate500)
                         .frame(maxWidth: .infinity, alignment: .leading)

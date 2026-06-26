@@ -256,14 +256,14 @@ struct ChapterVersesView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(currentSurahName)
                     .font(.subheadline.weight(.bold))
-                    .foregroundColor(Color.Token.slate900)
+                    .foregroundColor(Color.Token.offWhite)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if currentPositionLabel.isEmpty == false {
                     Text(currentPositionLabel)
                         .font(.caption)
-                        .foregroundColor(Color.Token.slate500)
+                        .foregroundColor(Color.Token.goldBright.opacity(0.85))
                         .lineLimit(1)
                 }
             }
@@ -278,7 +278,7 @@ struct ChapterVersesView: View {
         .padding(.top, 8)
         .padding(.bottom, 12)
         .safeAreaPadding(.top, 4)
-        .background(Color.Token.screenBackground.opacity(0.95))
+        .background(Color.Token.readerForest.opacity(0.92))
     }
 
     private func headerIconButton(systemName: String, action: @escaping () -> Void) -> some View {
@@ -289,9 +289,10 @@ struct ChapterVersesView: View {
         return Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(Color.Token.slate900)
+                .foregroundColor(.white)
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(Color.Token.lightGrey))
+                .background(Circle().fill(Color.white.opacity(0.08)))
+                .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 1))
         }
         .alKhatibAccessibility(label: label, hint: hint)
     }
