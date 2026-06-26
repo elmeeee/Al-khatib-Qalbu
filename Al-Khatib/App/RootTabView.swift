@@ -23,6 +23,7 @@ struct RootTabView: View {
     @State private var todayNavigationPath: [TodayNavigation] = []
     @State private var vm = RootTabViewModel()
     @ObservedObject private var languageManager = AppLanguageManager.shared
+    @StateObject private var prayerController = PrayerTimesController()
     let verseState: TodayVerseState
 
     init(verseState: TodayVerseState) {
@@ -78,6 +79,7 @@ struct RootTabView: View {
             .tag(Tab.account)
             .tabItem { Label(languageManager.localize("tab_profile"), systemImage: "person.crop.circle") }
         }
+        .environmentObject(prayerController)
         .onChangeWithFallback(of: verseState.shouldNavigateToReflect) { shouldNavigate in
             if shouldNavigate {
                 if selectedTab != .reflect {

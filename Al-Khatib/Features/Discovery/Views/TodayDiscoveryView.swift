@@ -14,7 +14,7 @@ struct TodayDiscoveryView: View {
     @AppStorage("chapterReaderShowTranslation") private var showTranslation = true
     @AppStorage(ChapterReaderPreferences.translationIdKey) private var chapterTranslationId = ChapterReaderPreferences.defaultTranslationId
 
-    @StateObject private var prayer = PrayerTimesController()
+    @EnvironmentObject private var prayer: PrayerTimesController
     @StateObject private var audio = AudioPlayerController()
     @State private var coordinator: TodayDiscoveryCoordinator?
     @State private var actionsViewModel = TodayVerseActionsViewModel()
@@ -108,7 +108,6 @@ struct TodayDiscoveryView: View {
             }
         }
         .background(Color.Token.deepEmerald.ignoresSafeArea(edges: .top))
-        .environmentObject(prayer)
         .navigationDestination(isPresented: $showingPrayerCalendar) {
             PrayerCalendarView().environmentObject(prayer)
         }

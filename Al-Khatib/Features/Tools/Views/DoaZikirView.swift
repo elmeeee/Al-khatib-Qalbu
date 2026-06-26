@@ -220,20 +220,6 @@ struct DoaZikirTopBar: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, inDetail ? 10 : 8)
-        .background(
-            Group {
-                if inDetail {
-                    LinearGradient(
-                        colors: [Color.Token.deepEmerald.opacity(0.12), Color.Token.teal.opacity(0.06)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .cornerRadius(20, corners: [.bottomLeft, .bottomRight])
-                } else {
-                    Color.Token.screenBackground
-                }
-            }
-        )
     }
 }
 

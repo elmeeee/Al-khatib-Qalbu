@@ -31,7 +31,7 @@ struct SpiritualToolsView: View {
                     .padding(.horizontal)
                 
                 LazyVGrid(columns: columns, spacing: 16) {
-                    NavigationLink(destination: DhikrTasbihView()) {
+                    NavigationLink(destination: DhikrTasbihView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_tasbih"),
                             subtitle: languageManager.localize("tool_tasbih_sub"),
@@ -40,7 +40,7 @@ struct SpiritualToolsView: View {
                         )
                     }
                     
-                    NavigationLink(destination: DoaZikirView()) {
+                    NavigationLink(destination: DoaZikirView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_doa_zikir"),
                             subtitle: languageManager.localize("tool_doa_zikir_sub"),
@@ -49,7 +49,7 @@ struct SpiritualToolsView: View {
                         )
                     }
                     
-                    NavigationLink(destination: QiblaFinderView()) {
+                    NavigationLink(destination: QiblaFinderView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_qibla"),
                             subtitle: languageManager.localize("tool_qibla_sub"),
@@ -58,7 +58,7 @@ struct SpiritualToolsView: View {
                         )
                     }
                     
-                    NavigationLink(destination: ZakatCalculatorView()) {
+                    NavigationLink(destination: ZakatCalculatorView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_zakat"),
                             subtitle: languageManager.localize("tool_zakat_sub"),
@@ -67,7 +67,7 @@ struct SpiritualToolsView: View {
                         )
                     }
                     
-                    NavigationLink(destination: QiyamTrackerView()) {
+                    NavigationLink(destination: QiyamTrackerView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_qiyam"),
                             subtitle: languageManager.localize("tool_qiyam_sub"),
@@ -76,7 +76,7 @@ struct SpiritualToolsView: View {
                         )
                     }
                     
-                    NavigationLink(destination: FaraidhCalculatorView()) {
+                    NavigationLink(destination: FaraidhCalculatorView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_faraidh"),
                             subtitle: languageManager.localize("tool_faraidh_sub"),
@@ -85,7 +85,7 @@ struct SpiritualToolsView: View {
                         )
                     }
 
-                    NavigationLink(destination: ManzilView()) {
+                    NavigationLink(destination: ManzilView().toolbar(.hidden, for: .tabBar)) {
                         ToolCard(
                             title: languageManager.localize("tool_manzil"),
                             subtitle: languageManager.localize("tool_manzil_sub"),
