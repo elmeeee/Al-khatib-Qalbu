@@ -146,7 +146,6 @@ final class ChapterReaderCoordinator {
     func handleTap(for verse: RandomAyahPayload, vm: ChapterVersesViewModel) {
         guard let url = verse.audio?.url else { return }
         let reciter = vm.reciterDisplayName
-        let ayah = vm.ayahSubtitle(for: verse)
 
         if audio.isPlayingURL(url) {
             audio.toggle()
@@ -154,11 +153,17 @@ final class ChapterReaderCoordinator {
         }
 
         scrollToVerse(identity: verse.listIdentity)
-        audio.playVerse(
-            url: url,
+
+        // Build a queue from this verse onward so auto-next works
+        let (items, startIndex) = vm.audioQueueItems(from: verse.listIdentity)
+        guard items.isEmpty == false else { return }
+
+        reservesReaderChromeForAudio = true
+        audio.playSequence(
+            items: items,
             surahTitle: vm.surahDisplayTitle,
-            ayahLabel: ayah,
-            reciterName: reciter
+            reciterName: reciter,
+            startIndex: startIndex
         )
     }
 

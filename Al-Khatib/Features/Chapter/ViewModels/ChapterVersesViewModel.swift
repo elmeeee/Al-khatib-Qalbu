@@ -149,6 +149,22 @@ final class ChapterVersesViewModel {
         }
     }
 
+    /// Builds a queue starting from the verse with the given `listIdentity`.
+    /// Returns `(items, startIndex)` so the caller can pass both to `playSequence`.
+    func audioQueueItems(from verseIdentity: String) -> (items: [AudioQueueItem], startIndex: Int) {
+        let allItems = audioQueueItems()
+        // Find the index of the verse in the playable-items list
+        guard let verseIndex = verses.firstIndex(where: { $0.listIdentity == verseIdentity }),
+              let url = verses[verseIndex].audio?.url else {
+            return (allItems, 0)
+        }
+        let normalizedURL = AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: url)
+        let queueStartIndex = allItems.firstIndex { item in
+            AppEndpoints.URLBuilder.absoluteVerseMediaURLString(from: item.url) == normalizedURL
+        } ?? 0
+        return (allItems, queueStartIndex)
+    }
+
     func ayahSubtitle(for verse: RandomAyahPayload) -> String {
         if let number = verse.verseNumber {
             return "\(number)"

@@ -31,9 +31,23 @@ final class AudioPlayerController: ObservableObject {
     private var queue: [AudioQueueItem] = []
     private var queueIndex = 0
 
+    /// System Control Center / Lock Screen bridge
+    private let nowPlayingBridge = NowPlayingBridge()
+
+    /// Live Activity manager for Dynamic Island + Lock Screen
+    private let liveActivity = LiveActivityManager()
+
     var isPlayingSequence: Bool {
         activeSequenceIndex != nil
     }
+
+    // MARK: – Lifecycle
+
+    init() {
+        setupRemoteCommands()
+    }
+
+    // MARK: – Playback
 
     func play(from urlString: String, reciterName: String) {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -53,6 +67,7 @@ final class AudioPlayerController: ObservableObject {
         }
         player?.play()
         isPlaying = true
+        pushNowPlayingInfo(rate: 1.0)
     }
 
     func playVerse(
@@ -82,6 +97,16 @@ final class AudioPlayerController: ObservableObject {
         trackTitle = surahTitle
         self.reciterName = reciterName
         playCurrentQueueItem()
+
+        // Start Live Activity
+        let verseLabel = queue[queueIndex].subtitle
+        liveActivity.startActivity(
+            surahName: surahTitle,
+            reciterName: reciterName,
+            verseLabel: verseLabel,
+            currentVerse: queueIndex + 1,
+            totalVerses: queue.count
+        )
     }
 
     func isPlayingURL(_ urlString: String?) -> Bool {
@@ -93,6 +118,7 @@ final class AudioPlayerController: ObservableObject {
     func pause() {
         player?.pause()
         isPlaying = false
+        pushNowPlayingInfo(rate: 0.0)
     }
 
     func toggle() {
@@ -100,10 +126,13 @@ final class AudioPlayerController: ObservableObject {
         if isPlaying {
             player.pause()
             isPlaying = false
+            pushNowPlayingInfo(rate: 0.0)
         } else {
             player.play()
             isPlaying = true
+            pushNowPlayingInfo(rate: 1.0)
         }
+        updateLiveActivityState()
     }
 
     func stop() {
@@ -118,6 +147,8 @@ final class AudioPlayerController: ObservableObject {
         trackTitle = ""
         trackSubtitle = ""
         removeObserver()
+        nowPlayingBridge.clearNowPlaying()
+        liveActivity.endActivity()
     }
 
     func seekToProgress(_ value: Double) {
@@ -126,8 +157,53 @@ final class AudioPlayerController: ObservableObject {
         guard duration.isFinite, duration > 0 else { return }
         let seconds = duration * value
         let time = CMTime(seconds: seconds, preferredTimescale: 600)
-        player.seek(to: time)
+        player.seek(to: time) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.pushNowPlayingInfo(rate: self?.isPlaying == true ? 1.0 : 0.0)
+            }
+        }
     }
+
+    /// Seek to an absolute position (in seconds). Used by Control Center scrubber.
+    func seekToTime(_ seconds: Double) {
+        guard let player, let item = player.currentItem else { return }
+        let duration = item.duration.seconds
+        guard duration.isFinite, duration > 0 else { return }
+        let clamped = min(max(seconds, 0), duration)
+        let time = CMTime(seconds: clamped, preferredTimescale: 600)
+        player.seek(to: time) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.pushNowPlayingInfo(rate: self?.isPlaying == true ? 1.0 : 0.0)
+            }
+        }
+    }
+
+    /// Skip to the next track in the queue.
+    func skipToNext() {
+        guard queueIndex + 1 < queue.count else { return }
+        queueIndex += 1
+        playCurrentQueueItem()
+    }
+
+    /// Skip to the previous track in the queue.
+    func skipToPrevious() {
+        // If we're more than 3 seconds in, restart the current track instead.
+        if let player, player.currentTime().seconds > 3 {
+            player.seek(to: .zero)
+            pushNowPlayingInfo(rate: 1.0)
+            return
+        }
+        guard queueIndex > 0 else { return }
+        queueIndex -= 1
+        playCurrentQueueItem()
+    }
+
+    func queueItem(at index: Int) -> AudioQueueItem? {
+        guard queue.indices.contains(index) else { return nil }
+        return queue[index]
+    }
+
+    // MARK: – Queue
 
     private func playCurrentQueueItem() {
         guard queue.indices.contains(queueIndex) else { return }
@@ -135,6 +211,7 @@ final class AudioPlayerController: ObservableObject {
         activeSequenceIndex = queueIndex
         trackSubtitle = item.subtitle
         play(from: item.url, reciterName: reciterName)
+        updateLiveActivityState()
     }
 
     private func handlePlaybackEnded() {
@@ -150,10 +227,53 @@ final class AudioPlayerController: ObservableObject {
         }
     }
 
-    func queueItem(at index: Int) -> AudioQueueItem? {
-        guard queue.indices.contains(index) else { return nil }
-        return queue[index]
+    // MARK: – Now Playing Info
+
+    private func setupRemoteCommands() {
+        nowPlayingBridge.register()
+
+        nowPlayingBridge.onPlay = { [weak self] in self?.toggle() }
+        nowPlayingBridge.onPause = { [weak self] in self?.pause() }
+        nowPlayingBridge.onTogglePlayPause = { [weak self] in self?.toggle() }
+        nowPlayingBridge.onNextTrack = { [weak self] in self?.skipToNext() }
+        nowPlayingBridge.onPreviousTrack = { [weak self] in self?.skipToPrevious() }
+        nowPlayingBridge.onSeek = { [weak self] time in self?.seekToTime(time) }
     }
+
+    private func pushNowPlayingInfo(rate: Float) {
+        let elapsed = player?.currentTime().seconds ?? 0
+        let duration = player?.currentItem?.duration.seconds ?? 0
+
+        // Build a descriptive title: "Surah Name · Ayah 3"
+        let title: String
+        if trackTitle.isEmpty == false, trackSubtitle.isEmpty == false {
+            title = "\(trackTitle)\u{30FB}\(trackSubtitle)"
+        } else {
+            title = trackTitle.isEmpty ? trackSubtitle : trackTitle
+        }
+
+        nowPlayingBridge.updateNowPlaying(
+            title: title,
+            subtitle: trackSubtitle,
+            artist: reciterName,
+            elapsed: elapsed,
+            duration: duration,
+            rate: rate
+        )
+    }
+
+    private func updateLiveActivityState() {
+        guard queue.isEmpty == false else { return }
+        liveActivity.updateActivity(
+            verseLabel: trackSubtitle,
+            isPlaying: isPlaying,
+            currentVerse: queueIndex + 1,
+            totalVerses: queue.count,
+            progress: queue.count > 0 ? Double(queueIndex + 1) / Double(queue.count) : 0
+        )
+    }
+
+    // MARK: – Observers
 
     private func addObserver() {
         guard let player else { return }
@@ -172,6 +292,8 @@ final class AudioPlayerController: ObservableObject {
                 } else {
                     self.progress = 0
                 }
+                // Update Now Playing progress periodically
+                self.pushNowPlayingInfo(rate: self.isPlaying ? 1.0 : 0.0)
             }
         }
 
