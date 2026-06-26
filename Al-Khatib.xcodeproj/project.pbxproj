@@ -45,7 +45,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Logo.icon,
 			);
 			target = 3600CD242F9C5791001EC262 /* Al-Khatib */;
 		};
