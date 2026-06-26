@@ -136,7 +136,7 @@ struct ChapterVersesView: View {
                 VerseAISheet(
                     surahName: currentSurahName,
                     verseNumber: verse.resolvedVerseNumber ?? 1,
-                    verseText: verse.text ?? "",
+                    verseText: verse.displayText ?? verse.textUthmani ?? "",
                     translationText: verse.translations?.first?.text ?? ""
                 )
             }
