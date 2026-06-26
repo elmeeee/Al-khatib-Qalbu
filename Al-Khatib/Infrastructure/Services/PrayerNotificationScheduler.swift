@@ -196,7 +196,13 @@ final class PrayerNotificationScheduler {
         if soundName == "default" {
             content.sound = .default
         } else {
-            content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "\(soundName).mp3"))
+            if Bundle.main.url(forResource: soundName, withExtension: "mp3") != nil {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "\(soundName).mp3"))
+            } else if Bundle.main.url(forResource: soundName, withExtension: "mp3", subdirectory: "adhan") != nil {
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "adhan/\(soundName).mp3"))
+            } else {
+                content.sound = .default
+            }
         }
 
         var comps = Calendar.current.dateComponents(

@@ -166,6 +166,41 @@ struct LocalPrayerTimesCalculator {
         result["Maghrib"] = hourToDate(sunsetHour)
         result["Isha"] = hourToDate(ishaHour)
         
+        // Parse and apply method tunes
+        let tuneStr = method.aladhanTune
+        let parts = tuneStr.split(separator: ",").map { String($0) }
+        var tunes = Array(repeating: 0, count: 9)
+        for i in 0..<min(parts.count, 9) {
+            tunes[i] = Int(parts[i]) ?? 0
+        }
+        
+        if let imsakDate = result["Imsak"] {
+            result["Imsak"] = calendar.date(byAdding: .minute, value: tunes[0], to: imsakDate)
+        }
+        if let fajrDate = result["Fajr"] {
+            result["Fajr"] = calendar.date(byAdding: .minute, value: tunes[1], to: fajrDate)
+        }
+        if let sunriseDate = result["Sunrise"] {
+            result["Sunrise"] = calendar.date(byAdding: .minute, value: tunes[2], to: sunriseDate)
+        }
+        if let dhuhrDate = result["Dhuhr"] {
+            result["Dhuhr"] = calendar.date(byAdding: .minute, value: tunes[3], to: dhuhrDate)
+        }
+        if let asrDate = result["Asr"] {
+            result["Asr"] = calendar.date(byAdding: .minute, value: tunes[4], to: asrDate)
+        }
+        
+        // Maghrib uses index 6 if non-zero, otherwise falls back to index 5 (Sunset)
+        let maghribTune = tunes[6] != 0 ? tunes[6] : tunes[5]
+        if let maghribDate = result["Maghrib"] {
+            result["Maghrib"] = calendar.date(byAdding: .minute, value: maghribTune, to: maghribDate)
+        }
+        
+        if let ishaDate = result["Isha"] {
+            result["Isha"] = calendar.date(byAdding: .minute, value: tunes[7], to: ishaDate)
+        }
+        
+        // Recalculate dependent night divisions using the tuned Fajr and Maghrib times
         let maghribDate = result["Maghrib"] ?? Date()
         let nextFajrDate = (result["Fajr"] ?? Date()).addingTimeInterval(86400)
         let nightDuration = nextFajrDate.timeIntervalSince(maghribDate)
@@ -173,6 +208,10 @@ struct LocalPrayerTimesCalculator {
         result["Midnight"] = maghribDate.addingTimeInterval(nightDuration / 2.0)
         result["Firstthird"] = maghribDate.addingTimeInterval(nightDuration / 3.0)
         result["Lastthird"] = maghribDate.addingTimeInterval(nightDuration * 2.0 / 3.0)
+        
+        if let midnightDate = result["Midnight"], tunes[8] != 0 {
+            result["Midnight"] = calendar.date(byAdding: .minute, value: tunes[8], to: midnightDate)
+        }
         
         return result
     }

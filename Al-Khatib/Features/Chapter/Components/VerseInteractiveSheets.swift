@@ -8,11 +8,13 @@
 
 import SwiftUI
 
-struct VerseAISheet: View {
+struct VerseReflectionSheet: View {
     let surahName: String
     let verseNumber: Int
     let verseText: String
     let translationText: String
+    let verseKey: String
+    let contentRepository: QuranContentRepository?
     
     @Environment(\.dismiss) private var dismiss
     @State private var isLoading = true
@@ -52,12 +54,7 @@ struct VerseAISheet: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .task {
-            // Simulate AI Generating
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            reflectionText = generateReflection()
-            withAnimation(.easeOut(duration: 0.4)) {
-                isLoading = false
-            }
+            await loadReflection()
         }
     }
     
@@ -122,7 +119,7 @@ struct VerseAISheet: View {
                         Text("\(surahName) • \(AppLanguageManager.shared.currentLanguage == .english ? "Ayah" : "Ayat") \(verseNumber)")
                             .font(.headline.weight(.bold))
                             .foregroundColor(.white)
-                        Text(AppLanguageManager.shared.currentLanguage == .english ? "AI Spiritual Reflection" : "Tafsir Renungan AI")
+                        Text(AppLanguageManager.shared.localize("ai_reflection"))
                             .font(.caption.weight(.semibold))
                             .foregroundColor(Color.Token.goldBright)
                     }
@@ -159,7 +156,7 @@ struct VerseAISheet: View {
                 
                 // AI Reflection Result
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(AppLanguageManager.shared.currentLanguage == .english ? "Reflective Insight" : "Tinjauan Renungan")
+                    Text(AppLanguageManager.shared.currentLanguage == .english ? "AI Spiritual Reflection" : "Renungan Spiritual AI")
                         .font(.subheadline.weight(.bold))
                         .foregroundColor(Color.Token.goldBright)
                         .textCase(.uppercase)
@@ -181,14 +178,15 @@ struct VerseAISheet: View {
                 )
                 .padding(.horizontal)
                 
-                // Action Buttons
-                Button {
-                    // Action: Post or share
-                    dismiss()
-                } label: {
+                // Share to WhatsApp/Other Apps
+                ShareLink(
+                    item: shareText,
+                    subject: Text(AppLanguageManager.shared.currentLanguage == .english ? "Al-Khatib AI Reflection" : "Renungan AI Al-Khatib"),
+                    message: Text(shareText)
+                ) {
                     HStack(spacing: 8) {
-                        Image(systemName: "paperplane.fill")
-                        Text(AppLanguageManager.shared.currentLanguage == .english ? "Share to Feed" : "Bagikan ke Refleksi")
+                        Image(systemName: "square.and.arrow.up")
+                        Text(AppLanguageManager.shared.currentLanguage == .english ? "Share Reflection" : "Bagikan Renungan")
                     }
                     .font(.headline)
                     .foregroundColor(.white)
@@ -210,13 +208,117 @@ struct VerseAISheet: View {
         }
     }
     
-    private func generateReflection() -> String {
-        // Build a dynamic reflection based on the surah name
+    private var shareText: String {
+        let lang = AppLanguageManager.shared.currentLanguage
+        let appName = "Al-Khatib"
+        let title = lang == .english ? "✨ AI Spiritual Reflection - \(appName) ✨" : "✨ Renungan Spiritual AI - \(appName) ✨"
+        let header = "\(surahName) • \(lang == .english ? "Ayah" : "Ayat") \(verseNumber)"
+        
+        return """
+        \(title)
+        \(header)
+        
+        📖 "\(translationText)"
+        
+        \(reflectionText)
+        
+        \(lang == .english ? "Shared via Al-Khatib App" : "Dibagikan via Aplikasi Al-Khatib")
+        """
+    }
+    
+    private func loadReflection() async {
+        var tafsirText = ""
+        if let repo = contentRepository {
+            if let response = try? await repo.getTafsirByAyah(resourceId: "169", ayahKey: verseKey) {
+                tafsirText = response.tafsir?.textStrippingHTML?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            }
+        }
+        
+        let client = AIClient()
+        let lang = AppLanguageManager.shared.currentLanguage
+        
+        let systemPrompt: String
+        let userPrompt: String
+        
+        if lang == .english {
+            systemPrompt = """
+            You are a wise, deeply reflective, and gentle Islamic spiritual AI assistant. Your task is to write a soulful spiritual reflection (tadabbur) based on the Quranic verse and tafsir provided.
+            Write your reflection in a structured format with three distinct sections (use bold headers, no special markdown formatting):
+            1. **Introduction** (A gentle, inspiring context or opening for the verse)
+            2. **Core Wisdom** (The deep spiritual lessons and wisdom of the verse)
+            3. **Practical Application** (Concrete steps or self-reflection for daily life)
+            
+            Provide a comprehensive, detailed, and deep reflection (total length between 150-250 words). Ensure the tone is beautiful, calming, and aligned with standard Islamic creed. Do not invent hadith.
+            """
+            userPrompt = """
+            Write a spiritual reflection for the following verse:
+            Surah: \(surahName)
+            Verse: \(verseNumber)
+            Arabic Text: \(verseText)
+            Translation: \(translationText)
+            Tafsir Context: \(tafsirText.isEmpty ? "N/A" : tafsirText)
+            
+            Write the complete reflection in English, structured with Introduction, Core Wisdom, and Practical Application.
+            """
+        } else {
+            systemPrompt = """
+            Anda adalah asisten AI spiritual Islam yang bijaksana, mendalam, dan santun. Tugas Anda adalah memberikan renungan spiritual (tadabbur) yang menyentuh hati berdasarkan ayat Al-Quran dan tafsir yang disediakan.
+            Tulis penjelasan Anda secara terstruktur dengan tiga bagian berikut (gunakan subjudul tebal, tanpa simbol markdown aneh):
+            1. **Pendahuluan** (Konteks atau pengantar ayat yang lembut dan inspiratif)
+            2. **Intisari** (Makna mendalam dan hikmah spiritual dari ayat tersebut)
+            3. **Aplikasi Praktis** (Langkah konkret atau introspeksi diri sehari-hari yang dapat diamalkan oleh pembaca)
+            
+            Berikan penjelasan yang lengkap, detail, dan mendalam (panjang total sekitar 150-250 kata). Pastikan bahasa yang digunakan sangat indah, menyejukkan, dan sesuai dengan akidah Ahlus Sunnah wal Jama'ah. Jangan mengarang hadis palsu.
+            """
+            userPrompt = """
+            Berikan renungan spiritual untuk ayat berikut:
+            Surah: \(surahName)
+            Ayat: \(verseNumber)
+            Teks Arab: \(verseText)
+            Terjemahan: \(translationText)
+            Konteks Tafsir: \(tafsirText.isEmpty ? "N/A" : tafsirText)
+            
+            Tulis renungan lengkap dalam bahasa Indonesia secara terstruktur (Pendahuluan, Intisari, Aplikasi Praktis).
+            """
+        }
+        
+        let result = await client.complete(system: systemPrompt, user: userPrompt, temperature: 0.35)
+        
+        if let result, result.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+            self.reflectionText = result
+        } else {
+            self.reflectionText = generateFallbackReflection()
+        }
+        
+        withAnimation(.easeOut(duration: 0.4)) {
+            isLoading = false
+        }
+    }
+    
+    private func generateFallbackReflection() -> String {
         let lang = AppLanguageManager.shared.currentLanguage
         if lang == .english {
-            return "This verse from \(surahName) reminds us of the infinite wisdom of Allah. The phrase reminds us to align our hearts with the remembrance of the Divine, especially when facing life's daily pressures. By seeking refuge in prayer and understanding the deep teachings of this Ayah, we cultivate patience, gratitude, and a resilient spiritual posture. Let this reflection guide your actions today, bringing clarity to your thoughts and peace to your heart."
+            return """
+            **Introduction**
+            This beautiful verse from \(surahName) opens our hearts to the deep mercy and wisdom of the Almighty. It serves as a gentle reminder of our journey back to our Creator.
+            
+            **Core Wisdom**
+            The verse emphasizes steadfast faith and patience. When we align our daily actions with the guidance of this Ayah, we cultivate a stronger connection to the Divine, anchoring our souls in tranquility.
+            
+            **Practical Application**
+            Let us take a moment today to reflect on our words and actions. Strive to be more patient with those around us, and seek strength through prayer and remembrance.
+            """
         } else {
-            return "Ayat ini dari Surah \(surahName) mengingatkan kita akan kebijaksanaan Allah yang tidak terbatas. Pesan mendalam di dalamnya mengajak kita untuk senantiasa menyelaraskan hati dengan mengingat Sang Pencipta, terutama saat menghadapi tekanan hidup sehari-hari. Dengan merenungi makna ayat ini, kita diajarkan untuk memupuk kesabaran, keikhlasan, dan keteguhan iman. Jadikan renungan ini sebagai panduan langkah Anda hari ini, membawa ketenangan pada pikiran dan kedamaian dalam jiwa."
+            return """
+            **Pendahuluan**
+            Ayat yang indah dari Surah \(surahName) ini membuka hati kita terhadap rahmat dan kebijaksanaan tak terbatas dari Allah SWT. Ini adalah pengingat lembut tentang perjalanan pulang jiwa kita.
+            
+            **Intisari**
+            Makna mendalam dari ayat ini menekankan pentingnya keikhlasan dan keteguhan iman. Dengan menyelaraskan langkah kita sesuai petunjuk-Nya, kita menemukan kedamaian sejati dalam mengingat-Nya.
+            
+            **Aplikasi Praktis**
+            Mari luangkan waktu hari ini untuk mengoreksi diri kita. Cobalah bersikap lebih sabar terhadap sesama, dan perkuat hati kita dengan senantiasa bersyukur atas segala nikmat-Nya.
+            """
         }
     }
 }

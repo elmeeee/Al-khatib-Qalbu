@@ -150,6 +150,7 @@ class AppLanguageManager: ObservableObject {
         "reciter_audio_update_desc": [.english: "Updates audio for all verses in this surah.", .indonesian: "Memperbarui audio untuk semua ayat dalam surah ini.", .malay: "Mengemas kini audio untuk semua ayat dalam surah ini."],
         "show_transliteration": [.english: "Show Transliteration", .indonesian: "Tampilkan Latin", .malay: "Tampilkan Rumi"],
         "memorization_mode": [.english: "Memorization Mode", .indonesian: "Mode Hafalan", .malay: "Mod Hafalan"],
+        "ai_reflection": [.english: "AI Reflection", .indonesian: "Renungan AI", .malay: "Renungan AI"],
         "continuous_play": [.english: "Continuous Play", .indonesian: "Putar Berkelanjutan", .malay: "Putar Berterusan"],
 
 

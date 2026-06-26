@@ -115,11 +115,13 @@ struct ChapterVersesView: View {
         }
         .sheet(isPresented: $showAISheet) {
             if let vm, let verse = readerCoordinator?.currentVerse(in: vm) {
-                VerseAISheet(
+                VerseReflectionSheet(
                     surahName: currentSurahName,
                     verseNumber: verse.resolvedVerseNumber ?? 1,
                     verseText: verse.displayText ?? verse.textUthmani ?? "",
-                    translationText: verse.translations?.first?.text ?? ""
+                    translationText: verse.translations?.first?.text ?? "",
+                    verseKey: verse.verseKey ?? "",
+                    contentRepository: container?.content
                 )
             }
         }
@@ -382,7 +384,7 @@ struct ChapterVersesView: View {
                     }
                     .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
 
-                    fabMenuItem(icon: "sparkles", color: .purple, label: "Tafsir AI") {
+                    fabMenuItem(icon: "sparkles", color: .purple, label: languageManager.localize("ai_reflection")) {
                         showAISheet = true
                     }
                     .transition(.asymmetric(insertion: .scale.combined(with: .opacity).combined(with: .move(edge: .bottom)), removal: .scale.combined(with: .opacity)))
